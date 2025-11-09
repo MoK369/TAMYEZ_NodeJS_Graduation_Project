@@ -1,4 +1,4 @@
-import { hash, compare } from "bcrypt";
+import { hash, compare } from "bcryptjs";
 class HashingSecurityUtil {
     static hashText = ({ plainText, salt = Number(process.env.HASH_SALT), }) => {
         return hash(plainText, salt);
