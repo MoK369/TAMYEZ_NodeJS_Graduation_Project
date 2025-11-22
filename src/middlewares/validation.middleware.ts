@@ -9,6 +9,20 @@ import StringConstants from "../utils/constants/strings.constants.ts";
 
 const validationMiddleware = ({ schema }: { schema: ZodSchemaType }) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    if (req.file) {
+      req.body[req.file.fieldname] = req.file;
+    }
+    if (req.files) {
+      if (Array.isArray(req.files) && req.files.length > 0) {
+        req.body[req.files[0]!.fieldname] = req.files;
+      } else {
+        const filesMap = req.files as unknown as Record<string, any>;
+        for (const fieldname of Object.keys(filesMap)) {
+          req.body[fieldname] = filesMap[fieldname];
+        }
+      }
+    }
+
     let validationErrorObject: { message: string; details: IssueObjectType[] } =
       {
         message: "",

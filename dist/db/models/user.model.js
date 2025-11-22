@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { GenderEnum, ProvidersEnum, RolesEnum, } from "../../utils/constants/enum.constants.js";
 import ModelsNames from "../../utils/constants/models.names.js";
+import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.js";
+import DocumentFormat from "../../utils/formats/document.format.js";
 const OtpOrLinkObjectSchema = new mongoose.Schema({
     code: { type: String, required: true },
     expiresAt: { type: Date, required: true },
@@ -81,6 +83,7 @@ const userSchema = new mongoose.Schema({
     },
 }, {
     timestamps: true,
+    strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 });
@@ -94,20 +97,27 @@ userSchema
     this.set({ firstName, lastName });
 });
 userSchema.methods.toJSON = function () {
-    const { id, ...restObj } = this.toObject();
+    const userObject = DocumentFormat.getIdFrom_Id(this.toObject());
     return {
-        id: this._id,
-        fullName: `${restObj.firstName} ${restObj.lastName}`,
-        email: restObj.email,
-        phoneNumber: restObj.phoneNumber,
-        gender: restObj.gender,
-        role: restObj.role,
-        profilePicture: restObj.profilePicture,
-        createdAt: restObj.createdAt,
-        updatedAt: restObj.updatedAt,
-        confirmedAt: restObj.confirmedAt,
+        id: userObject.id,
+        fullName: userObject.firstName
+            ? `${userObject.firstName} ${userObject.lastName}`
+            : undefined,
+        email: userObject.email,
+        phoneNumber: userObject.phoneNumber,
+        gender: userObject.gender,
+        role: userObject.role,
+        profilePicture: userObject.profilePicture,
+        createdAt: userObject.createdAt,
+        updatedAt: userObject.updatedAt,
+        confirmedAt: userObject.confirmedAt,
     };
 };
+userSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
+    softDeleteFunction(this);
+    console.log({ query: this.getQuery() });
+    next();
+});
 const UserModel = mongoose.models?.User ||
     mongoose.model(ModelsNames.userModel, userSchema);
 export default UserModel;

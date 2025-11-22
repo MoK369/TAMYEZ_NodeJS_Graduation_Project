@@ -14,6 +14,7 @@ export var ErrorCodesEnum;
     ErrorCodesEnum["UNAUTHORIZED"] = "UNAUTHORIZED";
     ErrorCodesEnum["FORBIDDEN"] = "FORBIDDEN";
     ErrorCodesEnum["TOO_MANY_RQUESTS"] = "TOO_MANY_REQUESTS";
+    ErrorCodesEnum["ASSET_ERROR"] = "ASSET_ERROR";
 })(ErrorCodesEnum || (ErrorCodesEnum = {}));
 export var EventsEnum;
 (function (EventsEnum) {
@@ -56,3 +57,8 @@ export var TokenTypesEnum;
 (function (TokenTypesEnum) {
     TokenTypesEnum["accessToken"] = "AccessToken";
 })(TokenTypesEnum || (TokenTypesEnum = {}));
+export var StorageTypesEnum;
+(function (StorageTypesEnum) {
+    StorageTypesEnum["disk"] = "Disk";
+    StorageTypesEnum["memory"] = "Memory";
+})(StorageTypesEnum || (StorageTypesEnum = {}));

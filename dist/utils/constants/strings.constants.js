@@ -45,6 +45,8 @@ class StringConstants {
     static INVALID_GMAIL_CREDENTIALS_MESSAGE = "Invaild gmail account credentials 🇬🪪";
     static EMAIL_EXISTS_PROVIDER_MESSAGE = "Email exists with another provider ✉️❌";
     static PHONE_NUMBER_VALIDATION_MESSAGE = "Phone number must start with country code (+20) followed by one of the code [10,11,12,15] followed by 8 digits 📱🔢 ❌";
+    static NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";
+    static ATTACHMENT_FIELD_NAME = "attachment";
     static WRONG_ROUTE_MESSAGE(req) {
         return `Wrong URI ${req.url} or METHOD ${req.method} ⛔`;
     }
@@ -65,6 +67,9 @@ class StringConstants {
     }
     static REQUEST_KEY_REQUIRED_MESSAGE(requestKey) {
         return `${requestKey.toString()} parameters are required 🚫`;
+    }
+    static INVALID_FILE_MIMETYPE_MESSAGE(allowedMimeTypes) {
+        return `Invalid file mimeType 📁❌! Allowd types are ${allowedMimeTypes}`;
     }
     static TAMYEZ_LOGO_PATH = "/assets/TAMYEZ_logo.png";
 }

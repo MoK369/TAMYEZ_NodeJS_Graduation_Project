@@ -14,6 +14,11 @@ class RoutePaths {
   static readonly verifyForgetPassowrd = "/verify-forget-password";
   static readonly resetForgetPassword = "/reset-forget-password";
   static readonly resendEmailVerificationLink = "/resend-email-verification";
+
+  // user routes
+  static readonly user = "/user";
+  static readonly userProfile = "/";
+  static readonly profilePicture = "/profile-picture";
 }
 
 export default RoutePaths;

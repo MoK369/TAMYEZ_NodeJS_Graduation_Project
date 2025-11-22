@@ -10,6 +10,8 @@ import {
   RolesEnum,
 } from "../../utils/constants/enum.constants.ts";
 import ModelsNames from "../../utils/constants/models.names.ts";
+import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
+import DocumentFormat from "../../utils/formats/document.format.ts";
 
 const OtpOrLinkObjectSchema = new mongoose.Schema<IOtpOrLinkObject>(
   {
@@ -114,6 +116,7 @@ const userSchema = new mongoose.Schema<IUser>(
   },
   {
     timestamps: true,
+    strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
@@ -130,21 +133,33 @@ userSchema
   });
 
 userSchema.methods.toJSON = function () {
-  const { id, ...restObj }: IUser = this.toObject();
+  const userObject: IUser = DocumentFormat.getIdFrom_Id<IUser>(this.toObject());
 
   return {
-    id: this._id,
-    fullName: `${restObj.firstName} ${restObj.lastName}`,
-    email: restObj.email,
-    phoneNumber: restObj.phoneNumber,
-    gender: restObj.gender,
-    role: restObj.role,
-    profilePicture: restObj.profilePicture,
-    createdAt: restObj.createdAt,
-    updatedAt: restObj.updatedAt,
-    confirmedAt: restObj.confirmedAt,
+    id: userObject.id,
+    fullName: userObject.firstName
+      ? `${userObject.firstName} ${userObject.lastName}`
+      : undefined,
+    email: userObject.email,
+    phoneNumber: userObject.phoneNumber,
+    gender: userObject.gender,
+    role: userObject.role,
+    profilePicture: userObject.profilePicture,
+    createdAt: userObject.createdAt,
+    updatedAt: userObject.updatedAt,
+    confirmedAt: userObject.confirmedAt,
   };
 };
+
+userSchema.pre(
+  ["find", "findOne", "findOneAndUpdate", "countDocuments"],
+  function (next) {
+    softDeleteFunction(this);
+    console.log({ query: this.getQuery() });
+
+    next();
+  }
+);
 
 const UserModel =
   (mongoose.models?.User as mongoose.Model<IUser>) ||

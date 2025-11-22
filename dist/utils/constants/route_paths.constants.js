@@ -12,5 +12,8 @@ class RoutePaths {
     static verifyForgetPassowrd = "/verify-forget-password";
     static resetForgetPassword = "/reset-forget-password";
     static resendEmailVerificationLink = "/resend-email-verification";
+    static user = "/user";
+    static userProfile = "/";
+    static profilePicture = "/profile-picture";
 }
 export default RoutePaths;

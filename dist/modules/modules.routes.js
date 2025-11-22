@@ -1,6 +1,7 @@
 import { Router } from "express";
-import authRouter from "./auth/auth.controller.js";
+import { authRouter } from "./auth/index.js";
 import RoutePaths from "../utils/constants/route_paths.constants.js";
+import { userRouter } from "./user/index.js";
 const modulesRouter = Router();
 modulesRouter.get("/", (req, res) => {
     res.status(200).json({
@@ -8,4 +9,5 @@ modulesRouter.get("/", (req, res) => {
     });
 });
 modulesRouter.use(RoutePaths.auth, authRouter);
+modulesRouter.use(RoutePaths.user, userRouter);
 export default modulesRouter;

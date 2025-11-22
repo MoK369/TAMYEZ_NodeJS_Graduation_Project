@@ -118,6 +118,10 @@ class StringConstants {
   static readonly PHONE_NUMBER_VALIDATION_MESSAGE =
     "Phone number must start with country code (+20) followed by one of the code [10,11,12,15] followed by 8 digits 📱🔢 ❌";
 
+  static readonly NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";
+
+  static readonly ATTACHMENT_FIELD_NAME = "attachment";
+
   static WRONG_ROUTE_MESSAGE(req: Request): string {
     return `Wrong URI ${req.url} or METHOD ${req.method} ⛔`;
   }
@@ -143,6 +147,10 @@ class StringConstants {
   }
   static REQUEST_KEY_REQUIRED_MESSAGE(requestKey: RequestKeysType): string {
     return `${requestKey.toString()} parameters are required 🚫`;
+  }
+
+  static INVALID_FILE_MIMETYPE_MESSAGE(allowedMimeTypes: string[]): string {
+    return `Invalid file mimeType 📁❌! Allowd types are ${allowedMimeTypes}`;
   }
 
   // assets paths

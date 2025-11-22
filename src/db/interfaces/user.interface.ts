@@ -1,4 +1,4 @@
-import type { HydratedDocument, Types } from "mongoose";
+import type { Default__v, HydratedDocument, Require_id, Types } from "mongoose";
 import type {
   ProvidersEnum,
   GenderEnum,
@@ -17,7 +17,7 @@ export interface IProfilePicture {
 }
 
 export interface IUser {
-  id?: Types.ObjectId; // virtual
+  id?: Types.ObjectId | undefined; // virtual
 
   fullName?: string;
   firstName: string;
@@ -63,5 +63,7 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type FullIUser = Require_id<Default__v<IUser>>;
 
 export type HIUserType = HydratedDocument<IUser>;

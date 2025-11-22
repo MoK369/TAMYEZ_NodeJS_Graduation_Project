@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import UserModel from "../../db/models/user.model.ts";
-import UserRepository from "../../db/repositories/user.respository.ts";
+import { UserModel } from "../../db/models/index.ts";
+import { UserRepository } from "../../db/repositories/index.ts";
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type {
   ForgetPasswordBodyDtoType,
