@@ -1,0 +1,11 @@
+import { Router } from "express";
+import QuizService from "./quiz.service.js";
+import RoutePaths from "../../utils/constants/route_paths.constants.js";
+import Auths from "../../middlewares/auths.middleware.js";
+import endpointsAuthorization from "./quiz.auhorization.js";
+import validationMiddleware from "../../middlewares/validation.middleware.js";
+import QuizValidators from "./quiz.validation.js";
+const quizRouter = Router();
+const quizService = new QuizService();
+quizRouter.post(RoutePaths.createQuiz, Auths.combined({ accessRoles: endpointsAuthorization.createQuiz }), validationMiddleware({ schema: QuizValidators.createQuiz }), quizService.createQuiz);
+export default quizRouter;

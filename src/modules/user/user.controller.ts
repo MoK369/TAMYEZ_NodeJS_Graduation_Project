@@ -1,0 +1,34 @@
+import { Router } from "express";
+import RoutePaths from "../../utils/constants/route_paths.constants.ts";
+import Auths from "../../middlewares/auths.middleware.ts";
+import UserService from "./user.service.ts";
+import validationMiddleware from "../../middlewares/validation.middleware.ts";
+import UserValidators from "./user.validation.ts";
+import CloudMulter from "../../utils/multer/cloud.multer.ts";
+import StringConstants from "../../utils/constants/strings.constants.ts";
+import fileValidation from "../../utils/multer/file_validation.multer.ts";
+import EnvFields from "../../utils/constants/env_fields.constants.ts";
+
+const userRouter = Router();
+
+const userService = new UserService();
+
+userRouter.get(
+  RoutePaths.userProfile,
+  Auths.authenticationMiddleware(),
+  userService.getProfile
+);
+
+userRouter.patch(
+  RoutePaths.profilePicture,
+  Auths.authenticationMiddleware(),
+  CloudMulter.handleSingleFileUpload({
+    fieldName: StringConstants.ATTACHMENT_FIELD_NAME,
+    maxFileSize: Number(process.env[EnvFields.PROFILE_PICTURE_SIZE]),
+    validation: fileValidation.image,
+  }),
+  validationMiddleware({ schema: UserValidators.uploadProfilePicture }),
+  userService.uploadProfilePicture
+);
+
+export default userRouter;

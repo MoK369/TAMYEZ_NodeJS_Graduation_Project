@@ -2,6 +2,20 @@ import { ValidationException } from "../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../utils/constants/strings.constants.js";
 const validationMiddleware = ({ schema }) => {
     return async (req, res, next) => {
+        if (req.file) {
+            req.body[req.file.fieldname] = req.file;
+        }
+        if (req.files) {
+            if (Array.isArray(req.files) && req.files.length > 0) {
+                req.body[req.files[0].fieldname] = req.files;
+            }
+            else {
+                const filesMap = req.files;
+                for (const fieldname of Object.keys(filesMap)) {
+                    req.body[fieldname] = filesMap[fieldname];
+                }
+            }
+        }
         let validationErrorObject = {
             message: "",
             details: [],

@@ -48,6 +48,17 @@ abstract class EnvFields {
 
   // gmail verification
   static readonly WEB_CLIENT_IDS = "WEB_CLIENT_IDS";
+
+  // User
+  static readonly PROFILE_PICTURE_SIZE = "PROFILE_PICTURE_SIZE";
+
+  // AWS
+  static readonly AWS_BUCKET_NAME = "AWS_BUCKET_NAME";
+  static readonly AWS_REGION = "AWS_REGION";
+  static readonly AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+  static readonly AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
+  static readonly AWS_PRESIGNED_URL_EXPIRES_IN_SECONDS =
+    "AWS_PRESIGNED_URL_EXPIRES_IN_SECONDS";
 }
 
 export default EnvFields;

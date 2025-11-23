@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import UserModel from "../../db/models/user.model.ts";
-import UserRepository from "../../db/repositories/user.respository.ts";
+import { UserModel } from "../../db/models/index.ts";
+import { UserRepository } from "../../db/repositories/index.ts";
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type {
   ForgetPasswordBodyDtoType,
@@ -39,7 +39,7 @@ import type {
   ISignUpLogInGmailResponse,
 } from "./auth.entity.ts";
 import { OAuth2Client, type TokenPayload } from "google-auth-library";
-import type { IProfilePicture } from "../../db/interfaces/user.interface.ts";
+import type { IProfilePictureObject } from "../../db/interfaces/common.interface.ts";
 
 class AuthService {
   private _userRespository = new UserRepository(UserModel);
@@ -312,7 +312,7 @@ class AuthService {
     }
 
     const objectToCreate: {
-      profilePicture?: IProfilePicture;
+      profilePicture?: IProfilePictureObject;
     } = {};
     if (picture && picture.length != 0) {
       objectToCreate.profilePicture = {

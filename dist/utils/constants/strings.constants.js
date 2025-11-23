@@ -1,4 +1,4 @@
-import { GenderEnum, SignatureLevelsEnum } from "./enum.constants.js";
+import { GenderEnum, QuizTypesEnum, SignatureLevelsEnum } from "./enum.constants.js";
 class StringConstants {
     static GENERIC_ERROR_MESSAGE = "An unexpected error occurred. Please try again later. 🤔";
     static SOMETHING_WRONG_MESSAGE = "Something went wrong. 🤔";
@@ -32,6 +32,7 @@ class StringConstants {
     static MISSING_TOKEN_PARTS_MESSAGE = "Missing Token Parts ⛔";
     static INVALID_TOKEN_PAYLOAD_MESSAGE = "Invalid Token Payload ❌";
     static TOKEN_REVOKED_MESSAGE = "Token as been Revoked ☠️";
+    static INVALID_FILE_PATH_MESSAGE = "Invalid file path ❌";
     static INVALID_BEARER_KEY_MESSAGE = "Invalid Bearer Key 🚫";
     static OTP_SENT_MESSAGE = "OTP has been sent to your email 🔑";
     static OTP_VERIFIED_MESSAGE = "OTP verified successfully 🔑 ✅";
@@ -45,6 +46,10 @@ class StringConstants {
     static INVALID_GMAIL_CREDENTIALS_MESSAGE = "Invaild gmail account credentials 🇬🪪";
     static EMAIL_EXISTS_PROVIDER_MESSAGE = "Email exists with another provider ✉️❌";
     static PHONE_NUMBER_VALIDATION_MESSAGE = "Phone number must start with country code (+20) followed by one of the code [10,11,12,15] followed by 8 digits 📱🔢 ❌";
+    static NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";
+    static ATTACHMENT_FIELD_NAME = "attachment";
+    static INVALID_VALIDATION_DURATION_MESSAGE = "duration must be an integer number between 60s and 36_000s 🕛";
+    static INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssesment} must not have a duration value 🕛`;
     static WRONG_ROUTE_MESSAGE(req) {
         return `Wrong URI ${req.url} or METHOD ${req.method} ⛔`;
     }
@@ -65,6 +70,12 @@ class StringConstants {
     }
     static REQUEST_KEY_REQUIRED_MESSAGE(requestKey) {
         return `${requestKey.toString()} parameters are required 🚫`;
+    }
+    static INVALID_FILE_MIMETYPE_MESSAGE(allowedMimeTypes) {
+        return `Invalid file mimeType 📁❌! Allowd types are ${allowedMimeTypes}`;
+    }
+    static INVALID_ENUM_VALUE_MESSAGE({ enumValueName, theEnum, }) {
+        return `Invalid ${enumValueName}, allowed values are ${Object.values(theEnum)}`;
     }
     static TAMYEZ_LOGO_PATH = "/assets/TAMYEZ_logo.png";
 }

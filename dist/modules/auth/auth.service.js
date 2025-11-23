@@ -1,5 +1,5 @@
-import UserModel from "../../db/models/user.model.js";
-import UserRepository from "../../db/repositories/user.respository.js";
+import { UserModel } from "../../db/models/index.js";
+import { UserRepository } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { BadRequestException, ConflictException, NotFoundException, } from "../../utils/exceptions/custom.exceptions.js";
 import IdSecurityUtil from "../../utils/security/id.security.js";

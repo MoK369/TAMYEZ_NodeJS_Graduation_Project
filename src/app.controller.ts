@@ -12,6 +12,7 @@ import globalErrorHandler from "./utils/handlers/global_error.handler.ts";
 import RoutePaths from "./utils/constants/route_paths.constants.ts";
 import UserModel from "./db/models/user.model.ts";
 import protocolAndHostHanlder from "./utils/handlers/protocol_host.handler.ts";
+import uploadsRouter from "./uploads/uploads.routes.ts";
 
 async function bootstrap() {
   const app: Express = express();
@@ -40,6 +41,7 @@ async function bootstrap() {
     await UserModel.syncIndexes();
     app.use(protocolAndHostHanlder);
     app.use(express.json());
+    app.use(RoutePaths.uploads,uploadsRouter);
     app.use([RoutePaths.SLASH_PATH, RoutePaths.API_V1_PATH], modulesRouter);
     app.use(RoutePaths.ALL_PATH, (req: Request, res: Response) => {
       res.status(404).json({

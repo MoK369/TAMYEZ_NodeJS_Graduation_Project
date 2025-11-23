@@ -3,11 +3,12 @@ import { RolesEnum, SignatureLevelsEnum, TokenTypesEnum, } from "../constants/en
 import EnvFields from "../constants/env_fields.constants.js";
 import IdSecurityUtil from "./id.security.js";
 import { BadRequestException, UnauthorizedException, } from "../exceptions/custom.exceptions.js";
-import UserRepository from "../../db/repositories/user.respository.js";
-import UserModel from "../../db/models/user.model.js";
+import { RevokedTokenRepository, UserRepository, } from "../../db/repositories/index.js";
+import { RevokedTokenModel, UserModel } from "../../db/models/index.js";
 import StringConstants from "../constants/strings.constants.js";
 class TokenSecurityUtil {
     static _userRepository = new UserRepository(UserModel);
+    static _revokedTokenRepository = new RevokedTokenRepository(RevokedTokenModel);
     static generateToken = ({ payload, secretKey, options = {
         expiresIn: Number(process.env.ACCESS_TOKEN_EXPIRES_IN),
     }, }) => {
@@ -74,7 +75,9 @@ class TokenSecurityUtil {
         if (!payload.id || !payload.iat || !payload.jti) {
             throw new BadRequestException(StringConstants.INVALID_TOKEN_PAYLOAD_MESSAGE);
         }
-        if (false) {
+        if (await this._revokedTokenRepository.findOne({
+            filter: { jti: payload.jti },
+        })) {
             throw new BadRequestException(StringConstants.TOKEN_REVOKED_MESSAGE);
         }
         const user = await this._userRepository.findOne({

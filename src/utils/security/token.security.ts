@@ -12,12 +12,18 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "../exceptions/custom.exceptions.ts";
-import UserRepository from "../../db/repositories/user.respository.ts";
-import UserModel from "../../db/models/user.model.ts";
+import {
+  RevokedTokenRepository,
+  UserRepository,
+} from "../../db/repositories/index.ts";
+import { RevokedTokenModel, UserModel } from "../../db/models/index.ts";
 import StringConstants from "../constants/strings.constants.ts";
 
 class TokenSecurityUtil {
   private static _userRepository = new UserRepository(UserModel);
+  private static _revokedTokenRepository = new RevokedTokenRepository(
+    RevokedTokenModel
+  );
 
   static generateToken = ({
     payload,
@@ -142,10 +148,9 @@ class TokenSecurityUtil {
     }
 
     if (
-      // await this._revokedTokenRepository.findOne({
-      //   filter: { jti: payload.jti! },
-      // })
-      false
+      await this._revokedTokenRepository.findOne({
+        filter: { jti: payload.jti! },
+      })
     ) {
       throw new BadRequestException(StringConstants.TOKEN_REVOKED_MESSAGE);
     }
@@ -154,7 +159,9 @@ class TokenSecurityUtil {
       filter: { _id: payload.id, freezed: { $exists: false } },
     });
     if (!user?.confirmedAt) {
-      throw new BadRequestException(StringConstants.INVALID_USER_ACCOUNT_MESSAGE);
+      throw new BadRequestException(
+        StringConstants.INVALID_USER_ACCOUNT_MESSAGE
+      );
     }
 
     if ((user?.changeCredentialsTime?.getTime() || 0) > payload.iat * 1000) {

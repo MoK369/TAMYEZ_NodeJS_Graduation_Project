@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { GenderEnum, SignatureLevelsEnum } from "./enum.constants.ts";
+import { GenderEnum, QuizTypesEnum, SignatureLevelsEnum } from "./enum.constants.ts";
 import type { RequestKeysType } from "../types/valdiation_schema.type.ts";
 
 class StringConstants {
@@ -83,6 +83,8 @@ class StringConstants {
 
   static readonly TOKEN_REVOKED_MESSAGE = "Token as been Revoked ☠️";
 
+  static readonly INVALID_FILE_PATH_MESSAGE = "Invalid file path ❌";
+
   static readonly INVALID_BEARER_KEY_MESSAGE = "Invalid Bearer Key 🚫";
 
   static readonly OTP_SENT_MESSAGE = "OTP has been sent to your email 🔑";
@@ -118,6 +120,16 @@ class StringConstants {
   static readonly PHONE_NUMBER_VALIDATION_MESSAGE =
     "Phone number must start with country code (+20) followed by one of the code [10,11,12,15] followed by 8 digits 📱🔢 ❌";
 
+  static readonly NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";
+
+  static readonly ATTACHMENT_FIELD_NAME = "attachment";
+
+  static readonly INVALID_VALIDATION_DURATION_MESSAGE =
+    "duration must be an integer number between 60s and 36_000s 🕛";
+
+  static readonly INVALID_DURATION_EXIST_MESSAGE =
+    `${QuizTypesEnum.careerAssesment} must not have a duration value 🕛`;
+
   static WRONG_ROUTE_MESSAGE(req: Request): string {
     return `Wrong URI ${req.url} or METHOD ${req.method} ⛔`;
   }
@@ -143,6 +155,22 @@ class StringConstants {
   }
   static REQUEST_KEY_REQUIRED_MESSAGE(requestKey: RequestKeysType): string {
     return `${requestKey.toString()} parameters are required 🚫`;
+  }
+
+  static INVALID_FILE_MIMETYPE_MESSAGE(allowedMimeTypes: string[]): string {
+    return `Invalid file mimeType 📁❌! Allowd types are ${allowedMimeTypes}`;
+  }
+
+  static INVALID_ENUM_VALUE_MESSAGE({
+    enumValueName,
+    theEnum,
+  }: {
+    enumValueName: string;
+    theEnum: Record<string, any>;
+  }): string {
+    return `Invalid ${enumValueName}, allowed values are ${Object.values(
+      theEnum
+    )}`;
   }
 
   // assets paths
