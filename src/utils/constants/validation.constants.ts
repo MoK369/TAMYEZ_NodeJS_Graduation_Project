@@ -10,7 +10,7 @@ const generalValidationConstants = {
     (value) => {
       return Types.ObjectId.isValid(value);
     },
-    { error: StringConstants.INVALID_USER_ID_MESSAGE }
+    { error: StringConstants.INVALID_ID_MESSAGE() }
   ),
   fullName: z
     .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("fullName") })

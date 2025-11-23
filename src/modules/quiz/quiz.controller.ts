@@ -17,4 +17,11 @@ quizRouter.post(
   quizService.createQuiz
 );
 
+quizRouter.patch(
+  RoutePaths.updateQuiz,
+  Auths.combined({ accessRoles: endpointsAuthorization.updateQuiz }),
+  validationMiddleware({ schema: QuizValidators.updateQuiz }),
+  quizService.updateQuiz
+);
+
 export default quizRouter;

@@ -7,7 +7,7 @@ import Stream from "node:stream";
 const generalValidationConstants = {
     objectId: z.string().refine((value) => {
         return Types.ObjectId.isValid(value);
-    }, { error: StringConstants.INVALID_USER_ID_MESSAGE }),
+    }, { error: StringConstants.INVALID_ID_MESSAGE() }),
     fullName: z
         .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("fullName") })
         .regex(AppRegex.fullNameRegex, StringConstants.NAME_VALIDATION_MESSAGE),

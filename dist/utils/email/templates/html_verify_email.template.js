@@ -1,6 +1,4 @@
 const HTML_VERIFY_EMAIL_TEMPLATE = ({ success = true, failureMessage, logoUrl, }) => {
-    console.log({ failureMessage, logoUrl });
-    console.log(failureMessage && failureMessage.length != 0);
     return `<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -21,8 +21,6 @@ class Auths {
       res: Response,
       next: NextFunction
     ): Promise<void> => {
-      console.log("inside authentication");
-
       const result = await z
         .object({
           authorization: z
@@ -45,8 +43,6 @@ class Auths {
           })
         );
       }
-
-      console.log("inside authentication");
 
       const { user, payload } = await TokenSecurityUtil.decode({
         authorization: req.headers.authorization!,

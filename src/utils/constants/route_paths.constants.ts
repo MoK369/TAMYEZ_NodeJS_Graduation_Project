@@ -28,6 +28,7 @@ class RoutePaths {
   // quiz routes
   static readonly quiz = "/quiz";
   static readonly createQuiz = "/";
+  static readonly updateQuiz = "/:quizId";
 }
 
 export default RoutePaths;

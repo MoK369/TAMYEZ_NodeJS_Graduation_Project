@@ -13,6 +13,7 @@ import RoutePaths from "./utils/constants/route_paths.constants.ts";
 import UserModel from "./db/models/user.model.ts";
 import protocolAndHostHanlder from "./utils/handlers/protocol_host.handler.ts";
 import uploadsRouter from "./uploads/uploads.routes.ts";
+import QuizModel from "./db/models/quiz.model.ts";
 
 async function bootstrap() {
   const app: Express = express();
@@ -39,6 +40,7 @@ async function bootstrap() {
   } else {
     // Routes
     await UserModel.syncIndexes();
+    await QuizModel.syncIndexes();
     app.use(protocolAndHostHanlder);
     app.use(express.json());
     app.use(RoutePaths.uploads,uploadsRouter);

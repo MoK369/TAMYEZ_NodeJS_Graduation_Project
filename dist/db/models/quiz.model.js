@@ -5,7 +5,8 @@ import { QuizTypesEnum } from "../../utils/constants/enum.constants.js";
 import DocumentFormat from "../../utils/formats/document.format.js";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.js";
 const quizSchema = new mongoose.Schema({
-    title: { type: String, minLength: 3, maxLength: 500, required: true },
+    uniqueKey: { type: String, required: true, unique: true },
+    title: { type: String, minLength: 3, maxLength: 200, required: true },
     description: {
         type: String,
         minLength: 3,
@@ -40,6 +41,14 @@ const quizSchema = new mongoose.Schema({
             return this.type !== QuizTypesEnum.careerAssesment;
         },
     },
+    tags: {
+        type: [String],
+        minLength: 2,
+        maxLength: 20,
+        required: function () {
+            return this.type !== QuizTypesEnum.careerAssesment;
+        },
+    },
     freezed: atByObjectSchema,
     restored: atByObjectSchema,
 }, {
@@ -57,6 +66,7 @@ quizSchema.methods.toJSON = function () {
         aiPrompt: quizObject.aiPrompt,
         type: quizObject.type,
         duration: quizObject.duration,
+        tags: quizObject.tags,
         createdBy: quizObject.createdBy,
         createdAt: quizObject.createdAt,
         updatedAt: quizObject.updatedAt,

@@ -12,6 +12,7 @@ import RoutePaths from "./utils/constants/route_paths.constants.js";
 import UserModel from "./db/models/user.model.js";
 import protocolAndHostHanlder from "./utils/handlers/protocol_host.handler.js";
 import uploadsRouter from "./uploads/uploads.routes.js";
+import QuizModel from "./db/models/quiz.model.js";
 async function bootstrap() {
     const app = express();
     app.use(cors());
@@ -30,6 +31,7 @@ async function bootstrap() {
     }
     else {
         await UserModel.syncIndexes();
+        await QuizModel.syncIndexes();
         app.use(protocolAndHostHanlder);
         app.use(express.json());
         app.use(RoutePaths.uploads, uploadsRouter);

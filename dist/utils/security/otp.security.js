@@ -19,7 +19,6 @@ class OTPSecurityUtil {
                 otpObject = user.forgetPasswordOtp;
                 break;
         }
-        console.log({ otpObject });
         if (otpObject && otpObject.expiresAt) {
             if (otpObject.count >= 5) {
                 if (Date.now() + otpExpiringTime - otpObject.expiresAt.getTime() >=

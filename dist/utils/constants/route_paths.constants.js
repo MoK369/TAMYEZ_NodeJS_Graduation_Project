@@ -20,5 +20,6 @@ class RoutePaths {
     static profilePicture = "/profile-picture";
     static quiz = "/quiz";
     static createQuiz = "/";
+    static updateQuiz = "/:quizId";
 }
 export default RoutePaths;

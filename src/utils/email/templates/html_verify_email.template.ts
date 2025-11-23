@@ -7,8 +7,6 @@ const HTML_VERIFY_EMAIL_TEMPLATE = ({
   failureMessage?: string | undefined;
   logoUrl: string;
 }): string => {
-  console.log({ failureMessage, logoUrl });
-  console.log(failureMessage && failureMessage.length != 0);
 
   return `<!DOCTYPE html>
 <html lang="en">

@@ -49,7 +49,7 @@ class OTPSecurityUtil {
         otpObject = user!.forgetPasswordOtp;
         break;
     }
-    console.log({ otpObject });
+    //console.log({ otpObject });
 
     if (otpObject && otpObject.expiresAt) {
       if (otpObject.count! >= 5) {

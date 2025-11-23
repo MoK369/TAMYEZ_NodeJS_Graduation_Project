@@ -5,21 +5,25 @@ import type { IAtByObject } from "./common.interface.ts";
 export interface IQuiz {
   id?: Types.ObjectId | undefined;
 
+  uniqueKey: string;
+
   title: string;
   description: string;
 
   aiPrompt: string;
 
   type: QuizTypesEnum;
-  duration?: number; // in seconds
+  duration?: number | undefined; // in seconds
 
-  createdAt: Date;
-  updatedAt: Date;
+  tags?: string[] | undefined;
 
   createdBy: Types.ObjectId;
 
   freezed: IAtByObject;
   restored: IAtByObject;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type FullIQuiz = Require_id<Default__v<IQuiz>>;

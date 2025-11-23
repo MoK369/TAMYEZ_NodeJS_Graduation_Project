@@ -1,4 +1,4 @@
-import { GenderEnum, QuizTypesEnum, SignatureLevelsEnum } from "./enum.constants.js";
+import { GenderEnum, QuizTypesEnum, SignatureLevelsEnum, } from "./enum.constants.js";
 class StringConstants {
     static GENERIC_ERROR_MESSAGE = "An unexpected error occurred. Please try again later. 🤔";
     static SOMETHING_WRONG_MESSAGE = "Something went wrong. 🤔";
@@ -27,7 +27,6 @@ class StringConstants {
     static INVALID_EMAIL_ACCOUNT_OR_VARIFIED_MESSAGE = "Invalid email account or already verified ❌";
     static INVALID_OTP_VALIDATION_MESSAGE = "Invalid OTP! OTP must consists only of 6 digits 🔒";
     static INVALID_OTP_MESSAGE = "Invalid OTP or has expired 🔑 ⏰";
-    static INVALID_USER_ID_MESSAGE = "Invalid userId 🆔";
     static INVALID_TOKEN_MESSAGE = "Invalid Token ⛔";
     static MISSING_TOKEN_PARTS_MESSAGE = "Missing Token Parts ⛔";
     static INVALID_TOKEN_PAYLOAD_MESSAGE = "Invalid Token Payload ❌";
@@ -50,6 +49,7 @@ class StringConstants {
     static ATTACHMENT_FIELD_NAME = "attachment";
     static INVALID_VALIDATION_DURATION_MESSAGE = "duration must be an integer number between 60s and 36_000s 🕛";
     static INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssesment} must not have a duration value 🕛`;
+    static CAREER_ASSESSMENT = "Career Assessment";
     static WRONG_ROUTE_MESSAGE(req) {
         return `Wrong URI ${req.url} or METHOD ${req.method} ⛔`;
     }
@@ -74,8 +74,14 @@ class StringConstants {
     static INVALID_FILE_MIMETYPE_MESSAGE(allowedMimeTypes) {
         return `Invalid file mimeType 📁❌! Allowd types are ${allowedMimeTypes}`;
     }
+    static INVALID_ID_MESSAGE(idName = "id") {
+        return `Invalid ${idName} 🆔`;
+    }
     static INVALID_ENUM_VALUE_MESSAGE({ enumValueName, theEnum, }) {
         return `Invalid ${enumValueName}, allowed values are ${Object.values(theEnum)}`;
+    }
+    static CREATED_SUCCESSFULLY_MESSAGE(item) {
+        return `${item} Created Successfully ✅`;
     }
     static TAMYEZ_LOGO_PATH = "/assets/TAMYEZ_logo.png";
 }
