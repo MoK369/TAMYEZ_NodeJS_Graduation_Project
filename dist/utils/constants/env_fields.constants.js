@@ -30,5 +30,6 @@ class EnvFields {
     static AWS_REGION = "AWS_REGION";
     static AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
     static AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
+    static AWS_PRESIGNED_URL_EXPIRES_IN_SECONDS = "AWS_PRESIGNED_URL_EXPIRES_IN_SECONDS";
 }
 export default EnvFields;

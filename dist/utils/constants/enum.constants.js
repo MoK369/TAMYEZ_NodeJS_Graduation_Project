@@ -62,3 +62,13 @@ export var StorageTypesEnum;
     StorageTypesEnum["disk"] = "Disk";
     StorageTypesEnum["memory"] = "Memory";
 })(StorageTypesEnum || (StorageTypesEnum = {}));
+export var FileDownloadValuesEnum;
+(function (FileDownloadValuesEnum) {
+    FileDownloadValuesEnum["true"] = "true";
+    FileDownloadValuesEnum["false"] = "false";
+})(FileDownloadValuesEnum || (FileDownloadValuesEnum = {}));
+export var QuizTypesEnum;
+(function (QuizTypesEnum) {
+    QuizTypesEnum["careerAssesment"] = "CareerAssesment";
+    QuizTypesEnum["stepQuiz"] = "StepQuiz";
+})(QuizTypesEnum || (QuizTypesEnum = {}));

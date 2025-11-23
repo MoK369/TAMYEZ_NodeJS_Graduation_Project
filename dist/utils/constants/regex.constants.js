@@ -5,5 +5,6 @@ class AppRegex {
     static tokenRegex = /^.+\..+\..+$/;
     static bearerWithTokenRegex = /^(BUser|BSystem|BSuperSystem)\ .+\..+\..+$/;
     static phoneNumberRegex = /^(\+20)(10|11|12|15)\d{8}$/;
+    static getFileWithUrlRegex = /^(users)\/[0-9a-f]{24}\/.+\.(jpeg|jpg|png|gif)/;
 }
 export default AppRegex;

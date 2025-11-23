@@ -4,17 +4,11 @@ import type {
   GenderEnum,
   RolesEnum,
 } from "../../utils/constants/enum.constants.ts";
-
-export interface IOtpOrLinkObject {
-  code: string;
-  expiresAt: Date;
-  count: number;
-}
-
-export interface IProfilePicture {
-  url: string;
-  provider: ProvidersEnum;
-}
+import type {
+  IAtByObject,
+  ICodExpireCoundObject,
+  IProfilePictureObject,
+} from "./common.interface.ts";
 
 export interface IUser {
   id?: Types.ObjectId | undefined; // virtual
@@ -24,11 +18,11 @@ export interface IUser {
   lastName: string; // vitual
 
   email: string;
-  confirmEmailLink?: IOtpOrLinkObject;
+  confirmEmailLink?: ICodExpireCoundObject;
   confirmedAt?: Date;
 
   password: string;
-  forgetPasswordOtp?: IOtpOrLinkObject;
+  forgetPasswordOtp?: ICodExpireCoundObject;
   forgetPasswordVerificationExpiresAt?: Date;
   lastResetPasswordAt?: Date;
 
@@ -42,7 +36,7 @@ export interface IUser {
 
   dateOfBirth?: Date;
 
-  profilePicture?: IProfilePicture;
+  profilePicture?: IProfilePictureObject;
   coverImages?: string[];
 
   // Acadamic Info
@@ -51,14 +45,8 @@ export interface IUser {
   coursesAndCertifications?: string[];
   careerPathId?: Types.ObjectId;
 
-  freezed?: {
-    at: Date;
-    by: Types.ObjectId;
-  };
-  restored?: {
-    at: Date;
-    by: Types.ObjectId;
-  };
+  freezed?: IAtByObject;
+  restored?: IAtByObject;
 
   createdAt: Date;
   updatedAt: Date;

@@ -2,6 +2,9 @@ class RoutePaths {
     static ALL_PATH = "{/*dummy}";
     static API_V1_PATH = "/api/v1";
     static SLASH_PATH = "/";
+    static uploads = "/uploads";
+    static getFileFromSubKey = "/*path";
+    static getFileFromSubKeyByPresignedUrl = "/uploads";
     static auth = "/auth";
     static signUp = "/sign-up";
     static logIn = "/log-in";
@@ -15,5 +18,7 @@ class RoutePaths {
     static user = "/user";
     static userProfile = "/";
     static profilePicture = "/profile-picture";
+    static quiz = "/quiz";
+    static createQuiz = "/";
 }
 export default RoutePaths;

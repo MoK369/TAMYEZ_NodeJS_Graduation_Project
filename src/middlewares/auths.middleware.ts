@@ -21,6 +21,8 @@ class Auths {
       res: Response,
       next: NextFunction
     ): Promise<void> => {
+      console.log("inside authentication");
+
       const result = await z
         .object({
           authorization: z
@@ -44,6 +46,8 @@ class Auths {
         );
       }
 
+      console.log("inside authentication");
+
       const { user, payload } = await TokenSecurityUtil.decode({
         authorization: req.headers.authorization!,
         tokenType,
@@ -57,7 +61,7 @@ class Auths {
   static authorizationMiddleware = ({
     accessRoles,
   }: {
-    accessRoles: RolesEnum;
+    accessRoles: RolesEnum[];
   }) => {
     return async (
       req: Request,
@@ -78,14 +82,12 @@ class Auths {
     accessRoles,
   }: {
     tokenType?: TokenTypesEnum;
-    accessRoles: RolesEnum;
+    accessRoles: RolesEnum[];
   }) => {
-    return async (req: Request, res: Response) => {
-      return [
-        this.authenticationMiddleware({ tokenType }),
-        this.authorizationMiddleware({ accessRoles }),
-      ];
-    };
+    return [
+      this.authenticationMiddleware({ tokenType }),
+      this.authorizationMiddleware({ accessRoles }),
+    ];
   };
 }
 

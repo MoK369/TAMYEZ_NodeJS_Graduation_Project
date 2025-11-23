@@ -7,6 +7,7 @@ import StringConstants from "../utils/constants/strings.constants.js";
 class Auths {
     static authenticationMiddleware = ({ tokenType = TokenTypesEnum.accessToken, } = {}) => {
         return async (req, res, next) => {
+            console.log("inside authentication");
             const result = await z
                 .object({
                 authorization: z
@@ -25,6 +26,7 @@ class Auths {
                     };
                 }));
             }
+            console.log("inside authentication");
             const { user, payload } = await TokenSecurityUtil.decode({
                 authorization: req.headers.authorization,
                 tokenType,
@@ -43,12 +45,10 @@ class Auths {
         };
     };
     static combined = ({ tokenType = TokenTypesEnum.accessToken, accessRoles, }) => {
-        return async (req, res) => {
-            return [
-                this.authenticationMiddleware({ tokenType }),
-                this.authorizationMiddleware({ accessRoles }),
-            ];
-        };
+        return [
+            this.authenticationMiddleware({ tokenType }),
+            this.authorizationMiddleware({ accessRoles }),
+        ];
     };
 }
 export default Auths;

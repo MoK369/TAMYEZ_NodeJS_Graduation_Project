@@ -13,7 +13,7 @@ export enum ErrorCodesEnum {
   UNAUTHORIZED = "UNAUTHORIZED",
   FORBIDDEN = "FORBIDDEN",
   TOO_MANY_RQUESTS = "TOO_MANY_REQUESTS",
-  ASSET_ERROR = "ASSET_ERROR"
+  ASSET_ERROR = "ASSET_ERROR",
 }
 
 export enum EventsEnum {
@@ -60,4 +60,14 @@ export enum TokenTypesEnum {
 export enum StorageTypesEnum {
   disk = "Disk",
   memory = "Memory",
+}
+
+export enum FileDownloadValuesEnum {
+  true = "true",
+  false = "false",
+}
+
+export enum QuizTypesEnum {
+  careerAssesment = "CareerAssesment",
+  stepQuiz = "StepQuiz",
 }

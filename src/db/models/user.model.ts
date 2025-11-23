@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
-import type {
-  IOtpOrLinkObject,
-  IProfilePicture,
-  IUser,
-} from "../interfaces/user.interface.ts";
+import type { IUser } from "../interfaces/user.interface.ts";
 import {
   GenderEnum,
   ProvidersEnum,
@@ -12,27 +8,8 @@ import {
 import ModelsNames from "../../utils/constants/models.names.ts";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
 import DocumentFormat from "../../utils/formats/document.format.ts";
+import { atByObjectSchema, codeExpireCountObjectSchema, profilePictureObjectSchema } from "./common_schemas.model.ts";
 
-const OtpOrLinkObjectSchema = new mongoose.Schema<IOtpOrLinkObject>(
-  {
-    code: { type: String, required: true },
-    expiresAt: { type: Date, required: true },
-    count: { type: Number, required: true },
-  },
-  { _id: false }
-);
-
-const ProfilePictureSchema = new mongoose.Schema<IProfilePicture>(
-  {
-    url: { type: String, requird: true },
-    provider: {
-      type: String,
-      enum: Object.values(ProvidersEnum),
-      default: ProvidersEnum.local,
-    },
-  },
-  { _id: false }
-);
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -47,7 +24,7 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     confirmedAt: { type: Date },
     confirmEmailLink: {
-      type: OtpOrLinkObjectSchema,
+      type: codeExpireCountObjectSchema,
     },
 
     password: {
@@ -57,7 +34,7 @@ const userSchema = new mongoose.Schema<IUser>(
       },
     },
     forgetPasswordOtp: {
-      type: OtpOrLinkObjectSchema,
+      type: codeExpireCountObjectSchema,
     },
     forgetPasswordVerificationExpiresAt: { type: Date },
     lastResetPasswordAt: { type: Date },
@@ -94,7 +71,7 @@ const userSchema = new mongoose.Schema<IUser>(
     dateOfBirth: { type: Date },
 
     profilePicture: {
-      type: ProfilePictureSchema,
+      type: profilePictureObjectSchema,
     },
     coverImages: [String],
 
@@ -104,15 +81,9 @@ const userSchema = new mongoose.Schema<IUser>(
     coursesAndCertifications: { type: [String], default: [] },
     careerPathId: { type: mongoose.Schema.Types.ObjectId, ref: "CareerPath" },
 
-    freezed: {
-      at: Date,
-      by: { type: mongoose.Schema.Types.ObjectId, ref: ModelsNames.userModel },
-    },
+    freezed: atByObjectSchema,
 
-    restored: {
-      at: Date,
-      by: { type: mongoose.Schema.Types.ObjectId, ref: ModelsNames.userModel },
-    },
+    restored: atByObjectSchema,
   },
   {
     timestamps: true,
@@ -144,7 +115,9 @@ userSchema.methods.toJSON = function () {
     phoneNumber: userObject.phoneNumber,
     gender: userObject.gender,
     role: userObject.role,
-    profilePicture: userObject.profilePicture,
+    profilePicture: userObject?.profilePicture?.url
+      ? DocumentFormat.getFullURLFromSubKey(userObject.profilePicture.url)
+      : undefined,
     createdAt: userObject.createdAt,
     updatedAt: userObject.updatedAt,
     confirmedAt: userObject.confirmedAt,
@@ -155,7 +128,6 @@ userSchema.pre(
   ["find", "findOne", "findOneAndUpdate", "countDocuments"],
   function (next) {
     softDeleteFunction(this);
-    console.log({ query: this.getQuery() });
 
     next();
   }

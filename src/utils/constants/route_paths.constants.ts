@@ -3,6 +3,11 @@ class RoutePaths {
   static readonly API_V1_PATH = "/api/v1";
   static readonly SLASH_PATH = "/";
 
+  // uploads routes
+  static readonly uploads = "/uploads";
+  static readonly getFileFromSubKey = "/*path";
+  static readonly getFileFromSubKeyByPresignedUrl = "/uploads";
+
   // auth routes
   static readonly auth = "/auth";
   static readonly signUp = "/sign-up";
@@ -19,6 +24,10 @@ class RoutePaths {
   static readonly user = "/user";
   static readonly userProfile = "/";
   static readonly profilePicture = "/profile-picture";
+
+  // quiz routes
+  static readonly quiz = "/quiz";
+  static readonly createQuiz = "/";
 }
 
 export default RoutePaths;

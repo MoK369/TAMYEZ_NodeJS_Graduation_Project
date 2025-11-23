@@ -1,0 +1,91 @@
+import mongoose, { Model } from "mongoose";
+import type { IQuiz } from "../interfaces/quiz.interface.ts";
+import ModelsNames from "../../utils/constants/models.names.ts";
+import { atByObjectSchema } from "./common_schemas.model.ts";
+import { QuizTypesEnum } from "../../utils/constants/enum.constants.ts";
+import DocumentFormat from "../../utils/formats/document.format.ts";
+import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
+
+const quizSchema = new mongoose.Schema<IQuiz>(
+  {
+    title: { type: String, minLength: 3, maxLength: 500, required: true },
+    description: {
+      type: String,
+      minLength: 3,
+      maxLength: 50_000,
+      required: true,
+    },
+    aiPrompt: {
+      type: String,
+      minLength: 3,
+      maxLength: 50_000,
+      required: true,
+    },
+
+    type: {
+      type: String,
+      enum: Object.values(QuizTypesEnum),
+      default: QuizTypesEnum.stepQuiz,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: ModelsNames.userModel,
+      required: true,
+    },
+
+    duration: {
+      type: Number,
+      min: 60,
+      max: 36_000 /* 10 hours */,
+      validate: {
+        validator: Number.isInteger,
+        message: "{VALUE} is not an integer value",
+      },
+      required: function (this) {
+        return this.type !== QuizTypesEnum.careerAssesment;
+      },
+    },
+
+    freezed: atByObjectSchema,
+    restored: atByObjectSchema,
+  },
+  {
+    timestamps: true,
+    strictQuery: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+quizSchema.methods.toJSON = function () {
+  const quizObject = DocumentFormat.getIdFrom_Id<IQuiz>(this.toObject());
+
+  return {
+    id: quizObject.id,
+    title: quizObject.title,
+    describe: quizObject.description,
+    aiPrompt: quizObject.aiPrompt,
+    type: quizObject.type,
+    duration: quizObject.duration,
+    createdBy: quizObject.createdBy,
+    createdAt: quizObject.createdAt,
+    updatedAt: quizObject.updatedAt,
+    freezed: quizObject.freezed,
+    restored: quizObject.restored,
+  };
+};
+
+quizSchema.pre(
+  ["find", "findOne", "findOneAndUpdate", "countDocuments"],
+  function (next) {
+    softDeleteFunction(this);
+    next();
+  }
+);
+
+const QuizModel =
+  (mongoose.models.Quiz as Model<IQuiz>) ||
+  mongoose.model<IQuiz>(ModelsNames.quizModel, quizSchema);
+
+export default QuizModel;
