@@ -1,13 +1,15 @@
 import { QuizModel } from "../../db/models/index.js";
 import { QuizRepository } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
-import { QuizTypesEnum } from "../../utils/constants/enum.constants.js";
+import { QuizTypesEnum, RolesEnum, } from "../../utils/constants/enum.constants.js";
 import { BadRequestException, ConflictException, NotFoundException, ValidationException, } from "../../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import QuizUtil from "../../utils/quiz/utils.quiz.js";
 import UpdateUtil from "../../utils/update/util.update.js";
+import QuizApisManager from "./quiz.apis.js";
 class QuizService {
     _quizRepository = new QuizRepository(QuizModel);
+    _quizApisManager = new QuizApisManager();
     createQuiz = async (req, res) => {
         const { title, description, aiPrompt, type, duration, tags } = req
             .validationResult.body;
@@ -86,6 +88,46 @@ class QuizService {
         return successHandler({
             res,
             message: StringConstants.CREATED_SUCCESSFULLY_MESSAGE("Quiz"),
+        });
+    };
+    getQuizDetails = async (req, res) => {
+        const { quizId } = req.params;
+        const projection = {};
+        if (req.user.role === RolesEnum.user) {
+            projection.aiPrompt = 0;
+            projection.tags = 0;
+        }
+        const quiz = await this._quizRepository.findOne({
+            filter: {
+                _id: quizId,
+                paranoid: req.user.role !== RolesEnum.user ? false : true,
+            },
+            projection,
+        });
+        if (!quiz) {
+            throw new NotFoundException(StringConstants.INVALID_ID_MESSAGE("quizId"));
+        }
+        return successHandler({ res, body: { quiz } });
+    };
+    getQuizQuestions = async (req, res) => {
+        const { quizId } = req.params;
+        const quiz = await this._quizRepository.findOne({
+            filter: {
+                _id: quizId,
+                paranoid: req.user.role !== RolesEnum.user ? false : true,
+            },
+        });
+        if (!quiz) {
+            throw new NotFoundException(StringConstants.INVALID_ID_MESSAGE("quizId"));
+        }
+        return successHandler({
+            res,
+            body: {
+                quiz: await this._quizApisManager.getQuizQustions({
+                    title: quiz.title,
+                    aiPrompt: quiz.aiPrompt,
+                }),
+            },
         });
     };
 }

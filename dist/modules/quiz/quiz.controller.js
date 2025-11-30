@@ -7,6 +7,8 @@ import validationMiddleware from "../../middlewares/validation.middleware.js";
 import QuizValidators from "./quiz.validation.js";
 const quizRouter = Router();
 const quizService = new QuizService();
+quizRouter.get(RoutePaths.getQuizDetails, Auths.authenticationMiddleware(), validationMiddleware({ schema: QuizValidators.getQuiz }), quizService.getQuizDetails);
+quizRouter.get(RoutePaths.getQuizQuestions, Auths.authenticationMiddleware(), validationMiddleware({ schema: QuizValidators.getQuiz }), quizService.getQuizQuestions);
 quizRouter.post(RoutePaths.createQuiz, Auths.combined({ accessRoles: endpointsAuthorization.createQuiz }), validationMiddleware({ schema: QuizValidators.createQuiz }), quizService.createQuiz);
 quizRouter.patch(RoutePaths.updateQuiz, Auths.combined({ accessRoles: endpointsAuthorization.updateQuiz }), validationMiddleware({ schema: QuizValidators.updateQuiz }), quizService.updateQuiz);
 export default quizRouter;

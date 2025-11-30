@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/cors": "^2.8.19",
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.3",
@@ -29,6 +30,7 @@
     "@aws-sdk/client-s3": "^3.937.0",
     "@aws-sdk/lib-storage": "^3.937.0",
     "@aws-sdk/s3-request-presigner": "^3.937.0",
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",

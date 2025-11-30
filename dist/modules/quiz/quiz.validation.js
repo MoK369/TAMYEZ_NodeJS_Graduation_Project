@@ -172,5 +172,8 @@ class QuizValidators {
             }
         }),
     };
+    static getQuiz = {
+        params: this.updateQuiz.params
+    };
 }
 export default QuizValidators;

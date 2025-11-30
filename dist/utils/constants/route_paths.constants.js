@@ -19,6 +19,8 @@ class RoutePaths {
     static userProfile = "/";
     static profilePicture = "/profile-picture";
     static quiz = "/quiz";
+    static getQuizDetails = "/:quizId";
+    static getQuizQuestions = "/questions/:quizId";
     static createQuiz = "/";
     static updateQuiz = "/:quizId";
 }
