@@ -9,6 +9,10 @@ export type UpdateProfileBodyDtoType = z.infer<
   typeof UserValidators.updateProfile.body
 >;
 
-export type changePasswordBodyDtoType = z.infer<
+export type ChangePasswordBodyDtoType = z.infer<
   typeof UserValidators.changePassword.body
+>;
+
+export type LogoutBodyDtoType = z.infer<
+  typeof UserValidators.logout.body
 >;

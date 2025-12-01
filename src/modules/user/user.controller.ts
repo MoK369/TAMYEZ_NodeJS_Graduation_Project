@@ -19,6 +19,13 @@ userRouter.get(
   userService.getProfile
 );
 
+userRouter.post(
+  RoutePaths.logout,
+  validationMiddleware({ schema: UserValidators.logout }),
+  Auths.authenticationMiddleware(),
+  userService.logout
+);
+
 userRouter.patch(
   RoutePaths.profilePicture,
   Auths.authenticationMiddleware(),

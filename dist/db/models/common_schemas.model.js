@@ -22,3 +22,11 @@ export const profilePictureObjectSchema = new mongoose.Schema({
         default: ProvidersEnum.local,
     },
 }, { _id: false });
+export const idSelectedAtObjectSchema = new mongoose.Schema({
+    id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: ModelsNames.userModel,
+    },
+    selectedAt: { type: Date, required: true },
+}, { _id: false });

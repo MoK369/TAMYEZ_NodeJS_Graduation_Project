@@ -3,7 +3,7 @@ import { GenderEnum, ProvidersEnum, RolesEnum, } from "../../utils/constants/enu
 import ModelsNames from "../../utils/constants/models.names.js";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.js";
 import DocumentFormat from "../../utils/formats/document.format.js";
-import { atByObjectSchema, codeExpireCountObjectSchema, profilePictureObjectSchema, } from "./common_schemas.model.js";
+import { atByObjectSchema, codeExpireCountObjectSchema, idSelectedAtObjectSchema, profilePictureObjectSchema, } from "./common_schemas.model.js";
 import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.js";
 const userSchema = new mongoose.Schema({
@@ -58,11 +58,7 @@ const userSchema = new mongoose.Schema({
     profilePicture: {
         type: profilePictureObjectSchema,
     },
-    coverImages: [String],
-    education: { type: String },
-    skills: { type: [String], default: [] },
-    coursesAndCertifications: { type: [String], default: [] },
-    careerPathId: { type: mongoose.Schema.Types.ObjectId, ref: "CareerPath" },
+    careerPath: { type: idSelectedAtObjectSchema },
     freezed: atByObjectSchema,
     restored: atByObjectSchema,
 }, {

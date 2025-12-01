@@ -26,6 +26,7 @@ class RoutePaths {
   static readonly profilePicture = "/profile-picture";
   static readonly updateProfile = "/";
   static readonly changePassword = "/change-password";
+  static readonly logout = "/logout";
 
   // quiz routes
   static readonly quiz = "/quiz";

@@ -3,7 +3,10 @@ import generalValidationConstants from "../../utils/constants/validation.constan
 import fileValidation from "../../utils/multer/file_validation.multer.ts";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import EnvFields from "../../utils/constants/env_fields.constants.ts";
-import { LogoutFlagsEnum } from "../../utils/constants/enum.constants.ts";
+import {
+  GenderEnum,
+  LogoutFlagsEnum,
+} from "../../utils/constants/enum.constants.ts";
 
 class UserValidators {
   static uploadProfilePicture = {
@@ -22,6 +25,7 @@ class UserValidators {
         firstName: generalValidationConstants.name.optional(),
         lastName: generalValidationConstants.name.optional(),
         phoneNumber: generalValidationConstants.phoneNumber.optional(),
+        gender: z.enum(Object.values(GenderEnum)).optional(),
       })
       .superRefine((data, ctx) => {
         if (!Object.values(data).length) {
@@ -46,13 +50,12 @@ class UserValidators {
           .default(LogoutFlagsEnum.stay),
       })
       .superRefine((data, ctx) => {
-
-        if(data.currentPassword == data.newPassword){
+        if (data.currentPassword == data.newPassword) {
           ctx.addIssue({
-            code:"custom",
-            path:["newPassword"],
-            message: "Current and New passwords shouldn't be the same 🔑☹️"
-          })
+            code: "custom",
+            path: ["newPassword"],
+            message: "Current and New passwords shouldn't be the same 🔑☹️",
+          });
         }
 
         generalValidationConstants.confirmPasswordChecker(
@@ -63,6 +66,20 @@ class UserValidators {
           ctx
         );
       }),
+  };
+
+  static logout = {
+    body: z.strictObject({
+      flag: z
+        .enum(Object.values(LogoutFlagsEnum))
+        .optional()
+        .default(LogoutFlagsEnum.one)
+        .refine(
+          (value) => {
+            return value != LogoutFlagsEnum.stay;
+          },
+        ),
+    }),
   };
 }
 

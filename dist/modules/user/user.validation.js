@@ -3,7 +3,7 @@ import generalValidationConstants from "../../utils/constants/validation.constan
 import fileValidation from "../../utils/multer/file_validation.multer.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
-import { LogoutFlagsEnum } from "../../utils/constants/enum.constants.js";
+import { GenderEnum, LogoutFlagsEnum, } from "../../utils/constants/enum.constants.js";
 class UserValidators {
     static uploadProfilePicture = {
         body: z.strictObject({
@@ -20,6 +20,7 @@ class UserValidators {
             firstName: generalValidationConstants.name.optional(),
             lastName: generalValidationConstants.name.optional(),
             phoneNumber: generalValidationConstants.phoneNumber.optional(),
+            gender: z.enum(Object.values(GenderEnum)).optional(),
         })
             .superRefine((data, ctx) => {
             if (!Object.values(data).length) {
@@ -47,13 +48,24 @@ class UserValidators {
                 ctx.addIssue({
                     code: "custom",
                     path: ["newPassword"],
-                    message: "Current and New passwords shouldn't be the same 🔑☹️"
+                    message: "Current and New passwords shouldn't be the same 🔑☹️",
                 });
             }
             generalValidationConstants.confirmPasswordChecker({
                 password: data.newPassword,
                 confirmPassword: data.confirmPassword,
             }, ctx);
+        }),
+    };
+    static logout = {
+        body: z.strictObject({
+            flag: z
+                .enum(Object.values(LogoutFlagsEnum))
+                .optional()
+                .default(LogoutFlagsEnum.one)
+                .refine((value) => {
+                return value != LogoutFlagsEnum.stay;
+            }),
         }),
     };
 }

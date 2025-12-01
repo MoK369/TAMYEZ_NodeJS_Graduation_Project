@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type {
   IAtByObject,
   ICodExpireCoundObject,
+  IIdSelectedAtObject,
   IProfilePictureObject,
 } from "../interfaces/common.interface.ts";
 import ModelsNames from "../../utils/constants/models.names.ts";
@@ -38,6 +39,20 @@ export const profilePictureObjectSchema =
         enum: Object.values(ProvidersEnum),
         default: ProvidersEnum.local,
       },
+    },
+    { _id: false }
+  );
+
+export const idSelectedAtObjectSchema =
+  new mongoose.Schema<IIdSelectedAtObject>(
+    {
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: ModelsNames.userModel,
+      },
+
+      selectedAt: { type: Date, required: true },
     },
     { _id: false }
   );

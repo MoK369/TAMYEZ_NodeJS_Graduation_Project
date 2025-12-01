@@ -7,6 +7,7 @@ import type {
 import type {
   IAtByObject,
   ICodExpireCoundObject,
+  IIdSelectedAtObject,
   IProfilePictureObject,
 } from "./common.interface.ts";
 
@@ -43,7 +44,7 @@ export interface IUser {
   education?: string;
   skills?: string[];
   coursesAndCertifications?: string[];
-  careerPathId?: Types.ObjectId;
+  careerPath?: IIdSelectedAtObject;
 
   freezed?: IAtByObject;
   restored?: IAtByObject;

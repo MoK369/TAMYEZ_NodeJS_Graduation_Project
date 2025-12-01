@@ -17,3 +17,7 @@ export interface IProfilePictureObject {
   provider: ProvidersEnum;
 }
 
+export interface IIdSelectedAtObject {
+  id: Types.ObjectId;
+  selectedAt: Date;
+}

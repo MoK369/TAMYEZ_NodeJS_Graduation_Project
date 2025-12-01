@@ -39,11 +39,14 @@ class UserService {
         });
     };
     updateProfile = async (req, res) => {
-        const { firstName, lastName, phoneNumber } = req.body;
+        const { firstName, lastName, phoneNumber, gender } = req.body;
         const updatedObject = UpdateUtil.getChangedFields({
             document: req.user,
-            updatedObject: { firstName, lastName, phoneNumber },
+            updatedObject: { firstName, lastName, phoneNumber, gender },
         });
+        if (updatedObject.gender && req.user.gender) {
+            throw new BadRequestException("Gender can't be changed after first selection 🚻");
+        }
         await req.user.updateOne({
             ...updatedObject,
         });
@@ -76,6 +79,15 @@ class UserService {
         await req.user.updateOne({
             password: newPassword,
             ...updateObject,
+        });
+        return successHandler({ res });
+    };
+    logout = async (req, res) => {
+        const { flag } = req.validationResult.body;
+        await TokenSecurityUtil.revoke({
+            flag,
+            userId: req.user._id,
+            tokenPayload: req.tokenPayload,
         });
         return successHandler({ res });
     };

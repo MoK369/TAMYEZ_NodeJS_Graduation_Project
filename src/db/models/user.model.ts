@@ -11,6 +11,7 @@ import DocumentFormat from "../../utils/formats/document.format.ts";
 import {
   atByObjectSchema,
   codeExpireCountObjectSchema,
+  idSelectedAtObjectSchema,
   profilePictureObjectSchema,
 } from "./common_schemas.model.ts";
 import HashingSecurityUtil from "../../utils/security/hash.security.ts";
@@ -79,13 +80,9 @@ const userSchema = new mongoose.Schema<IUser>(
     profilePicture: {
       type: profilePictureObjectSchema,
     },
-    coverImages: [String],
 
     // Acadamic Info
-    education: { type: String },
-    skills: { type: [String], default: [] },
-    coursesAndCertifications: { type: [String], default: [] },
-    careerPathId: { type: mongoose.Schema.Types.ObjectId, ref: "CareerPath" },
+    careerPath: { type: idSelectedAtObjectSchema },
 
     freezed: atByObjectSchema,
 
@@ -149,8 +146,8 @@ userSchema.pre("save", async function (next) {
     });
   }
 
-  console.log({doc: this});
-  
+  console.log({ doc: this });
+
   next();
 });
 
@@ -189,7 +186,7 @@ userSchema.pre(
 
 userSchema.post(
   ["find", "findOne", "findOneAndUpdate", "countDocuments"],
-   function (this, docs, next) {
+  function (this, docs, next) {
     // docs is an array for 'find', or a single document for 'findOne'
 
     if (!docs) return next();

@@ -20,6 +20,7 @@ class RoutePaths {
     static profilePicture = "/profile-picture";
     static updateProfile = "/";
     static changePassword = "/change-password";
+    static logout = "/logout";
     static quiz = "/quiz";
     static getQuizDetails = "/:quizId";
     static getQuizQuestions = "/questions/:quizId";

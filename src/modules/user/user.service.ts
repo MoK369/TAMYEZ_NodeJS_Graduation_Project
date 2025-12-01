@@ -2,7 +2,8 @@ import type { Request, Response } from "express";
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type { IProfileReponse } from "./user.entity.ts";
 import type {
-  changePasswordBodyDtoType,
+  ChangePasswordBodyDtoType,
+  LogoutBodyDtoType,
   UpdateProfileBodyDtoType,
   UploadProfilePictureBodyDtoType,
 } from "./user.dto.ts";
@@ -63,14 +64,19 @@ class UserService {
   };
 
   updateProfile = async (req: Request, res: Response): Promise<Response> => {
-    const { firstName, lastName, phoneNumber } =
+    const { firstName, lastName, phoneNumber, gender } =
       req.body as UpdateProfileBodyDtoType;
 
     const updatedObject = UpdateUtil.getChangedFields({
       document: req.user!,
-      updatedObject: { firstName, lastName, phoneNumber },
+      updatedObject: { firstName, lastName, phoneNumber, gender },
     });
 
+    if (updatedObject.gender && req.user!.gender) {
+      throw new BadRequestException(
+        "Gender can't be changed after first selection 🚻"
+      );
+    }
     await req.user!.updateOne({
       ...updatedObject,
     });
@@ -80,7 +86,7 @@ class UserService {
 
   changePassword = async (req: Request, res: Response): Promise<Response> => {
     const { currentPassword, newPassword, flag } = req.validationResult
-      .body as changePasswordBodyDtoType;
+      .body as ChangePasswordBodyDtoType;
 
     if (
       !(await HashingSecurityUtil.compareHash({
@@ -116,6 +122,17 @@ class UserService {
       ...updateObject,
     });
 
+    return successHandler({ res });
+  };
+
+  logout = async (req: Request, res: Response): Promise<Response> => {
+    const { flag } = req.validationResult.body as LogoutBodyDtoType;
+
+    await TokenSecurityUtil.revoke({
+      flag,
+      userId: req.user!._id,
+      tokenPayload: req.tokenPayload!,
+    });
     return successHandler({ res });
   };
 }
