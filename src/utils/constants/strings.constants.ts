@@ -132,7 +132,7 @@ class StringConstants {
   static readonly INVALID_VALIDATION_DURATION_MESSAGE =
     "duration must be an integer number between 60s and 36_000s 🕛";
 
-  static readonly INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssesment} must not have a duration value 🕛`;
+  static readonly INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssessment} must not have a duration value 🕛`;
 
   static readonly FAILED_REVOKE_TOKEN_MESSAGE = "Failed to revoke Token(s) ☠️";
 

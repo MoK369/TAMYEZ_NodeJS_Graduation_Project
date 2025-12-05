@@ -1,9 +1,13 @@
 import type { MailOptions } from "nodemailer/lib/json-transport/index.js";
 import type { IssueObjectType } from "../types/issue_object.type.ts";
-import type { ErrorCodesEnum } from "./enum.constants.ts";
+import type { ErrorCodesEnum, QuestionTypesEnum } from "./enum.constants.ts";
 import type { JwtPayload } from "jsonwebtoken";
 import type { Types } from "mongoose";
 import type Stream from "node:stream";
+import type {
+  FindFunctionsReturnType,
+  LeanType,
+} from "../types/find_functions.type.ts";
 
 export interface IAppError extends Error {
   statusCode?: number;
@@ -36,4 +40,45 @@ export interface IMulterFile {
   path?: string | undefined;
   /** `MemoryStorage` only: A Buffer containing the entire file. */
   buffer?: Buffer | undefined;
+}
+
+export interface IPaginationResult<TDocument, TLean extends LeanType = false>
+  extends IPaginationMetaData {
+  data?: FindFunctionsReturnType<TDocument, TLean>[];
+}
+
+export interface IPaginationMetaData {
+  totalCount?: number | undefined;
+  totalPages?: number | undefined;
+  currentPage?: number | undefined;
+  size?: number | undefined;
+}
+
+export interface IAIModelGeneratedQuestionsRequest {
+  title: string;
+  aiPrompt: string;
+}
+
+export interface IAIModelGeneratedQuestionsResponse {
+  questions: {
+    type: QuestionTypesEnum;
+    text: string;
+    options?: string[] | undefined;
+    correctAnswer?: string | string[] | undefined;
+  }[];
+}
+
+export interface IAIModelCheckWrittenQuestionsRequest
+  extends IAIModelGeneratedQuestionsRequest {
+  writtenAnswers: {
+    questionId: Types.ObjectId;
+    userAnswer: string;
+  }[];
+}
+
+export interface IAIModelCheckWrittenQuestionsResponse {
+  questionId: Types.ObjectId;
+  isCorrection: boolean;
+  correction?: string; // "This is the correction of user answer (5000)"
+  explenation?: string; // "This is the explenation of the correction (1000)"
 }

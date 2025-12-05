@@ -69,7 +69,7 @@ export var FileDownloadValuesEnum;
 })(FileDownloadValuesEnum || (FileDownloadValuesEnum = {}));
 export var QuizTypesEnum;
 (function (QuizTypesEnum) {
-    QuizTypesEnum["careerAssesment"] = "CareerAssesment";
+    QuizTypesEnum["careerAssessment"] = "CareerAssessment";
     QuizTypesEnum["stepQuiz"] = "StepQuiz";
 })(QuizTypesEnum || (QuizTypesEnum = {}));
 export var LogoutFlagsEnum;

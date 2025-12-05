@@ -5,8 +5,13 @@ export interface IQuestion {
   id?: Types.ObjectId;
   text: string;
   type: QuestionTypesEnum;
+  options?: string[] | undefined;
   correctAnswer?: string | string[] | undefined;
 }
+
+export type FullIQuestion = Require_id<Default__v<IQuestion>>;
+
+export type HIQuestion = HydratedDocument<IQuestion>;
 
 export interface IQuizQuestions {
   id?: Types.ObjectId;
@@ -16,9 +21,10 @@ export interface IQuizQuestions {
   userId: Types.ObjectId;
 
   writtenQuestionsIndexes?: number[];
+  correctAnswersMap: Map<string, string | string[]>;
 
   questions: IQuestion[];
-
+  
   expiresAt: Date;
 
   createdAt: Date;

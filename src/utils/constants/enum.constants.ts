@@ -68,7 +68,7 @@ export enum FileDownloadValuesEnum {
 }
 
 export enum QuizTypesEnum {
-  careerAssesment = "CareerAssesment",
+  careerAssessment = "CareerAssessment",
   stepQuiz = "StepQuiz",
 }
 

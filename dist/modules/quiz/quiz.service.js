@@ -6,16 +6,17 @@ import { BadRequestException, ConflictException, NotFoundException, ServerExcept
 import StringConstants from "../../utils/constants/strings.constants.js";
 import QuizUtil from "../../utils/quiz/utils.quiz.js";
 import UpdateUtil from "../../utils/update/util.update.js";
+import EnvFields from "../../utils/constants/env_fields.constants.js";
 class QuizService {
     _quizRepository = new QuizRepository(QuizModel);
     _quizQuestionsRepository = new QuizQuestionsRepository(QuizQuestionsModel);
     createQuiz = async (req, res) => {
         const { title, description, aiPrompt, type, duration, tags } = req
             .validationResult.body;
-        if (type === QuizTypesEnum.careerAssesment) {
+        if (type === QuizTypesEnum.careerAssessment) {
             const quiz = await this._quizRepository.findOne({ filter: { type } });
             if (quiz) {
-                throw new ConflictException(`Quiz of type ${QuizTypesEnum.careerAssesment} already exists 🚫`);
+                throw new ConflictException(`Quiz of type ${QuizTypesEnum.careerAssessment} already exists 🚫`);
             }
         }
         const uniqueKey = QuizUtil.getQuizUniqueKey({
@@ -60,13 +61,13 @@ class QuizService {
             title: title || quiz.title,
             tags: tags || quiz.tags,
         });
-        if (quiz.type === QuizTypesEnum.careerAssesment &&
+        if (quiz.type === QuizTypesEnum.careerAssessment &&
             (type || duration || tags?.length)) {
             throw new ValidationException(`Only description and aiPrompt of ${StringConstants.CAREER_ASSESSMENT} can be updated 🔒`);
         }
         else {
-            if (type === QuizTypesEnum.careerAssesment) {
-                throw new BadRequestException(`${QuizTypesEnum.stepQuiz} can not be update to ${QuizTypesEnum.careerAssesment} 🔒`);
+            if (type === QuizTypesEnum.careerAssessment) {
+                throw new BadRequestException(`${QuizTypesEnum.stepQuiz} can not be update to ${QuizTypesEnum.careerAssessment} 🔒`);
             }
             if (title || tags) {
                 if (await this._quizRepository.findOne({
@@ -97,7 +98,7 @@ class QuizService {
             projection.tags = 0;
         }
         const filter = {};
-        quizId === QuizTypesEnum.careerAssesment
+        quizId === QuizTypesEnum.careerAssessment
             ? (filter.uniqueKey = {
                 $regex: StringConstants.CAREER_ASSESSMENT,
                 $options: "i",
@@ -117,7 +118,6 @@ class QuizService {
     };
     _generateQuestions = async ({ title, aiPrompt, }) => {
         return {
-            title,
             questions: [
                 {
                     type: "mcq-single",
@@ -194,7 +194,7 @@ class QuizService {
     getQuizQuestions = async (req, res) => {
         const { quizId } = req.params;
         const filter = {};
-        quizId === QuizTypesEnum.careerAssesment
+        quizId === QuizTypesEnum.careerAssessment
             ? (filter.uniqueKey = {
                 $regex: StringConstants.CAREER_ASSESSMENT,
                 $options: "i",
@@ -209,10 +209,15 @@ class QuizService {
         if (!quiz) {
             throw new NotFoundException(StringConstants.INVALID_PARAMETER_MESSAGE("quizId"));
         }
-        const generatedQuestions = await this._generateQuestions({
-            title: quiz.title,
-            aiPrompt: quiz.aiPrompt,
-        });
+        const [_, generatedQuestions] = await Promise.all([
+            this._quizQuestionsRepository.deleteOne({
+                filter: { quizId: quiz._id, userId: req.user._id },
+            }),
+            this._generateQuestions({
+                title: quiz.title,
+                aiPrompt: quiz.aiPrompt,
+            }),
+        ]);
         const writtenQuestionsIndexes = [];
         generatedQuestions.questions.forEach((value, index) => {
             if (value.type === QuestionTypesEnum.written)
@@ -225,7 +230,12 @@ class QuizService {
                     userId: req.user._id,
                     writtenQuestionsIndexes,
                     questions: generatedQuestions.questions,
-                    expiresAt: new Date(Date.now() + quiz.duration * 1000),
+                    expiresAt: new Date(Date.now() +
+                        (quizId === QuizTypesEnum.careerAssessment
+                            ? Number(process.env[EnvFields.CAREER_ASSESSMENT_QUESTIONS_EXPIRES_IN_SECONDS])
+                            : quiz.duration +
+                                Number(process.env[EnvFields.QUIZ_QUESTIONS_EXPIRES_IN_SECONDS])) *
+                            1000),
                 },
             ],
         });
@@ -235,16 +245,60 @@ class QuizService {
         return successHandler({
             res,
             body: {
-                quiz: {
-                    ...quizQuestions.toJSON(),
-                    questions: quizQuestions.questions.map((value, index) => {
-                        return {
-                            id: value.id,
-                            ...generatedQuestions.questions[index],
-                        };
-                    }),
-                },
+                quiz: quizQuestions,
             },
+        });
+    };
+    _checkWrittenQuestionsAnswers = async ({ title, aiPrompt, writtenAnswers, }) => {
+        const response = [];
+        for (const answer of writtenAnswers) {
+            if (answer.userAnswer.includes("correct")) {
+                response.push({
+                    questionId: answer.questionId,
+                    isCorrection: true,
+                });
+            }
+            else {
+                response.push({
+                    questionId: answer.questionId,
+                    isCorrection: false,
+                    correction: "This is the correction of user answer",
+                    explenation: "This is the explanation of user answer",
+                });
+            }
+        }
+        return response;
+    };
+    checkQuizAnswers = async (req, res) => {
+        const { quizId } = req.params;
+        const { answers } = req.validationResult
+            .body;
+        const quizQuestions = await this._quizQuestionsRepository.findOne({
+            filter: { quizId, userId: req.user._id },
+        });
+        if (!quizQuestions) {
+            throw new NotFoundException("Quiz questions not found for the given quizId and user 🚫");
+        }
+        if (answers.length !== quizQuestions.questions.length) {
+            throw new ValidationException("Number of answers provided does not match number of questions ❌");
+        }
+        const checkedAnswers = [];
+        for (const answer of answers) {
+            const question = quizQuestions.questions.find((value) => value.id?.equals(answer.questionId));
+            if (!question) {
+                throw new NotFoundException("Not found questionId in the quiz questions ❌");
+            }
+            const selectedAnswer = question.options[answer.answerIndex];
+            if (selectedAnswer == question.correctAnswer) {
+                checkedAnswers.push({ ...question });
+            }
+            else {
+                checkedAnswers.push({ ...question, wrongAnswer: selectedAnswer });
+            }
+        }
+        return successHandler({
+            res,
+            message: "Quiz answers checked successfully ✅",
         });
     };
 }

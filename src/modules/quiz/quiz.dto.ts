@@ -16,3 +16,11 @@ export type UpdateQuizBodyDtoType = z.infer<
 export type GetQuizParamsDtoType = z.infer<
   typeof QuizValidators.getQuiz.params
 >;
+
+export type CheckQuizAnswersParamsDtoType = z.infer<
+  typeof QuizValidators.checkQuizAnswers.params
+>;
+
+export type CheckQuizAnswersBodyDtoType = z.infer<
+  typeof QuizValidators.checkQuizAnswers.body
+>;

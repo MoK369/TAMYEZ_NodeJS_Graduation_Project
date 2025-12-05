@@ -49,7 +49,7 @@ class StringConstants {
     static NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";
     static ATTACHMENT_FIELD_NAME = "attachment";
     static INVALID_VALIDATION_DURATION_MESSAGE = "duration must be an integer number between 60s and 36_000s 🕛";
-    static INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssesment} must not have a duration value 🕛`;
+    static INVALID_DURATION_EXIST_MESSAGE = `${QuizTypesEnum.careerAssessment} must not have a duration value 🕛`;
     static FAILED_REVOKE_TOKEN_MESSAGE = "Failed to revoke Token(s) ☠️";
     static CAREER_ASSESSMENT = "Career Assessment";
     static WRONG_ROUTE_MESSAGE(req) {

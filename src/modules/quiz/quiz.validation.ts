@@ -1,6 +1,9 @@
 import { z } from "zod";
 import StringConstants from "../../utils/constants/strings.constants.ts";
-import { QuizTypesEnum } from "../../utils/constants/enum.constants.ts";
+import {
+  QuestionTypesEnum,
+  QuizTypesEnum,
+} from "../../utils/constants/enum.constants.ts";
 import AppRegex from "../../utils/constants/regex.constants.ts";
 import generalValidationConstants from "../../utils/constants/validation.constants.ts";
 
@@ -48,7 +51,7 @@ class QuizValidators {
       })
       .superRefine((data, ctx) => {
         if (
-          data.type !== QuizTypesEnum.careerAssesment &&
+          data.type !== QuizTypesEnum.careerAssessment &&
           data.title == undefined
         ) {
           ctx.addIssue({
@@ -57,18 +60,18 @@ class QuizValidators {
             message: StringConstants.PATH_REQUIRED_MESSAGE("title"),
           });
         } else if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           data.title != undefined
         ) {
           ctx.addIssue({
             code: "custom",
             path: ["title"],
-            message: `quiz with type ${QuizTypesEnum.careerAssesment} its title is set by default ⚠️`,
+            message: `quiz with type ${QuizTypesEnum.careerAssessment} its title is set by default ⚠️`,
           });
         }
 
         if (
-          data.type !== QuizTypesEnum.careerAssesment &&
+          data.type !== QuizTypesEnum.careerAssessment &&
           data.duration == undefined
         ) {
           ctx.addIssue({
@@ -77,7 +80,7 @@ class QuizValidators {
             message: StringConstants.PATH_REQUIRED_MESSAGE("duration"),
           });
         } else if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           data.duration != undefined
         ) {
           ctx.addIssue({
@@ -87,14 +90,17 @@ class QuizValidators {
           });
         }
 
-        if (data.type !== QuizTypesEnum.careerAssesment && !data.tags?.length) {
+        if (
+          data.type !== QuizTypesEnum.careerAssessment &&
+          !data.tags?.length
+        ) {
           ctx.addIssue({
             code: "custom",
             path: ["tags"],
             message: StringConstants.PATH_REQUIRED_MESSAGE("tags"),
           });
         } else if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           data.tags?.length
         ) {
           ctx.addIssue({
@@ -106,7 +112,7 @@ class QuizValidators {
       })
       .transform((data) => {
         if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           !data.title &&
           !data.tags?.length
         ) {
@@ -163,18 +169,18 @@ class QuizValidators {
       })
       .superRefine((data, ctx) => {
         if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           data.title != undefined
         ) {
           ctx.addIssue({
             code: "custom",
             path: ["title"],
-            message: `quiz with type ${QuizTypesEnum.careerAssesment} its title can not be updated ⚠️`,
+            message: `quiz with type ${QuizTypesEnum.careerAssessment} its title can not be updated ⚠️`,
           });
         }
 
         if (
-          data.type === QuizTypesEnum.careerAssesment &&
+          data.type === QuizTypesEnum.careerAssessment &&
           data.duration != undefined
         ) {
           ctx.addIssue({
@@ -184,7 +190,7 @@ class QuizValidators {
           });
         }
 
-        if (data.type === QuizTypesEnum.careerAssesment && data.tags?.length) {
+        if (data.type === QuizTypesEnum.careerAssessment && data.tags?.length) {
           ctx.addIssue({
             code: "custom",
             path: ["tags"],
@@ -197,9 +203,31 @@ class QuizValidators {
   static getQuiz = {
     params: z.strictObject({
       quizId: z.union([
-        z.literal(QuizTypesEnum.careerAssesment),
+        z.literal(QuizTypesEnum.careerAssessment),
         generalValidationConstants.objectId,
       ]),
+    }),
+  };
+
+  static checkQuizAnswers = {
+    params: z.strictObject({ quizId: generalValidationConstants.objectId }),
+    body: z.strictObject({
+      answers: z
+        .array(
+          z.strictObject({
+            questionId: generalValidationConstants.objectId,
+            type: z.enum(Object.values(QuestionTypesEnum)),
+            answerIndex: z
+              .number({
+                error: StringConstants.PATH_REQUIRED_MESSAGE("answerIndex"),
+              })
+              .int({ message: "answerIndex must be an integer ❌" })
+              .min(0)
+              .max(3),
+          })
+        )
+        .min(2)
+        .max(200),
     }),
   };
 }

@@ -38,7 +38,7 @@ const quizSchema = new mongoose.Schema({
             message: "{VALUE} is not an integer value",
         },
         required: function () {
-            return this.type !== QuizTypesEnum.careerAssesment;
+            return this.type !== QuizTypesEnum.careerAssessment;
         },
     },
     tags: {
@@ -46,7 +46,7 @@ const quizSchema = new mongoose.Schema({
         minLength: 2,
         maxLength: 20,
         required: function () {
-            return this.type !== QuizTypesEnum.careerAssesment;
+            return this.type !== QuizTypesEnum.careerAssessment;
         },
     },
     freezed: atByObjectSchema,
