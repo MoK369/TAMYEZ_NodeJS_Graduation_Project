@@ -83,3 +83,11 @@ export enum QuestionTypesEnum {
   mcqMulti = "mcq-multi",
   written = "written",
 }
+
+export enum OptionIdsEnum {
+  empty = "optEmpty",
+  optionA = "optA",
+  optionB = "optB",
+  optionC = "optC",
+  optionD = "optD",
+}

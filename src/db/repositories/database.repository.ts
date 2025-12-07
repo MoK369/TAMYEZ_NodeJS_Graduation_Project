@@ -234,6 +234,18 @@ abstract class DatabaseRepository<TDocument> {
   }): Promise<FindFunctionsReturnType<TDocument, TLean>> => {
     return this.model.findOneAndDelete(filter, options);
   };
+
+  replaceOne = async ({
+    filter = {},
+    replacement,
+    options = {},
+  }: {
+    filter?: RootFilterQuery<TDocument>;
+    replacement: TDocument;
+    options?: MongooseBaseQueryOptions<TDocument>;
+  }): Promise<UpdateWriteOpResult> => {
+    return this.model.replaceOne(filter, replacement, options);
+  };
 }
 
 export default DatabaseRepository;

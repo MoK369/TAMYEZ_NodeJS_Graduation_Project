@@ -84,3 +84,11 @@ export var QuestionTypesEnum;
     QuestionTypesEnum["mcqMulti"] = "mcq-multi";
     QuestionTypesEnum["written"] = "written";
 })(QuestionTypesEnum || (QuestionTypesEnum = {}));
+export var OptionIdsEnum;
+(function (OptionIdsEnum) {
+    OptionIdsEnum["empty"] = "optEmpty";
+    OptionIdsEnum["optionA"] = "optA";
+    OptionIdsEnum["optionB"] = "optB";
+    OptionIdsEnum["optionC"] = "optC";
+    OptionIdsEnum["optionD"] = "optD";
+})(OptionIdsEnum || (OptionIdsEnum = {}));

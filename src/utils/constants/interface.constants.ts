@@ -1,6 +1,10 @@
 import type { MailOptions } from "nodemailer/lib/json-transport/index.js";
 import type { IssueObjectType } from "../types/issue_object.type.ts";
-import type { ErrorCodesEnum, QuestionTypesEnum } from "./enum.constants.ts";
+import type {
+  ErrorCodesEnum,
+  OptionIdsEnum,
+  QuestionTypesEnum,
+} from "./enum.constants.ts";
 import type { JwtPayload } from "jsonwebtoken";
 import type { Types } from "mongoose";
 import type Stream from "node:stream";
@@ -63,8 +67,8 @@ export interface IAIModelGeneratedQuestionsResponse {
   questions: {
     type: QuestionTypesEnum;
     text: string;
-    options?: string[] | undefined;
-    correctAnswer?: string | string[] | undefined;
+    options?: { id: OptionIdsEnum; text: string }[] | undefined;
+    correctAnswer?: OptionIdsEnum[] | undefined;
     explanation?: string | undefined;
   }[];
 }
@@ -73,6 +77,7 @@ export interface IAIModelCheckWrittenQuestionsRequest
   extends IAIModelGeneratedQuestionsRequest {
   writtenAnswers: {
     questionId: string;
+    text: string;
     userAnswer: string;
   }[];
 }

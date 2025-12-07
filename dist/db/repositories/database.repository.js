@@ -78,5 +78,8 @@ class DatabaseRepository {
     findOneAndDelete = async ({ filter = {}, options = { new: true }, }) => {
         return this.model.findOneAndDelete(filter, options);
     };
+    replaceOne = async ({ filter = {}, replacement, options = {}, }) => {
+        return this.model.replaceOne(filter, replacement, options);
+    };
 }
 export default DatabaseRepository;

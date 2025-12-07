@@ -3,5 +3,6 @@ class ModelsNames {
     static revokedTokenModel = "RevokedToken";
     static quizModel = "Quiz";
     static quizQuestionsModel = "QuizQuestions";
+    static savedQuizModel = "SavedQuiz";
 }
 export default ModelsNames;

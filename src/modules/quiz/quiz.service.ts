@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { QuizModel, QuizQuestionsModel } from "../../db/models/index.ts";
+import {
+  QuizModel,
+  QuizQuestionsModel,
+  SavedQuizModel,
+} from "../../db/models/index.ts";
 import {
   QuizQuestionsRepository,
   QuizRepository,
@@ -14,6 +18,7 @@ import type {
   UpdateQuizParamsDtoType,
 } from "./quiz.dto.ts";
 import {
+  OptionIdsEnum,
   QuestionTypesEnum,
   QuizTypesEnum,
   RolesEnum,
@@ -41,12 +46,16 @@ import type {
   IAIModelGeneratedQuestionsResponse,
 } from "../../utils/constants/interface.constants.ts";
 import makeCompleter from "../../utils/completer/make.completer.ts";
+import type { HIQuestion } from "../../db/interfaces/quiz_questions.interface.ts";
+import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts";
+import type { ISavedQuestion } from "../../db/interfaces/saved_quiz.interface.ts";
 
 class QuizService {
   private _quizRepository = new QuizRepository(QuizModel);
   private _quizQuestionsRepository = new QuizQuestionsRepository(
     QuizQuestionsModel
   );
+  private _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
   //private _quizApisManager = new QuizApisManager();
 
   createQuiz = async (req: Request, res: Response): Promise<Response> => {
@@ -204,16 +213,26 @@ class QuizService {
         {
           type: "mcq-single" as QuestionTypesEnum,
           text: "Which data structure uses LIFO (Last In, First Out) principle?",
-          options: ["Queue", "Stack", "Array", "Linked List"],
-          correctAnswer: "Stack",
+          options: [
+            { id: "optA" as OptionIdsEnum, text: "Queue" },
+            { id: "optB" as OptionIdsEnum, text: "Stack" },
+            { id: "optC" as OptionIdsEnum, text: "Array" },
+            { id: "optD" as OptionIdsEnum, text: "Linked List" },
+          ],
+          correctAnswer: ["optB" as OptionIdsEnum],
           explanation:
             "A stack follows the LIFO principle, meaning the last element added is the first to be removed.",
         },
         {
           type: "mcq-single" as QuestionTypesEnum,
           text: "What is the time complexity of binary search in a sorted array?",
-          options: ["O(n)", "O(log n)", "O(n log n)", "O(1)"],
-          correctAnswer: "O(log n)",
+          options: [
+            { id: "optA" as OptionIdsEnum, text: "O(n)" },
+            { id: "optB" as OptionIdsEnum, text: "O(log n)" },
+            { id: "optC" as OptionIdsEnum, text: "O(n log n)" },
+            { id: "optD" as OptionIdsEnum, text: "O(1)" },
+          ],
+          correctAnswer: ["optB" as OptionIdsEnum],
           explanation:
             "Binary search halves the search space each time, resulting in logarithmic complexity O(log n).",
         },
@@ -221,12 +240,16 @@ class QuizService {
           type: "mcq-multi" as QuestionTypesEnum,
           text: "Which of the following are programming paradigms?",
           options: [
-            "Object-Oriented",
-            "Functional",
-            "Procedural",
-            "Relational",
+            { id: "optA" as OptionIdsEnum, text: "Object-Oriented" },
+            { id: "optB" as OptionIdsEnum, text: "Functional" },
+            { id: "optC" as OptionIdsEnum, text: "Procedural" },
+            { id: "optD" as OptionIdsEnum, text: "Relational" },
           ],
-          correctAnswer: ["Object-Oriented", "Functional", "Procedural"],
+          correctAnswer: [
+            "optA" as OptionIdsEnum,
+            "optB" as OptionIdsEnum,
+            "optC" as OptionIdsEnum,
+          ],
           explanation:
             "Object-Oriented, Functional, and Procedural are paradigms; Relational refers to databases, not a paradigm.",
         },
@@ -238,12 +261,12 @@ class QuizService {
           type: "mcq-single" as QuestionTypesEnum,
           text: "Which algorithm is commonly used for shortest path in a graph?",
           options: [
-            "Dijkstra's Algorithm",
-            "Merge Sort",
-            "DFS",
-            "Bellman-Ford",
+            { id: "optA" as OptionIdsEnum, text: "Dijkstra's Algorithm" },
+            { id: "optB" as OptionIdsEnum, text: "Merge Sort" },
+            { id: "optC" as OptionIdsEnum, text: "DFS" },
+            { id: "optD" as OptionIdsEnum, text: "Bellman-Ford" },
           ],
-          correctAnswer: "Dijkstra's Algorithm",
+          correctAnswer: ["optA" as OptionIdsEnum],
           explanation:
             "Dijkstra's algorithm efficiently finds the shortest path from a source to all other nodes in a weighted graph.",
         },
@@ -251,20 +274,25 @@ class QuizService {
           type: "mcq-single" as QuestionTypesEnum,
           text: "What does SQL stand for?",
           options: [
-            "Structured Query Language",
-            "Simple Query Language",
-            "Sequential Query Language",
-            "Standard Query Language",
+            { id: "optA" as OptionIdsEnum, text: "Structured Query Language" },
+            { id: "optB" as OptionIdsEnum, text: "Simple Query Language" },
+            { id: "optC" as OptionIdsEnum, text: "Sequential Query Language" },
+            { id: "optD" as OptionIdsEnum, text: "Standard Query Language" },
           ],
-          correctAnswer: "Structured Query Language",
+          correctAnswer: ["optA" as OptionIdsEnum],
           explanation:
             "SQL stands for Structured Query Language, used for managing and querying relational databases.",
         },
         {
           type: "mcq-multi" as QuestionTypesEnum,
           text: "Which of the following are NoSQL databases?",
-          options: ["MongoDB", "PostgreSQL", "Cassandra", "Redis"],
-          correctAnswer: ["MongoDB", "Cassandra", "Redis"],
+          options: [
+            { id: "optA" as OptionIdsEnum, text: "MongoDB" },
+            { id: "optB" as OptionIdsEnum, text: "PostgreSQL" },
+            { id: "optC" as OptionIdsEnum, text: "Cassandra" },
+            { id: "optD" as OptionIdsEnum, text: "Redis" },
+          ],
+          correctAnswer: ["optA", "optC", "optD"] as OptionIdsEnum[],
           explanation:
             "MongoDB, Cassandra, and Redis are NoSQL databases; PostgreSQL is a relational database.",
         },
@@ -275,8 +303,13 @@ class QuizService {
         {
           type: "mcq-single" as QuestionTypesEnum,
           text: "Which of these is NOT a valid HTTP method?",
-          options: ["GET", "POST", "FETCH", "DELETE"],
-          correctAnswer: "FETCH",
+          options: [
+            { id: "optA" as OptionIdsEnum, text: "GET" },
+            { id: "optB" as OptionIdsEnum, text: "POST" },
+            { id: "optC" as OptionIdsEnum, text: "FETCH" },
+            { id: "optD" as OptionIdsEnum, text: "DELETE" },
+          ],
+          correctAnswer: ["optC" as OptionIdsEnum],
           explanation:
             "GET, POST, and DELETE are valid HTTP methods; FETCH is not an HTTP method but a JavaScript API.",
         },
@@ -327,18 +360,11 @@ class QuizService {
     //   aiPrompt: quiz.aiPrompt,
     // });
 
-    const writtenQuestionsIndexes: number[] = [];
-
-    generatedQuestions.questions.forEach((value, index) => {
-      if (value.type === QuestionTypesEnum.written)
-        writtenQuestionsIndexes.push(index);
-    });
     let [quizQuestions] = await this._quizQuestionsRepository.create({
       data: [
         {
           quizId: quiz._id,
           userId: req.user!._id!,
-          writtenQuestionsIndexes,
           questions: generatedQuestions.questions,
           expiresAt: new Date(
             Date.now() +
@@ -362,10 +388,15 @@ class QuizService {
       throw new ServerException("Failed to generate quiz questions ❓");
     }
 
+    const quizQuestionsObj = quizQuestions.toJSON();
+    if (quizId === QuizTypesEnum.careerAssessment) {
+      delete quizQuestionsObj.id;
+    }
+
     return successHandler<IGetQuizQuestionsResponse>({
       res,
       body: {
-        quiz: quizQuestions,
+        quiz: quizQuestionsObj,
       },
     });
   };
@@ -401,14 +432,12 @@ class QuizService {
   };
 
   checkQuizAnswers = async (req: Request, res: Response): Promise<Response> => {
-    console.log(this._checkWrittenQuestionsAnswers);
-
     const { quizId } = req.params as CheckQuizAnswersParamsDtoType;
     const { answers } = req.validationResult
       .body as CheckQuizAnswersBodyDtoType;
 
     const quizQuestions = await this._quizQuestionsRepository.findOne({
-      filter: { quizId, userId: req.user!._id! },
+      filter: { _id: quizId, userId: req.user!._id! },
       options: {
         populate: [
           {
@@ -420,7 +449,7 @@ class QuizService {
       },
     });
 
-    if (!quizQuestions) {
+    if (!quizQuestions || !quizQuestions.quizId) {
       throw new NotFoundException(
         "Quiz questions not found for the given quizId and user 🚫"
       );
@@ -432,14 +461,15 @@ class QuizService {
       );
     }
 
-    const writtenAnswers: { questionId: string; userAnswer: string }[] = [];
+    const writtenAnswers: IAIModelCheckWrittenQuestionsRequest["writtenAnswers"] =
+      [];
     for (const answer of answers) {
-      const questionType = quizQuestions.answersMap.get(answer.questionId);
-      if (!questionType) {
+      const question = quizQuestions.answersMap.get(answer.questionId);
+      if (!question) {
         throw new NotFoundException(
-          "Not found questionId in the quiz questions ❌"
+          `Not found questionId in the quiz questions ${answer.questionId} ❌`
         );
-      } else if (questionType && questionType !== answer.type) {
+      } else if (question.type !== answer.type) {
         throw new ValidationException(
           `Question type mismatch for questionId ${answer.questionId} ❌`
         );
@@ -447,6 +477,7 @@ class QuizService {
       if (answer.type === QuestionTypesEnum.written) {
         writtenAnswers.push({
           questionId: answer.questionId,
+          text: question.text!,
           userAnswer: answer.answer as string,
         });
       }
@@ -461,28 +492,31 @@ class QuizService {
       writtenAnswers,
     });
 
-    const checkedAnswers = [];
+    const checkedAnswers: ISavedQuestion[] = [];
     let wrongAnswersCount = 0;
+    // check non-written questions answers
     for (const answer of answers) {
-      const question = quizQuestions.questions.find((value) =>
-        value.id?.equals(answer.questionId)
-      )!;
+      const question = quizQuestions.questions.find((value) => {
+        return value.id?.equals(answer.questionId);
+      })! as HIQuestion;
 
       if (question.type === QuestionTypesEnum.written) continue;
 
-      const selectedAnswer =
-        (answer.answer as number) < 0
-          ? ""
-          : question.options![answer.answer as number];
+      const selectedAnswer = answer.answer;
 
-      const { correctAnswer, explanation, ...rest } = question;
-      if (selectedAnswer == question.correctAnswer) {
-        checkedAnswers.push({ ...rest, correctAnswer: selectedAnswer });
+      const { correctAnswer, explanation, ...rest } = question.toObject();
+      if (selectedAnswer.toString() == question.correctAnswer?.toString()) {
+        checkedAnswers.push({
+          ...rest,
+          isCorrect: true,
+          userAnswer: selectedAnswer,
+        });
       } else {
         wrongAnswersCount++;
         checkedAnswers.push({
           ...rest,
-          wrongAnswer: selectedAnswer,
+          isCorrect: false,
+          userAnswer: selectedAnswer,
           correction: correctAnswer,
           explanation,
         });
@@ -491,24 +525,27 @@ class QuizService {
 
     await gate.promise;
 
+    // integrate written answers results
     for (const writtenAnswerResult of writtenAnswersResults) {
       let index;
       const question = quizQuestions.questions.find((value, i) => {
         index = i;
         return value.id?.equals(writtenAnswerResult.questionId);
-      })!;
+      })! as HIQuestion;
       if (writtenAnswerResult.isCorrect) {
         checkedAnswers.splice(index!, 0, {
-          ...question,
-          correctAnswer: writtenAnswers.find(
+          ...question.toObject(),
+          isCorrect: true,
+          userAnswer: writtenAnswers.find(
             (wa) => wa.questionId === writtenAnswerResult.questionId
           )!.userAnswer,
         });
       } else {
         wrongAnswersCount++;
         checkedAnswers.splice(index!, 0, {
-          ...question,
-          wrongAnswer: writtenAnswers.find(
+          ...question.toObject(),
+          isCorrect: false,
+          userAnswer: writtenAnswers.find(
             (wa) => wa.questionId === writtenAnswerResult.questionId
           )!.userAnswer,
           correction: writtenAnswerResult.correction!,
@@ -517,9 +554,60 @@ class QuizService {
       }
     }
 
+    // saving the checked answers
+    const scoreNumber = Math.round(
+      ((checkedAnswers.length - wrongAnswersCount) / checkedAnswers.length) *
+        100
+    );
+
+    if (scoreNumber >= 50) {
+      if (
+        await this._savedQuizRepository.findOne({
+          filter: {
+            quizId: quizQuestions.quizId!._id!,
+            userId: req.user!._id!,
+          },
+        })
+      ) {
+        console.log("inside updateone");
+
+        await this._savedQuizRepository.updateOne({
+          filter: {
+            quizId: quizQuestions.quizId!._id!,
+            userId: req.user!._id!,
+          },
+          update: {
+            questions: checkedAnswers,
+            score: `${scoreNumber}%`,
+            takenAt: new Date(),
+          },
+        });
+      } else {
+        console.log("inside create");
+
+        await this._savedQuizRepository.create({
+          data: [
+            {
+              quizId: quizQuestions.quizId!._id!,
+              userId: req.user!._id!,
+              questions: checkedAnswers,
+              score: `${scoreNumber}%`,
+              takenAt: new Date(),
+            },
+          ],
+        });
+      }
+    }
     return successHandler({
       res,
       message: "Quiz answers checked successfully ✅",
+      body: {
+        totalQuestions: checkedAnswers.length,
+        wrongAnswersCount,
+        correctAnswersCount: checkedAnswers.length - wrongAnswersCount,
+        score: `${scoreNumber}%`,
+        answers: checkedAnswers,
+      },
     });
   };
 }

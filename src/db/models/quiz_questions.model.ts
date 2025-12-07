@@ -5,10 +5,14 @@ import type {
   HIQuestion,
   IQuestion,
   IQuizQuestions,
+  QuizQuestionsAnswersMapValueType,
 } from "../interfaces/quiz_questions.interface.ts";
 import ModelsNames from "../../utils/constants/models.names.ts";
 import { QuestionTypesEnum } from "../../utils/constants/enum.constants.ts";
 import type { Model } from "mongoose";
+import { questionOptionSchema } from "./common_schemas.model.ts";
+import { validateIfValidQuestionAnswer } from "../../utils/question/validate_options.question.ts";
+import type { IQuizQuestionOption } from "../interfaces/common.interface.ts";
 
 const questionSchema = new mongoose.Schema<IQuestion>(
   {
@@ -19,26 +23,18 @@ const questionSchema = new mongoose.Schema<IQuestion>(
     },
     text: { type: String, required: true },
     options: {
-      type: [String],
+      type: [questionOptionSchema],
+      default: undefined,
       required: function (this) {
         return (
           this.type === QuestionTypesEnum.mcqSingle ||
           this.type === QuestionTypesEnum.mcqMulti
         );
       },
-      validate: {
-        validator: function (val) {
-          if (
-            this.type === QuestionTypesEnum.mcqSingle ||
-            this.type === QuestionTypesEnum.mcqMulti
-          ) {
-            return Array.isArray(val) && val.length >= 2;
-          }
-          return true;
-        },
-        message:
-          "Options are required for MCQ questions and must have at least two options ❌",
-      },
+      minlength: 2,
+      maxlength: 4,
+      set: (v: IQuizQuestionOption[]) =>
+        Array.isArray(v) && v.length === 0 ? undefined : v,
     },
     correctAnswer: {
       type: mongoose.Schema.Types.Mixed,
@@ -46,21 +42,11 @@ const questionSchema = new mongoose.Schema<IQuestion>(
         return this.type !== QuestionTypesEnum.written;
       },
       validate: {
-        validator: function (val) {
-          switch (this.type) {
-            case QuestionTypesEnum.mcqSingle:
-              return typeof val === "string";
-
-            case QuestionTypesEnum.mcqMulti:
-              return (
-                Array.isArray(val) &&
-                val.every((item) => typeof item === "string")
-              );
-
-            default:
-              console.log("inside default");
-              return false;
-          }
+        validator: function (value) {
+          return validateIfValidQuestionAnswer({
+            questionType: this.type,
+            value,
+          });
         },
         message: "correctAnswer type does not match question type ❌",
       },
@@ -77,8 +63,13 @@ const questionSchema = new mongoose.Schema<IQuestion>(
     strictQuery: true,
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
+    id: false,
   }
 );
+
+questionSchema.virtual("id").get(function () {
+  return this._id;
+});
 
 questionSchema.methods.toJSON = function () {
   const { _id, text, type, options } = this.toObject() as FullIQuestion;
@@ -104,34 +95,43 @@ const quizQuestionsSchema = new mongoose.Schema<IQuizQuestions>(
       ref: ModelsNames.userModel,
     },
 
-    writtenQuestionsIndexes: {
-      type: [Number],
-      required: function (this) {
-        return Boolean(
-          this.questions.find(
-            (value) => value.type === QuestionTypesEnum.written
-          )
-        );
-      },
-    },
-
     answersMap: {
       type: Map,
       validate: {
-        validator: function (val) {
-          return Object.values(QuestionTypesEnum).includes(val);
+        validator: function (val: QuizQuestionsAnswersMapValueType) {
+          return Object.values(QuestionTypesEnum).includes(val.type)
+            ? val.type !== QuestionTypesEnum.written
+              ? true
+              : typeof val.text !== "undefined"
+              ? true
+              : false
+            : false;
         },
         message: "Invalid answer type ❌",
       },
     },
-    questions: [questionSchema],
+    questions: {
+      type: [questionSchema],
+      required: true,
+      minlength: 1,
+      maxlength: 150,
+    },
 
     expiresAt: { type: Date, required: true, expires: 0 },
   },
-  { timestamps: true, toObject: { virtuals: true }, toJSON: { virtuals: true } }
+  {
+    timestamps: true,
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
+    id: false,
+  }
 );
 
 quizQuestionsSchema.index({ quizId: 1, userId: 1 }, { unique: true });
+
+quizQuestionsSchema.virtual("id").get(function () {
+  return this._id;
+});
 
 quizQuestionsSchema.methods.toJSON = function () {
   const { _id, quizId, userId, createdAt, updatedAt } =
@@ -152,9 +152,18 @@ quizQuestionsSchema.pre("save", function (next) {
   if (!this.isModified("questions")) return next();
 
   // Build a map keyed by question _id (string)
-  const entries: [string, QuestionTypesEnum][] = [];
+  const entries: [string, QuizQuestionsAnswersMapValueType][] = [];
   for (const question of this.questions) {
-    entries.push([(question as FullIQuestion)._id.toString(), question.type!]);
+    entries.push([
+      (question as FullIQuestion)._id.toString(),
+      {
+        text:
+          question.type === QuestionTypesEnum.written
+            ? question.text
+            : undefined,
+        type: question.type!,
+      },
+    ]);
   }
 
   this.answersMap = new Map(entries);

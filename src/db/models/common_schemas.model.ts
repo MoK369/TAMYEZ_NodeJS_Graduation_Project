@@ -4,9 +4,13 @@ import type {
   ICodExpireCoundObject,
   IIdSelectedAtObject,
   IProfilePictureObject,
+  IQuizQuestionOption,
 } from "../interfaces/common.interface.ts";
 import ModelsNames from "../../utils/constants/models.names.ts";
-import { ProvidersEnum } from "../../utils/constants/enum.constants.ts";
+import {
+  OptionIdsEnum,
+  ProvidersEnum,
+} from "../../utils/constants/enum.constants.ts";
 
 export const atByObjectSchema = new mongoose.Schema<IAtByObject>(
   {
@@ -56,3 +60,11 @@ export const idSelectedAtObjectSchema =
     },
     { _id: false }
   );
+
+export const questionOptionSchema = new mongoose.Schema<IQuizQuestionOption>(
+  {
+    id: { type: String, enum: Object.values(OptionIdsEnum), required: true },
+    text: { type: String, required: true },
+  },
+  { _id: false }
+);

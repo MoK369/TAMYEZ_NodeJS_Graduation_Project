@@ -1,6 +1,7 @@
 import { z } from "zod";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import {
+  OptionIdsEnum,
   QuestionTypesEnum,
   QuizTypesEnum,
 } from "../../utils/constants/enum.constants.ts";
@@ -142,13 +143,13 @@ class QuizValidators {
             error: StringConstants.PATH_REQUIRED_MESSAGE("description"),
           })
           .min(3)
-          .max(50_000),
+          .max(50_000).optional(),
         aiPrompt: z
           .string({
             error: StringConstants.PATH_REQUIRED_MESSAGE("aiPrompt"),
           })
           .min(3)
-          .max(50_000),
+          .max(50_000).optional(),
         type: z
           .enum(Object.values(QuizTypesEnum), {
             error: StringConstants.INVALID_ENUM_VALUE_MESSAGE({
@@ -220,23 +221,7 @@ class QuizValidators {
               type: z.enum(Object.values(QuestionTypesEnum)),
               answer: z.union([
                 z.string().min(1).max(5_000),
-                z
-                  .number({
-                    error: StringConstants.PATH_REQUIRED_MESSAGE("answerIndex"),
-                  })
-                  .int({ message: "answerIndex must be an integer ❌" })
-                  .min(-1)
-                  .max(3),
-                z.array(
-                  z
-                    .number({
-                      error:
-                        StringConstants.PATH_REQUIRED_MESSAGE("answerIndex"),
-                    })
-                    .int({ message: "answerIndex must be an integer ❌" })
-                    .min(0)
-                    .max(3)
-                ),
+                z.array(z.enum(Object.values(OptionIdsEnum))),
               ]),
             })
             .superRefine((data, ctx) => {
@@ -248,20 +233,27 @@ class QuizValidators {
                     message: `For question type ${QuestionTypesEnum.written}, answer must be a string ❌`,
                   });
                 }
-              } else if (data.type === QuestionTypesEnum.mcqMulti) {
+              } else {
                 if (!Array.isArray(data.answer)) {
                   ctx.addIssue({
                     code: "custom",
                     path: ["answer"],
-                    message: `For question type ${QuestionTypesEnum.mcqMulti}, answer must be an array of answerIndex numbers ❌`,
+                    message: `For question types ${
+                      QuestionTypesEnum.mcqSingle
+                    } Or ${
+                      QuestionTypesEnum.mcqMulti
+                    }, answer must be an array of otpionIds ${Object.values(
+                      OptionIdsEnum
+                    )} numbers ❌`,
                   });
-                }
-              } else {
-                if (typeof data.answer !== "number") {
+                } else if (
+                  data.type === QuestionTypesEnum.mcqSingle &&
+                  data.answer.length !== 1
+                ) {
                   ctx.addIssue({
                     code: "custom",
                     path: ["answer"],
-                    message: `For question type ${QuestionTypesEnum.mcqSingle}, answer must be an answerIndex number ❌`,
+                    message: `For question type ${QuestionTypesEnum.mcqSingle}, answer must be an array containing exactly one optionId ❌`,
                   });
                 }
               }
