@@ -11,6 +11,11 @@ import type {
   IProfilePictureObject,
 } from "./common.interface.ts";
 
+export interface IQuizAttempts {
+  count: number;
+  lastAttempt: Date;
+}
+
 export interface IUser {
   id?: Types.ObjectId | undefined; // virtual
 
@@ -41,10 +46,10 @@ export interface IUser {
   coverImages?: string[];
 
   // Acadamic Info
-  education?: string;
-  skills?: string[];
-  coursesAndCertifications?: string[];
   careerPath?: IIdSelectedAtObject;
+
+  // Quiz Info
+  quizAttempts: IQuizAttempts;
 
   freezed?: IAtByObject;
   restored?: IAtByObject;

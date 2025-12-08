@@ -31,6 +31,7 @@ import {
   ConflictException,
   NotFoundException,
   ServerException,
+  TooManyRequestsException,
   ValidationException,
 } from "../../utils/exceptions/custom.exceptions.ts";
 import StringConstants from "../../utils/constants/strings.constants.ts";
@@ -57,6 +58,7 @@ import type {
 import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts";
 import type { ISavedQuestion } from "../../db/interfaces/saved_quiz.interface.ts";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.ts";
+import pause from "../../utils/pause/code.pause.ts";
 
 class QuizService {
   private _quizRepository = new QuizRepository(QuizModel);
@@ -220,6 +222,7 @@ class QuizService {
     title,
     aiPrompt,
   }: IAIModelGeneratedQuestionsRequest): Promise<IAIModelGeneratedQuestionsResponse> => {
+    await pause(1500);
     return {
       questions: [
         {
@@ -357,6 +360,25 @@ class QuizService {
       );
     }
 
+    if (req.user!.quizAttempts?.lastAttempt) {
+      if (
+        req.user!.quizAttempts.count >= 5 &&
+        Date.now() - req.user!.quizAttempts.lastAttempt.getTime() <=
+          15 * 60 * 1000
+      ) {
+        throw new TooManyRequestsException(
+          "Too many request, please wait 15 minutes from your last quiz attempt ⏳"
+        );
+      } else if (
+        Date.now() - req.user!.quizAttempts.lastAttempt.getTime() <=
+        5 * 60 * 1000
+      ) {
+        req.user!.quizAttempts.count++;
+      } else {
+        req.user!.quizAttempts.count = 0;
+      }
+    }
+
     if (
       await this._quizCooldownRepository.findOne({
         filter: { quizId: quiz._id, userId: req.user!._id! },
@@ -390,7 +412,8 @@ class QuizService {
           questions: generatedQuestions.questions,
           expiresAt: new Date(
             Date.now() +
-              (quizId === QuizTypesEnum.careerAssessment
+              (quizId === QuizTypesEnum.careerAssessment ||
+              quiz.title == StringConstants.CAREER_ASSESSMENT
                 ? Number(
                     process.env[
                       EnvFields.CAREER_ASSESSMENT_QUESTIONS_EXPIRES_IN_SECONDS
@@ -409,6 +432,11 @@ class QuizService {
     if (!quizQuestions) {
       throw new ServerException("Failed to generate quiz questions ❓");
     }
+
+    if (!req.user!.quizAttempts?.count) {
+      req.user!.quizAttempts = { count: 0, lastAttempt: new Date() };
+    }
+    await req.user?.save();
 
     const quizQuestionsObj = quizQuestions.toJSON();
     if (quizId === QuizTypesEnum.careerAssessment) {
@@ -656,7 +684,7 @@ class QuizService {
         wrongAnswersCount,
         correctAnswersCount: checkedAnswers.length - wrongAnswersCount,
         score: `${scoreNumber}%`,
-        answers: checkedAnswers,
+        //answers: checkedAnswers,
       },
     });
   };
@@ -664,8 +692,6 @@ class QuizService {
   getSavedQuizzes = async (req: Request, res: Response): Promise<Response> => {
     const { page, size } = req.validationResult
       .query as GetSavedQuizzesQueryDtoType;
-
-    console.log({ page, size });
 
     const savedQuizzes = await this._savedQuizRepository.paginate({
       filter: { userId: req.user!._id! },

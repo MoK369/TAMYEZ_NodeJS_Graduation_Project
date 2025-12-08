@@ -2,7 +2,7 @@ import { QuizCooldownModel, QuizModel, QuizQuestionsModel, SavedQuizModel, } fro
 import { QuizQuestionsRepository, QuizRepository, } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { OptionIdsEnum, QuestionTypesEnum, QuizTypesEnum, RolesEnum, } from "../../utils/constants/enum.constants.js";
-import { BadRequestException, ConflictException, NotFoundException, ServerException, ValidationException, } from "../../utils/exceptions/custom.exceptions.js";
+import { BadRequestException, ConflictException, NotFoundException, ServerException, TooManyRequestsException, ValidationException, } from "../../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import QuizUtil from "../../utils/quiz/utils.quiz.js";
 import UpdateUtil from "../../utils/update/util.update.js";
@@ -10,6 +10,7 @@ import EnvFields from "../../utils/constants/env_fields.constants.js";
 import makeCompleter from "../../utils/completer/make.completer.js";
 import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.js";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.js";
+import pause from "../../utils/pause/code.pause.js";
 class QuizService {
     _quizRepository = new QuizRepository(QuizModel);
     _quizQuestionsRepository = new QuizQuestionsRepository(QuizQuestionsModel);
@@ -123,6 +124,7 @@ class QuizService {
         return successHandler({ res, body: { quiz } });
     };
     _generateQuestions = async ({ title, aiPrompt, }) => {
+        await pause(1500);
         return {
             questions: [
                 {
@@ -246,6 +248,20 @@ class QuizService {
         if (!quiz) {
             throw new NotFoundException(StringConstants.INVALID_PARAMETER_MESSAGE("quizId"));
         }
+        if (req.user.quizAttempts?.lastAttempt) {
+            if (req.user.quizAttempts.count >= 5 &&
+                Date.now() - req.user.quizAttempts.lastAttempt.getTime() <=
+                    15 * 60 * 1000) {
+                throw new TooManyRequestsException("Too many request, please wait 15 minutes from your last quiz attempt ⏳");
+            }
+            else if (Date.now() - req.user.quizAttempts.lastAttempt.getTime() <=
+                5 * 60 * 1000) {
+                req.user.quizAttempts.count++;
+            }
+            else {
+                req.user.quizAttempts.count = 0;
+            }
+        }
         if (await this._quizCooldownRepository.findOne({
             filter: { quizId: quiz._id, userId: req.user._id },
         })) {
@@ -267,7 +283,8 @@ class QuizService {
                     userId: req.user._id,
                     questions: generatedQuestions.questions,
                     expiresAt: new Date(Date.now() +
-                        (quizId === QuizTypesEnum.careerAssessment
+                        (quizId === QuizTypesEnum.careerAssessment ||
+                            quiz.title == StringConstants.CAREER_ASSESSMENT
                             ? Number(process.env[EnvFields.CAREER_ASSESSMENT_QUESTIONS_EXPIRES_IN_SECONDS])
                             : quiz.duration +
                                 Number(process.env[EnvFields.QUIZ_QUESTIONS_EXPIRES_IN_SECONDS])) *
@@ -278,6 +295,10 @@ class QuizService {
         if (!quizQuestions) {
             throw new ServerException("Failed to generate quiz questions ❓");
         }
+        if (!req.user.quizAttempts?.count) {
+            req.user.quizAttempts = { count: 0, lastAttempt: new Date() };
+        }
+        await req.user?.save();
         const quizQuestionsObj = quizQuestions.toJSON();
         if (quizId === QuizTypesEnum.careerAssessment) {
             delete quizQuestionsObj.id;
@@ -472,14 +493,12 @@ class QuizService {
                 wrongAnswersCount,
                 correctAnswersCount: checkedAnswers.length - wrongAnswersCount,
                 score: `${scoreNumber}%`,
-                answers: checkedAnswers,
             },
         });
     };
     getSavedQuizzes = async (req, res) => {
         const { page, size } = req.validationResult
             .query;
-        console.log({ page, size });
         const savedQuizzes = await this._savedQuizRepository.paginate({
             filter: { userId: req.user._id },
             options: {

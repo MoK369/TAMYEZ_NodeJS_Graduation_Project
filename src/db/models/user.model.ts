@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { IUser } from "../interfaces/user.interface.ts";
+import type { IQuizAttempts, IUser } from "../interfaces/user.interface.ts";
 import {
   GenderEnum,
   ProvidersEnum,
@@ -17,6 +17,14 @@ import {
 import HashingSecurityUtil from "../../utils/security/hash.security.ts";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.ts";
 import type { UpdateQuery } from "mongoose";
+
+const quizAttemptsSchema = new mongoose.Schema<IQuizAttempts>(
+  {
+    count: { type: Number, required: true, min: 0, max: 5 },
+    lastAttempt: { type: Date, required: true },
+  },
+  { _id: false }
+);
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -84,6 +92,9 @@ const userSchema = new mongoose.Schema<IUser>(
     // Acadamic Info
     careerPath: { type: idSelectedAtObjectSchema },
 
+    // Quiz Info
+    quizAttempts: quizAttemptsSchema,
+
     freezed: atByObjectSchema,
 
     restored: atByObjectSchema,
@@ -145,9 +156,6 @@ userSchema.pre("save", async function (next) {
       plainText: this.phoneNumber,
     });
   }
-
-  console.log({ doc: this });
-
   next();
 });
 

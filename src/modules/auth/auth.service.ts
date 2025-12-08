@@ -119,18 +119,10 @@ class AuthService {
     try {
       const { token } = req.query as VerifyEmailQueryDtoType;
 
-      console.log({ token });
-
-      console.log({
-        encKey: process.env[EnvFields.EMAIL_VERIFICATION_TOKEN_ENC_KEY],
-      });
-
       const tokenAfterDecryption = EncryptionSecurityUtil.decryptText({
         cipherText: decodeURIComponent(token),
         secretKey: process.env[EnvFields.EMAIL_VERIFICATION_TOKEN_ENC_KEY]!,
       });
-
-      console.log({ tokenAfterDecryption });
 
       const [email, otp] = tokenAfterDecryption.split(" ");
 
