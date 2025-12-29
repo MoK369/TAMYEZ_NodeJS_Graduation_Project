@@ -8,7 +8,7 @@ export interface INotificationPushDevice {
 
   notificationsEnabled: boolean;
   fcmToken: string;
-  tokenLastUpdate: Date;
+  tokenLastUpdate?: Date;
   jwtTokenExpiresAt: Date;
 
   platfrom: PlatfromsEnum;
@@ -16,7 +16,7 @@ export interface INotificationPushDevice {
   os: string;
   deviceModel: string;
 
-  deactivatedAt: Date;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

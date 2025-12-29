@@ -16,7 +16,7 @@ import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import TokenSecurityUtil from "../../utils/security/token.security.js";
 import { OAuth2Client } from "google-auth-library";
 class AuthService {
-    _userRespository = new UserRepository(UserModel);
+    _userRepository = new UserRepository(UserModel);
     _sendTokenToUser = ({ email, otp, }) => {
         const fullToken = EncryptionSecurityUtil.encryptText({
             plainText: decodeURIComponent(`${email} ${otp}`),
@@ -32,12 +32,12 @@ class AuthService {
     };
     signUp = async (req, res) => {
         const { fullName, email, password, gender, phoneNumber, } = req.body;
-        const emailExists = await this._userRespository.findByEmail({ email });
+        const emailExists = await this._userRepository.findByEmail({ email });
         if (emailExists) {
             throw new ConflictException("email already exists!");
         }
         const otp = IdSecurityUtil.generateAlphaNumericId();
-        await this._userRespository.create({
+        await this._userRepository.create({
             data: [
                 {
                     fullName,
@@ -70,7 +70,7 @@ class AuthService {
                 secretKey: process.env[EnvFields.EMAIL_VERIFICATION_TOKEN_ENC_KEY],
             });
             const [email, otp] = tokenAfterDecryption.split(" ");
-            const user = await this._userRespository.findOne({
+            const user = await this._userRepository.findOne({
                 filter: {
                     email,
                     confirmEmailLink: { $exists: true },
@@ -114,7 +114,7 @@ class AuthService {
     };
     resendEmailVerificationLink = async (req, res) => {
         const { email } = req.body;
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 freezed: { $exists: false },
@@ -138,7 +138,7 @@ class AuthService {
     };
     logIn = async (req, res) => {
         const { email, password } = req.body;
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 freezed: { $exists: false },
@@ -182,7 +182,7 @@ class AuthService {
         if (!email || !given_name || given_name.length < 2) {
             throw new BadRequestException(StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE);
         }
-        const userExist = await this._userRespository.findByEmail({
+        const userExist = await this._userRepository.findByEmail({
             email,
         });
         if (userExist) {
@@ -198,7 +198,7 @@ class AuthService {
                 provider: ProvidersEnum.google,
             };
         }
-        const [user] = await this._userRespository.create({
+        const [user] = await this._userRepository.create({
             data: [
                 {
                     firstName: given_name,
@@ -229,7 +229,7 @@ class AuthService {
         if (!email) {
             throw new BadRequestException(StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE);
         }
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 authProvider: ProvidersEnum.google,
@@ -254,7 +254,7 @@ class AuthService {
     };
     forgetPassword = async (req, res) => {
         const { email } = req.body;
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 freezed: { $exists: false },
@@ -275,7 +275,7 @@ class AuthService {
             checkEmailStatus: EmailStatusEnum.confirmed,
         });
         const otp = IdSecurityUtil.generateNumericId();
-        await this._userRespository.updateOne({
+        await this._userRepository.updateOne({
             filter: {
                 _id: user._id,
             },
@@ -299,7 +299,7 @@ class AuthService {
     };
     verifyForgetPassword = async (req, res) => {
         const { email, otp } = req.body;
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 freezed: { $exists: false },
@@ -316,7 +316,7 @@ class AuthService {
             }))) {
             throw new BadRequestException(StringConstants.INVALID_OTP_MESSAGE);
         }
-        await this._userRespository.updateOne({
+        await this._userRepository.updateOne({
             filter: {
                 _id: user._id,
             },
@@ -335,7 +335,7 @@ class AuthService {
     };
     resetForgetPassword = async (req, res) => {
         const { email, password } = req.body;
-        const user = await this._userRespository.findOne({
+        const user = await this._userRepository.findOne({
             filter: {
                 email,
                 freezed: { $exists: false },

@@ -4,3 +4,4 @@ export { default as QuizModel } from "./quiz.model.ts";
 export { default as QuizAttemptModel } from "./quiz_attempt.model.ts";
 export { default as SavedQuizModel } from "./saved_quiz.model.ts";
 export { default as QuizCooldownModel } from "./quiz_cooldown.model.ts";
+export { default as NotificationPushDeviceModel } from "./notifiction_push_device.model.ts";

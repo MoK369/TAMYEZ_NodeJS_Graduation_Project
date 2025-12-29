@@ -8,3 +8,7 @@ export type SendNotificationBodyDtoType = z.infer<
 export type SendMultipleNotificationsBodyDtoType = z.infer<
   typeof FirebaseValidators.sendMultiNotifications.body
 >;
+
+export type EnableNotificationsBodyDtoType = z.infer<
+  typeof FirebaseValidators.enableNotifications.body
+>;

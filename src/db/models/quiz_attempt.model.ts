@@ -6,7 +6,7 @@ import type {
   IQuestion,
   IQuizAttempt,
 } from "../interfaces/quiz_questions.interface.ts";
-import ModelsNames from "../../utils/constants/models.names.ts";
+import ModelsNames from "../../utils/constants/models.names.constants.ts";
 import { QuestionTypesEnum } from "../../utils/constants/enum.constants.ts";
 import type { Model } from "mongoose";
 import { questionOptionSchema } from "./common_schemas.model.ts";

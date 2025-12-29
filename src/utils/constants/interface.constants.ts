@@ -9,7 +9,7 @@ import type { JwtPayload } from "jsonwebtoken";
 import type { Types } from "mongoose";
 import type Stream from "node:stream";
 import type {
-  FindFunctionsReturnType,
+  FindOneFunctionsReturnType,
   LeanType,
 } from "../types/find_functions.type.ts";
 
@@ -48,7 +48,7 @@ export interface IMulterFile {
 
 export interface IPaginationResult<TDocument, TLean extends LeanType = false>
   extends IPaginationMetaData {
-  data?: FindFunctionsReturnType<TDocument, TLean>[];
+  data?: FindOneFunctionsReturnType<TDocument, TLean>[];
 }
 
 export interface IPaginationMetaData {

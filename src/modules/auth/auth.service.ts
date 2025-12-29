@@ -42,7 +42,7 @@ import { OAuth2Client, type TokenPayload } from "google-auth-library";
 import type { IProfilePictureObject } from "../../db/interfaces/common.interface.ts";
 
 class AuthService {
-  private _userRespository = new UserRepository(UserModel);
+  private _userRepository = new UserRepository(UserModel);
 
   private _sendTokenToUser = ({
     email,
@@ -77,7 +77,7 @@ class AuthService {
       gender,
       phoneNumber,
     }: SignUpBodyDtoType = req.body as SignUpBodyDtoType;
-    const emailExists = await this._userRespository.findByEmail({ email });
+    const emailExists = await this._userRepository.findByEmail({ email });
 
     if (emailExists) {
       throw new ConflictException("email already exists!");
@@ -85,7 +85,7 @@ class AuthService {
 
     const otp = IdSecurityUtil.generateAlphaNumericId();
 
-    await this._userRespository.create({
+    await this._userRepository.create({
       data: [
         {
           fullName,
@@ -126,7 +126,7 @@ class AuthService {
 
       const [email, otp] = tokenAfterDecryption.split(" ");
 
-      const user = await this._userRespository.findOne({
+      const user = await this._userRepository.findOne({
         filter: {
           email,
           confirmEmailLink: { $exists: true },
@@ -185,7 +185,7 @@ class AuthService {
   ): Promise<Response> => {
     const { email } = req.body as ResendEmailVerificationLinkBodyDtoType;
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         freezed: { $exists: false },
@@ -217,7 +217,7 @@ class AuthService {
   logIn = async (req: Request, res: Response): Promise<Response> => {
     const { email, password } = req.body as LogInBodyDtoType;
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         freezed: { $exists: false },
@@ -289,7 +289,7 @@ class AuthService {
       );
     }
 
-    const userExist = await this._userRespository.findByEmail({
+    const userExist = await this._userRepository.findByEmail({
       email,
     });
 
@@ -312,7 +312,7 @@ class AuthService {
       };
     }
 
-    const [user] = await this._userRespository.create({
+    const [user] = await this._userRepository.create({
       data: [
         {
           firstName: given_name,
@@ -352,7 +352,7 @@ class AuthService {
       );
     }
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         authProvider: ProvidersEnum.google,
@@ -384,7 +384,7 @@ class AuthService {
   forgetPassword = async (req: Request, res: Response): Promise<Response> => {
     const { email } = req.body as ForgetPasswordBodyDtoType;
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         freezed: { $exists: false },
@@ -418,7 +418,7 @@ class AuthService {
 
     const otp = IdSecurityUtil.generateNumericId();
 
-    await this._userRespository.updateOne({
+    await this._userRepository.updateOne({
       filter: {
         _id: user._id!,
       },
@@ -451,7 +451,7 @@ class AuthService {
   ): Promise<Response> => {
     const { email, otp } = req.body as VerifyForgetPasswordBodyDtoType;
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         freezed: { $exists: false },
@@ -473,7 +473,7 @@ class AuthService {
       throw new BadRequestException(StringConstants.INVALID_OTP_MESSAGE);
     }
 
-    await this._userRespository.updateOne({
+    await this._userRepository.updateOne({
       filter: {
         _id: user._id!,
       },
@@ -499,7 +499,7 @@ class AuthService {
   ): Promise<Response> => {
     const { email, password } = req.body as ResetForgetPasswordBodyDtoType;
 
-    const user = await this._userRespository.findOne({
+    const user = await this._userRepository.findOne({
       filter: {
         email,
         freezed: { $exists: false },

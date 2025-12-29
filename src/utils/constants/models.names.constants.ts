@@ -5,6 +5,7 @@ abstract class ModelsNames {
   static readonly quizAttemptModel = "QuizAttempt";
   static readonly savedQuizModel = "SavedQuiz";
   static readonly quizCooldownModel = "QuizCooldown";
+  static readonly notificationPushDevice = "NotificationPushDevice"
 }
 
 export default ModelsNames;
