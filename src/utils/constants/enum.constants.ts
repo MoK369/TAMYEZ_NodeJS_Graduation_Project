@@ -101,3 +101,8 @@ export enum PlatformsEnum {
   flutterIos = "flutter-ios",
   web = "web",
 }
+
+export enum AdminNotificationTypesEnum {
+  allUsers = "AllUsers",
+  careerSpecific = "CareerSpecific",
+}

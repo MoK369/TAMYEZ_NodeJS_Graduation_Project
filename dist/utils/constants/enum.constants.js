@@ -102,3 +102,8 @@ export var PlatformsEnum;
     PlatformsEnum["flutterIos"] = "flutter-ios";
     PlatformsEnum["web"] = "web";
 })(PlatformsEnum || (PlatformsEnum = {}));
+export var AdminNotificationTypesEnum;
+(function (AdminNotificationTypesEnum) {
+    AdminNotificationTypesEnum["allUsers"] = "AllUsers";
+    AdminNotificationTypesEnum["careerSpecific"] = "CareerSpecific";
+})(AdminNotificationTypesEnum || (AdminNotificationTypesEnum = {}));

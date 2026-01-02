@@ -9,8 +9,14 @@ import type {
   SendNotificationBodyDtoType,
   SendNotificationsToAllUsersBodyDtoType,
 } from "./firebase.dto.ts";
-import { NotificationPushDeviceRepository } from "../../db/repositories/index.ts";
-import NotificationPushDeviceModel from "../../db/models/notifiction_push_device.model.ts";
+import {
+  AdminNotificationsLimitRepository,
+  NotificationPushDeviceRepository,
+} from "../../db/repositories/index.ts";
+import {
+  AdminNotificationsLimitModel,
+  NotificationPushDeviceModel,
+} from "../../db/models/index.ts";
 import {
   BadRequestException,
   ConflictException,
@@ -18,12 +24,18 @@ import {
   ServerException,
 } from "../../utils/exceptions/custom.exceptions.ts";
 import notificationEvents from "../../utils/events/notifications.events.ts";
-import { NotificationEventsEnum } from "../../utils/constants/enum.constants.ts";
+import {
+  AdminNotificationTypesEnum,
+  NotificationEventsEnum,
+} from "../../utils/constants/enum.constants.ts";
+import EnvFields from "../../utils/constants/env_fields.constants.ts";
 
 class FirebaseService {
   private readonly _notificationService = new NotificationService();
   private readonly _notificationPushDeviceRepository =
     new NotificationPushDeviceRepository(NotificationPushDeviceModel);
+  private readonly _adminNotificationsLimitRepository =
+    new AdminNotificationsLimitRepository(AdminNotificationsLimitModel);
 
   sendFirebaseNotification = async (
     req: Request,
@@ -73,10 +85,42 @@ class FirebaseService {
   ): Promise<Response> => {
     const body = req.body as SendNotificationsToAllUsersBodyDtoType;
 
+    const notificationLimit =
+      await this._adminNotificationsLimitRepository.findOne({
+        filter: { type: AdminNotificationTypesEnum.allUsers },
+      });
+
+    if (notificationLimit && notificationLimit.count >= 2) {
+      throw new BadRequestException(
+        "The maximum number of send notifications to all Users have been reached ❌"
+      );
+    }
+
     notificationEvents.publish({
       eventName: NotificationEventsEnum.mutlipleNotifications,
       payload: body,
     });
+
+    if (notificationLimit) {
+      await notificationLimit.updateOne({
+        $inc: { count: 1 },
+        $addToSet: { sentBy: req.user!._id! },
+      });
+    } else {
+      await this._adminNotificationsLimitRepository.create({
+        data: [
+          {
+            type: AdminNotificationTypesEnum.allUsers,
+            expiresAt: new Date(
+              Date.now() +
+                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000
+            ),
+            sentBy: [req.user!._id!],
+            count: 1,
+          },
+        ],
+      });
+    }
 
     return successHandler({
       res,
