@@ -106,3 +106,27 @@ export enum AdminNotificationTypesEnum {
   allUsers = "AllUsers",
   careerSpecific = "CareerSpecific",
 }
+
+export enum RoadmapStepPricingTypesEnum {
+  free = "Free",
+  paid = "Paid",
+  subscription = "Subscription",
+}
+
+export enum LanguagesEnum {
+  en = "en", // English
+  ar = "ar", // Arabic
+  in = "in", // Indonesian
+  fr = "fr", // French
+  es = "es", // Spanish
+  de = "de", // German
+  it = "it", // Italian
+  ja = "ja", // Japanese
+  ko = "ko", // Korean
+  zh = "zh", // Chinese
+  ru = "ru", // Russian
+  pt = "pt", // Portuguese
+  hi = "hi", // Hindi
+  nl = "nl", // Dutch
+  sv = "sv", // Swedish
+}

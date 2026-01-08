@@ -6,3 +6,5 @@ export { default as SavedQuizModel } from "./saved_quiz.model.ts";
 export { default as QuizCooldownModel } from "./quiz_cooldown.model.ts";
 export { default as NotificationPushDeviceModel } from "./notifiction_push_device.model.ts";
 export { default as AdminNotificationsLimitModel } from "./admin_notifications_limit.model.ts";
+export { default as CareerModel } from "./career.model.ts";
+export { default as RoadmapStepModel } from "./roadmap_step.model.ts";
