@@ -69,6 +69,8 @@ const roadmapStepSchema = new mongoose.Schema<IRoadmapStep>(
     },
     books: { type: [roadmapStepResourceSchema], max: 5, default: [] },
 
+    allowGlobalResources: { type: Boolean, default: false },
+
     quizzesIds: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: ModelsNames.quizModel,

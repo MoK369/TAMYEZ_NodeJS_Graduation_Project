@@ -1,5 +1,6 @@
 import type { HydratedDocument, Require_id, Types } from "mongoose";
 import type {
+  CareerResourceAppliesToEnum,
   LanguagesEnum,
   OptionIdsEnum,
   ProvidersEnum,
@@ -50,3 +51,13 @@ export type FullIRoadmapStepResource = Require_id<
   Default__v<IRoadmapStepResource>
 >;
 export type HIRoadmapStepResource = HydratedDocument<IRoadmapStepResource>;
+
+export interface ICareerResource extends IRoadmapStepResource {
+  appliesTo: CareerResourceAppliesToEnum;
+  specifiedSteps?: Types.ObjectId[];
+}
+
+export type FullICareerStepResource = Require_id<
+  Default__v<ICareerResource>
+>;
+export type HICareerStepResource = HydratedDocument<ICareerResource>;

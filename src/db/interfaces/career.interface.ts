@@ -1,6 +1,6 @@
 import type { Default__v, HydratedDocument, Require_id, Types } from "mongoose";
 
-import type { IAtByObject } from "./common.interface.ts";
+import type { IAtByObject, ICareerResource } from "./common.interface.ts";
 import type { IRoadmapStep } from "./roadmap_step.interface.ts";
 
 export interface ICareer {
@@ -12,6 +12,10 @@ export interface ICareer {
   description: string;
 
   isActive: boolean;
+
+  courses: ICareerResource[];
+  youtubePlaylists: ICareerResource[];
+  books?: ICareerResource[];
 
   roadmapSteps?: Partial<IRoadmapStep>[]; // virtual
 

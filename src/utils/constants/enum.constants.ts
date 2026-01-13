@@ -130,3 +130,8 @@ export enum LanguagesEnum {
   nl = "nl", // Dutch
   sv = "sv", // Swedish
 }
+
+export enum CareerResourceAppliesToEnum {
+  all = "All",
+  specific = "Specific",
+}

@@ -5,13 +5,50 @@ import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
 import DocumentFormat from "../../utils/formats/document.format.ts";
 import { atByObjectSchema } from "./common_schemas.model.ts";
 import slugify from "slugify";
-import type {
-  FullIRoadmapStep,
-} from "../interfaces/roadmap_step.interface.ts";
+import type { FullIRoadmapStep } from "../interfaces/roadmap_step.interface.ts";
+import type { ICareerResource } from "../interfaces/common.interface.ts";
+import {
+  CareerResourceAppliesToEnum,
+  LanguagesEnum,
+  RoadmapStepPricingTypesEnum,
+} from "../../utils/constants/enum.constants.ts";
+
+const careerResourceSchema = new mongoose.Schema<ICareerResource>(
+  {
+    title: { type: String, required: true, min: 3, max: 300 },
+    url: { type: String, required: true },
+    pricingType: {
+      type: String,
+      enum: Object.values(RoadmapStepPricingTypesEnum),
+      default: RoadmapStepPricingTypesEnum.free,
+    },
+    language: {
+      type: String,
+      enum: Object.values(LanguagesEnum),
+      required: true,
+    },
+    pictureUrl: { type: String },
+
+    appliesTo: {
+      type: String,
+      enum: Object.values(CareerResourceAppliesToEnum),
+      required: true,
+    },
+
+    specifiedSteps: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: ModelsNames.roadmapStepModel,
+      required: function (this: ICareerResource) {
+        return this.appliesTo === CareerResourceAppliesToEnum.specific;
+      },
+    },
+  },
+  {}
+);
 
 const careerSchema = new mongoose.Schema<ICareer>(
   {
-    title: { type: String, unique: true, required: true, min: 3, max: 300 },
+    title: { type: String, unique: true, required: true, min: 2, max: 100 },
     slug: { type: String },
 
     pictureUrl: { type: String, required: true },
@@ -19,6 +56,16 @@ const careerSchema = new mongoose.Schema<ICareer>(
     description: { type: String, min: 5, max: 10_000, required: true },
 
     isActive: { type: Boolean, default: false },
+
+    courses: { type: [careerResourceSchema], max: 5, default: [] },
+
+    youtubePlaylists: {
+      type: [careerResourceSchema],
+      max: 5,
+      default: [],
+    },
+
+    books: { type: [careerResourceSchema], max: 5, default: [] },
 
     freezed: atByObjectSchema,
 

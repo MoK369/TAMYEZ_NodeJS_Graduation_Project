@@ -28,6 +28,9 @@ class RoutePaths {
   static readonly changePassword = "/change-password";
   static readonly logout = "/logout";
 
+  // career routes
+  static readonly career = "/career";
+
   // quiz routes
   static readonly quiz = "/quiz";
   static readonly getQuizDetails = "/:quizId";

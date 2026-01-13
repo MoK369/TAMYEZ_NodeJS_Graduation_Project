@@ -30,6 +30,22 @@ class AppRegex {
   static readonly osRegex = /^(Android|IOS|Web)\s\d{1,2}(\.\d{1,2})*$/
 
   static readonly deviceModelRegex = /^[A-Za-z0-9][A-Za-z0-9\-_ ]{1,49}$/
+
+  static readonly careerTitleRegex = /^(?=.{3,100}$)[A-Z][a-z]+(?:[-\s][A-Z][a-z]+)*\s(?:Engineer|Developer|Scientist|Architect|Analyst|Administrator|Manager|Specialist|Consultant|Researcher|Tester|Auditor|Operator|Lead|Principal)(?:\s\([A-Za-z0-9 +\/#&.\-]{1,40}\))?$/;
+  // [Domain Words] [Role Type] (Optional Focus)
+  /*
+  Examples:
+   - Android Developer
+   - Mobile Developer (iOS)
+   - Machine Learning Engineer (AI/ML)
+   - Flutter Developer
+   - Design Developer (UI/UX)
+   - Mobile Developer (iOS)
+   - Backend Developer (C++)
+   - Software Engineer (C#/.NET)
+   - Data Scientist (NLP)
+   - Platform Engineer (SRE)
+  */
 }
 
 export default AppRegex;
