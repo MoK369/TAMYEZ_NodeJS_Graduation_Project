@@ -1,3 +1,4 @@
+import EnvFields from "../constants/env_fields.constants.js";
 import IdSecurityUtil from "../security/id.security.js";
 class S3KeyUtil {
     static generateS3Key = ({ Path, tag, originalname, }) => {
@@ -13,8 +14,8 @@ class S3KeyUtil {
             size: 24,
         })}${tag ? `_${tag}` : ""}_${originalname}`;
     };
-    static generateS3UploadsUrlFromSubKey = ({ req, subKey, }) => {
-        return `${req.protocol}://${req.host}/uploads/${subKey}`;
+    static generateS3UploadsUrlFromSubKey = (subKey) => {
+        return `${process.env[EnvFields.PROTOCOL]}://${process.env[EnvFields.HOST]}/uploads/${encodeURIComponent(subKey)}`;
     };
 }
 export default S3KeyUtil;

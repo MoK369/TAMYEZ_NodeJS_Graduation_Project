@@ -6,6 +6,10 @@ abstract class S3FoldersPaths {
   static profileFolderPath = (userId: string): string => {
     return `${this.userFolderPath(userId)}/profile`;
   };
+
+  static careerFolderPath = (assetFolderId: string): string => {
+    return `careers/${assetFolderId}`;
+  };
 }
 
 export default S3FoldersPaths;

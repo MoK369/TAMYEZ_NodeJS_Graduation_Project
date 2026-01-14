@@ -21,6 +21,9 @@ class RoutePaths {
     static updateProfile = "/";
     static changePassword = "/change-password";
     static logout = "/logout";
+    static career = "/career";
+    static createCareer = "/";
+    static uploadCareerPicture = "/:careerId/picture";
     static quiz = "/quiz";
     static getQuizDetails = "/:quizId";
     static getQuizQuestions = "/questions/:quizId";

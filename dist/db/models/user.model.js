@@ -6,6 +6,7 @@ import DocumentFormat from "../../utils/formats/document.format.js";
 import { atByObjectSchema, codeExpireCountObjectSchema, idSelectedAtObjectSchema, profilePictureObjectSchema, } from "./common_schemas.model.js";
 import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.js";
+import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
 const quizAttemptsSchema = new mongoose.Schema({
     count: { type: Number, required: true, min: 0, max: 5 },
     lastAttempt: { type: Date, required: true },
@@ -93,7 +94,7 @@ userSchema.methods.toJSON = function () {
         gender: userObject.gender,
         role: userObject.role,
         profilePicture: userObject?.profilePicture?.url
-            ? DocumentFormat.getFullURLFromSubKey(userObject.profilePicture.url)
+            ? S3KeyUtil.generateS3UploadsUrlFromSubKey(userObject.profilePicture.url)
             : undefined,
         createdAt: userObject.createdAt,
         updatedAt: userObject.updatedAt,

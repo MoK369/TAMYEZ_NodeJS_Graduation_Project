@@ -13,7 +13,6 @@ import {
   LogoutFlagsEnum,
   ProvidersEnum,
 } from "../../utils/constants/enum.constants.ts";
-import DocumentFromat from "../../utils/formats/document.format.ts";
 import UpdateUtil from "../../utils/update/util.update.ts";
 import HashingSecurityUtil from "../../utils/security/hash.security.ts";
 import {
@@ -24,6 +23,7 @@ import StringConstants from "../../utils/constants/strings.constants.ts";
 import TokenSecurityUtil from "../../utils/security/token.security.ts";
 import { NotificationPushDeviceRepository } from "../../db/repositories/index.ts";
 import NotificationPushDeviceModel from "../../db/models/notifiction_push_device.model.ts";
+import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 
 class UserService {
   private readonly _notificationPushDeviceRepository =
@@ -67,8 +67,9 @@ class UserService {
 
     return successHandler({
       res,
-      body: { url: DocumentFromat.getFullURLFromSubKey(subKey) },
+      body: { url: S3KeyUtil.generateS3UploadsUrlFromSubKey(subKey) },
     });
+    
   };
 
   updateProfile = async (req: Request, res: Response): Promise<Response> => {

@@ -4,3 +4,5 @@ export { default as QuizRepository } from "./quiz.repository.js";
 export { default as QuizAttemptRepository } from "./quiz_questions.repository.js";
 export { default as NotificationPushDeviceRepository } from "./notification_push_device.repository.js";
 export { default as AdminNotificationsLimitRepository } from "./admin_notifications_limit.repository.js";
+export { default as CareerRepository } from "./career.repository.js";
+export { default as RoadmapStepRepository } from "./roadmap_step.repository.js";

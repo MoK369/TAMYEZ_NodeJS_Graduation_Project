@@ -107,3 +107,32 @@ export var AdminNotificationTypesEnum;
     AdminNotificationTypesEnum["allUsers"] = "AllUsers";
     AdminNotificationTypesEnum["careerSpecific"] = "CareerSpecific";
 })(AdminNotificationTypesEnum || (AdminNotificationTypesEnum = {}));
+export var RoadmapStepPricingTypesEnum;
+(function (RoadmapStepPricingTypesEnum) {
+    RoadmapStepPricingTypesEnum["free"] = "Free";
+    RoadmapStepPricingTypesEnum["paid"] = "Paid";
+    RoadmapStepPricingTypesEnum["subscription"] = "Subscription";
+})(RoadmapStepPricingTypesEnum || (RoadmapStepPricingTypesEnum = {}));
+export var LanguagesEnum;
+(function (LanguagesEnum) {
+    LanguagesEnum["en"] = "en";
+    LanguagesEnum["ar"] = "ar";
+    LanguagesEnum["in"] = "in";
+    LanguagesEnum["fr"] = "fr";
+    LanguagesEnum["es"] = "es";
+    LanguagesEnum["de"] = "de";
+    LanguagesEnum["it"] = "it";
+    LanguagesEnum["ja"] = "ja";
+    LanguagesEnum["ko"] = "ko";
+    LanguagesEnum["zh"] = "zh";
+    LanguagesEnum["ru"] = "ru";
+    LanguagesEnum["pt"] = "pt";
+    LanguagesEnum["hi"] = "hi";
+    LanguagesEnum["nl"] = "nl";
+    LanguagesEnum["sv"] = "sv";
+})(LanguagesEnum || (LanguagesEnum = {}));
+export var CareerResourceAppliesToEnum;
+(function (CareerResourceAppliesToEnum) {
+    CareerResourceAppliesToEnum["all"] = "All";
+    CareerResourceAppliesToEnum["specific"] = "Specific";
+})(CareerResourceAppliesToEnum || (CareerResourceAppliesToEnum = {}));

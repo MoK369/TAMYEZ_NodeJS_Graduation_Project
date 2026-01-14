@@ -30,6 +30,8 @@ class RoutePaths {
 
   // career routes
   static readonly career = "/career";
+  static readonly createCareer = "/";
+  static readonly uploadCareerPicture = "/:careerId/picture";
 
   // quiz routes
   static readonly quiz = "/quiz";
@@ -44,11 +46,12 @@ class RoutePaths {
   // firebase route
   static readonly firebase = "/firebase";
   static readonly sendNotification = "/test-send-notification";
-  static readonly sendMultipleNotifications = "/test-send-multiple-notifications";
-  static readonly sendNotificationsToAllUsers = "/send-notifications-all"
+  static readonly sendMultipleNotifications =
+    "/test-send-multiple-notifications";
+  static readonly sendNotificationsToAllUsers = "/send-notifications-all";
   static readonly enableNotifications = "/enable-notifications";
   static readonly disableNotifications = "/disable-notifications";
-  static readonly refreshFcmToken = "/refresh-fcm-token"
+  static readonly refreshFcmToken = "/refresh-fcm-token";
 }
 
 export default RoutePaths;

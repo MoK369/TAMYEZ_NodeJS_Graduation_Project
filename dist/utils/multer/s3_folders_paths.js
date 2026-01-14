@@ -5,5 +5,8 @@ class S3FoldersPaths {
     static profileFolderPath = (userId) => {
         return `${this.userFolderPath(userId)}/profile`;
     };
+    static careerFolderPath = (assetFolderId) => {
+        return `careers/${assetFolderId}`;
+    };
 }
 export default S3FoldersPaths;

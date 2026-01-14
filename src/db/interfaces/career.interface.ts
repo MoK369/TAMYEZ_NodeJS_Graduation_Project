@@ -11,6 +11,8 @@ export interface ICareer {
   pictureUrl: string;
   description: string;
 
+  assetFolderId: string;
+
   isActive: boolean;
 
   courses: ICareerResource[];
@@ -18,6 +20,8 @@ export interface ICareer {
   books?: ICareerResource[];
 
   roadmapSteps?: Partial<IRoadmapStep>[]; // virtual
+
+  stepsCount: number;
 
   freezed?: IAtByObject;
   restored?: IAtByObject;

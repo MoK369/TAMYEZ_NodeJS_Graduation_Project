@@ -26,6 +26,7 @@ import type {
   UpdateFunctionsUpdateObjectType,
   UpdateType,
 } from "../../utils/types/update_functions.type.ts";
+import type { PartialUndefined } from "../../utils/types/partial_undefined.type.ts";
 
 abstract class DatabaseRepository<TDocument> {
   constructor(protected readonly model: Model<TDocument>) {}
@@ -36,7 +37,7 @@ abstract class DatabaseRepository<TDocument> {
       validateBeforeSave: true,
     },
   }: {
-    data: Partial<TDocument>[];
+    data: PartialUndefined<TDocument>[];
     options?: CreateOptions;
   }): Promise<HydratedDocument<TDocument>[]> => {
     const resultList = await this.model.create(data, options);

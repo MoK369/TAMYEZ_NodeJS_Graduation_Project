@@ -17,6 +17,7 @@ import {
 import HashingSecurityUtil from "../../utils/security/hash.security.ts";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.ts";
 import type { UpdateQuery } from "mongoose";
+import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 
 const quizAttemptsSchema = new mongoose.Schema<IQuizAttempts>(
   {
@@ -130,7 +131,7 @@ userSchema.methods.toJSON = function () {
     gender: userObject.gender,
     role: userObject.role,
     profilePicture: userObject?.profilePicture?.url
-      ? DocumentFormat.getFullURLFromSubKey(userObject.profilePicture.url)
+      ? S3KeyUtil.generateS3UploadsUrlFromSubKey(userObject.profilePicture.url)
       : undefined,
     createdAt: userObject.createdAt,
     updatedAt: userObject.updatedAt,

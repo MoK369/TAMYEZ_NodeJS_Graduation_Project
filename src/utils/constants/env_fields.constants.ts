@@ -79,6 +79,10 @@ abstract class EnvFields {
     "DAILY_MOTIVATIONAL_NOTIFICATION_TITLE";
   static readonly DAILY_MOTIVATIONAL_NOTIFICATION_BODY =
     "DAILY_MOTIVATIONAL_NOTIFICATION_BODY";
+
+  // Career
+  static readonly CAREER_PICTURE_SIZE = "CAREER_PICTURE_SIZE";
+  static readonly CAREER_DEFAULT_PICTURE_URL = "CAREER_DEFAULT_PICTURE_URL";
 }
 
 export default EnvFields;

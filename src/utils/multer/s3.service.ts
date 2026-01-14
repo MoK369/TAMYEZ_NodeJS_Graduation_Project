@@ -17,11 +17,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { StorageTypesEnum } from "../constants/enum.constants.ts";
 import { createReadStream } from "node:fs";
 import { S3Exception } from "../exceptions/custom.exceptions.ts";
-import KeyUtil from "./key.multer.ts";
+import S3KeyUtil from "./s3_key.multer.ts";
 import type { IMulterFile } from "../constants/interface.constants.ts";
 import EnvFields from "../constants/env_fields.constants.ts";
 
-class S3Service {
+abstract class S3Service {
   private static _s3ClientObject = new S3Client({
     region: process.env[EnvFields.AWS_REGION]!,
     credentials: {
@@ -43,7 +43,7 @@ class S3Service {
     Path?: string;
     File: IMulterFile;
   }): Promise<string> => {
-    const subKey = KeyUtil.generateS3SubKey({
+    const subKey = S3KeyUtil.generateS3SubKey({
       Path,
       originalname: File.originalname,
     });
@@ -51,7 +51,7 @@ class S3Service {
     const command = new PutObjectCommand({
       Bucket,
       ACL,
-      Key: KeyUtil.generateS3KeyFromSubKey(subKey),
+      Key: S3KeyUtil.generateS3KeyFromSubKey(subKey),
       Body:
         StorageApproach === StorageTypesEnum.memory
           ? File.buffer!
@@ -112,7 +112,7 @@ class S3Service {
     Path?: string;
     File: Express.Multer.File;
   }): Promise<string> => {
-    const subKey = KeyUtil.generateS3SubKey({
+    const subKey = S3KeyUtil.generateS3SubKey({
       Path,
       originalname: File.originalname,
     });
@@ -122,7 +122,7 @@ class S3Service {
       params: {
         Bucket,
         ACL,
-        Key: KeyUtil.generateS3KeyFromSubKey(subKey),
+        Key: S3KeyUtil.generateS3KeyFromSubKey(subKey),
         Body:
           StorageApproach === StorageTypesEnum.memory
             ? File.buffer
@@ -190,7 +190,7 @@ class S3Service {
     contentType: string;
     expiresIn?: number;
   }): Promise<{ url: string; key: string }> => {
-    const subKey = KeyUtil.generateS3SubKey({
+    const subKey = S3KeyUtil.generateS3SubKey({
       Path,
       tag: "presigned",
       originalname,
@@ -198,7 +198,7 @@ class S3Service {
 
     const command = new PutObjectCommand({
       Bucket,
-      Key: KeyUtil.generateS3KeyFromSubKey(subKey),
+      Key: S3KeyUtil.generateS3KeyFromSubKey(subKey),
       ContentType: contentType,
     });
     const url = await getSignedUrl(this._s3ClientObject, command, {
@@ -227,7 +227,7 @@ class S3Service {
   }): Promise<string> => {
     const command = new GetObjectCommand({
       Bucket,
-      Key: KeyUtil.generateS3KeyFromSubKey(SubKey),
+      Key: S3KeyUtil.generateS3KeyFromSubKey(SubKey),
       ResponseContentDisposition:
         download === "true"
           ? `attachment; filename="${
@@ -257,7 +257,7 @@ class S3Service {
   }): Promise<GetObjectOutput> => {
     const command = new GetObjectCommand({
       Bucket,
-      Key: KeyUtil.generateS3KeyFromSubKey(SubKey),
+      Key: S3KeyUtil.generateS3KeyFromSubKey(SubKey),
     });
 
     return this._s3ClientObject.send(command).catch((error) => {
@@ -274,7 +274,7 @@ class S3Service {
   }): Promise<DeleteObjectCommandOutput> => {
     const command = new DeleteObjectCommand({
       Bucket,
-      Key: KeyUtil.generateS3KeyFromSubKey(SubKey),
+      Key: S3KeyUtil.generateS3KeyFromSubKey(SubKey),
     });
 
     return this._s3ClientObject.send(command).catch((error) => {
@@ -302,7 +302,7 @@ class S3Service {
           return { Key };
         })
       : SubKeys!.map<{ Key: string }>((SubKey) => {
-          return { Key: KeyUtil.generateS3KeyFromSubKey(SubKey) };
+          return { Key: S3KeyUtil.generateS3KeyFromSubKey(SubKey) };
         });
 
     const command = new DeleteObjectsCommand({
@@ -327,7 +327,7 @@ class S3Service {
   }): Promise<ListObjectsV2CommandOutput> => {
     const command = new ListObjectsV2Command({
       Bucket,
-      Prefix: KeyUtil.generateS3KeyFromSubKey(FolderPath),
+      Prefix: S3KeyUtil.generateS3KeyFromSubKey(FolderPath),
     });
 
     const result = await this._s3ClientObject.send(command).catch((error) => {

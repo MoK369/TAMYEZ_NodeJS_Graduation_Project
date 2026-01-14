@@ -12,11 +12,12 @@ import {
   LanguagesEnum,
   RoadmapStepPricingTypesEnum,
 } from "../../utils/constants/enum.constants.ts";
+import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 
 const careerResourceSchema = new mongoose.Schema<ICareerResource>(
   {
-    title: { type: String, required: true, min: 3, max: 300 },
-    url: { type: String, required: true },
+    title: { type: String, unique: true, required: true, min: 3, max: 300 },
+    url: { type: String, unique: true, required: true },
     pricingType: {
       type: String,
       enum: Object.values(RoadmapStepPricingTypesEnum),
@@ -43,17 +44,21 @@ const careerResourceSchema = new mongoose.Schema<ICareerResource>(
       },
     },
   },
-  {}
+  {
+    timestamps: false,
+  }
 );
 
 const careerSchema = new mongoose.Schema<ICareer>(
   {
-    title: { type: String, unique: true, required: true, min: 2, max: 100 },
+    title: { type: String, unique: true, required: true, min: 3, max: 100 },
     slug: { type: String },
 
     pictureUrl: { type: String, required: true },
 
     description: { type: String, min: 5, max: 10_000, required: true },
+
+    assetFolderId: { type: String, required: true },
 
     isActive: { type: Boolean, default: false },
 
@@ -66,6 +71,8 @@ const careerSchema = new mongoose.Schema<ICareer>(
     },
 
     books: { type: [careerResourceSchema], max: 5, default: [] },
+
+    stepsCount: { type: Number, default: 0 },
 
     freezed: atByObjectSchema,
 
@@ -101,7 +108,7 @@ careerSchema.methods.toJSON = function () {
     id: userObject.id,
     title: userObject.title,
     slug: userObject.slug,
-    pictureUrl: DocumentFormat.getFullURLFromSubKey(userObject.pictureUrl),
+    pictureUrl: S3KeyUtil.generateS3UploadsUrlFromSubKey(userObject.pictureUrl),
     description: userObject.description,
     isActive: userObject.isActive,
     roadmapSteps: userObject?.roadmapSteps?.map((step) => {

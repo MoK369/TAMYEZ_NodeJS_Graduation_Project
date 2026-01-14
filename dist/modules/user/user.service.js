@@ -2,7 +2,6 @@ import successHandler from "../../utils/handlers/success.handler.js";
 import S3Service from "../../utils/multer/s3.service.js";
 import S3FoldersPaths from "../../utils/multer/s3_folders_paths.js";
 import { LogoutFlagsEnum, ProvidersEnum, } from "../../utils/constants/enum.constants.js";
-import DocumentFromat from "../../utils/formats/document.format.js";
 import UpdateUtil from "../../utils/update/util.update.js";
 import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import { BadRequestException, NotFoundException, } from "../../utils/exceptions/custom.exceptions.js";
@@ -10,6 +9,7 @@ import StringConstants from "../../utils/constants/strings.constants.js";
 import TokenSecurityUtil from "../../utils/security/token.security.js";
 import { NotificationPushDeviceRepository } from "../../db/repositories/index.js";
 import NotificationPushDeviceModel from "../../db/models/notifiction_push_device.model.js";
+import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
 class UserService {
     _notificationPushDeviceRepository = new NotificationPushDeviceRepository(NotificationPushDeviceModel);
     getProfile = async (req, res) => {
@@ -38,7 +38,7 @@ class UserService {
         });
         return successHandler({
             res,
-            body: { url: DocumentFromat.getFullURLFromSubKey(subKey) },
+            body: { url: S3KeyUtil.generateS3UploadsUrlFromSubKey(subKey) },
         });
     };
     updateProfile = async (req, res) => {
