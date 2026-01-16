@@ -1,26 +1,18 @@
 import { z } from "zod";
-import { CareerResourceAppliesToEnum, LanguagesEnum, RoadmapStepPricingTypesEnum, } from "../../utils/constants/enum.constants.js";
+import { CareerResourceAppliesToEnum } from "../../utils/constants/enum.constants.js";
 import generalValidationConstants from "../../utils/constants/validation.constants.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import AppRegex from "../../utils/constants/regex.constants.js";
 import fileValidation from "../../utils/multer/file_validation.multer.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
+import { RoadmapValidators } from "../roadmap/index.js";
 class CareerValidators {
-    static roadmapStepResource = {
-        body: z.strictObject({
-            title: z
-                .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("title") })
-                .min(3)
-                .max(300),
-            url: z.url(),
-            pricingType: z.enum(RoadmapStepPricingTypesEnum),
-            language: z.enum(LanguagesEnum),
-        }),
-    };
     static careerResource = {
-        body: this.roadmapStepResource.body
+        body: RoadmapValidators.roadmapStepResource.body
             .extend({
-            appliesTo: z.enum(CareerResourceAppliesToEnum),
+            appliesTo: z
+                .enum(CareerResourceAppliesToEnum)
+                .default(CareerResourceAppliesToEnum.all),
             specifiedSteps: z.array(generalValidationConstants.objectId).optional(),
         })
             .superRefine((data, ctx) => {
@@ -46,61 +38,46 @@ class CareerValidators {
                 .max(100),
             description: z.string().min(5).max(10_000),
             courses: z
-                .array(this.careerResource.body)
+                .array(RoadmapValidators.roadmapStepResource.body)
                 .max(5)
                 .optional()
                 .default([]),
             youtubePlaylists: z
-                .array(this.careerResource.body)
+                .array(RoadmapValidators.roadmapStepResource.body)
                 .max(5)
                 .optional()
                 .default([]),
-            books: z.array(this.careerResource.body).max(5).optional().default([]),
+            books: z
+                .array(RoadmapValidators.roadmapStepResource.body)
+                .max(5)
+                .optional()
+                .default([]),
         })
             .superRefine((data, ctx) => {
-            if (data.courses?.length &&
-                data.courses.findIndex((c) => c.url.includes("youtube.com") || c.url.includes("youtu.be")) !== -1) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["courses"],
-                    message: "Some courses have YouTube URLs ❌",
-                });
-            }
-            if (data.youtubePlaylists?.length &&
-                data.youtubePlaylists.findIndex((c) => !(c.url.includes("youtube.com") || c.url.includes("youtu.be"))) !== -1) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["youtubePlaylists"],
-                    message: "Some youtube playlists have non-YouTube URLs ❌",
-                });
-            }
-            if (new Set(data.courses.map((c) => c.title)).size !==
-                data.courses.length ||
-                new Set(data.courses.map((c) => c.url)).size !== data.courses.length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["courses"],
-                    message: "Duplicate titles or urls found in courses ❌",
-                });
-            }
-            if (new Set(data.youtubePlaylists.map((c) => c.title)).size !==
-                data.youtubePlaylists.length ||
-                new Set(data.youtubePlaylists.map((c) => c.url)).size !==
-                    data.youtubePlaylists.length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["youtubePlaylists"],
-                    message: "Duplicate titles or urls found in youtube playlists ❌",
-                });
-            }
-            if (new Set(data.books.map((c) => c.title)).size !== data.books.length ||
-                new Set(data.books.map((c) => c.url)).size !== data.books.length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["books"],
-                    message: "Duplicate titles or urls found in books ❌",
-                });
-            }
+            generalValidationConstants.checkCoureseUrls({
+                data: { courses: data.courses },
+                ctx,
+            });
+            generalValidationConstants.checkYoutubePlaylistsUrls({
+                data: { youtubePlaylists: data.youtubePlaylists },
+                ctx,
+            });
+            generalValidationConstants.checkBooksUrls({
+                data: { books: data.books },
+                ctx,
+            });
+            generalValidationConstants.checkDuplicateCourses({
+                data: { courses: data.courses },
+                ctx,
+            });
+            generalValidationConstants.checkDuplicateYoutubePlaylists({
+                data: { youtubePlaylists: data.youtubePlaylists },
+                ctx,
+            });
+            generalValidationConstants.checkDuplicateBooks({
+                data: { books: data.books },
+                ctx,
+            });
         }),
     };
     static uploadCareerPicture = {

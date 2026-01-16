@@ -35,6 +35,7 @@ class RoutePaths {
 
   // roadmap routes
   static readonly roadmap = "/roadmap";
+  static readonly createRoadmapStep = "/";
 
   // quiz routes
   static readonly quiz = "/quiz";

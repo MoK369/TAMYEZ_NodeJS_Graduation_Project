@@ -11,7 +11,9 @@ class CareerValidators {
   static careerResource = {
     body: RoadmapValidators.roadmapStepResource.body
       .extend({
-        appliesTo: z.enum(CareerResourceAppliesToEnum),
+        appliesTo: z
+          .enum(CareerResourceAppliesToEnum)
+          .default(CareerResourceAppliesToEnum.all),
         specifiedSteps: z.array(generalValidationConstants.objectId).optional(),
       })
       .superRefine((data, ctx) => {
@@ -41,16 +43,20 @@ class CareerValidators {
           .max(100),
         description: z.string().min(5).max(10_000),
         courses: z
-          .array(this.careerResource.body)
+          .array(RoadmapValidators.roadmapStepResource.body)
           .max(5)
           .optional()
           .default([]),
         youtubePlaylists: z
-          .array(this.careerResource.body)
+          .array(RoadmapValidators.roadmapStepResource.body)
           .max(5)
           .optional()
           .default([]),
-        books: z.array(this.careerResource.body).max(5).optional().default([]),
+        books: z
+          .array(RoadmapValidators.roadmapStepResource.body)
+          .max(5)
+          .optional()
+          .default([]),
       })
       .superRefine((data, ctx) => {
         generalValidationConstants.checkCoureseUrls({

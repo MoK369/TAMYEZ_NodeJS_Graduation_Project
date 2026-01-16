@@ -16,6 +16,8 @@ import uploadsRouter from "./uploads/uploads.routes.ts";
 import QuizModel from "./db/models/quiz.model.ts";
 import NotificationPushDeviceModel from "./db/models/notifiction_push_device.model.ts";
 import startAllCronJobs from "./utils/cron_jobs/cron_jobs.controller.ts";
+import RoadmapStepModel from "./db/models/roadmap_step.model.ts";
+import CareerModel from "./db/models/career.model.ts";
 
 async function bootstrap() {
   const app: Express = express();
@@ -44,6 +46,9 @@ async function bootstrap() {
     await UserModel.syncIndexes();
     await QuizModel.syncIndexes();
     await NotificationPushDeviceModel.syncIndexes();
+    await RoadmapStepModel.syncIndexes();
+    await CareerModel.syncIndexes();
+
     app.use(protocolAndHostHanlder);
     app.use(express.json());
     app.use(RoutePaths.uploads, uploadsRouter);

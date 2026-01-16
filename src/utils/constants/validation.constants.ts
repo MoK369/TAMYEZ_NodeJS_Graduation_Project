@@ -1,21 +1,20 @@
-import z, { check } from "zod";
+import z from "zod";
 import StringConstants from "./strings.constants.ts";
 import AppRegex from "./regex.constants.ts";
 import { Types } from "mongoose";
 import { StorageTypesEnum } from "./enum.constants.ts";
 import Stream from "node:stream";
-import type {
-  ICareerResource,
-  IRoadmapStepResource,
-} from "../../db/interfaces/common.interface.ts";
+import type { IRoadmapStepResource } from "../../db/interfaces/common.interface.ts";
 
 const generalValidationConstants = {
-  objectId: z.string().refine(
-    (value) => {
-      return Types.ObjectId.isValid(value);
-    },
-    { error: StringConstants.INVALID_PARAMETER_MESSAGE() }
-  ),
+  objectId: z
+    .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("id") })
+    .refine(
+      (value) => {
+        return Types.ObjectId.isValid(value);
+      },
+      { error: StringConstants.INVALID_PARAMETER_MESSAGE() }
+    ),
   name: z
     .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("name") })
     .regex(AppRegex.nameRegex, StringConstants.NAME_VALIDATION_MESSAGE),

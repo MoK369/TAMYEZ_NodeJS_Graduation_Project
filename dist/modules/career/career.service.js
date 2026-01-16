@@ -1,5 +1,5 @@
 import { CareerModel } from "../../db/models/index.js";
-import { CareerRepository } from "../../db/repositories/index.js";
+import { CareerRepository, } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { ConflictException, NotFoundException, ServerException, } from "../../utils/exceptions/custom.exceptions.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
@@ -10,7 +10,7 @@ import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
 class CareerService {
     _careerRepository = new CareerRepository(CareerModel);
     createCareer = async (req, res) => {
-        const { title, description, courses, youtubePlaylists, books } = req.body;
+        const { title, description, courses, youtubePlaylists, books } = req.validationResult.body;
         const careerExists = await this._careerRepository.findOne({
             filter: { title, paranoid: false },
         });

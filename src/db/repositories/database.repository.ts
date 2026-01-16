@@ -131,23 +131,33 @@ abstract class DatabaseRepository<TDocument> {
   }): Promise<UpdateWriteOpResult> => {
     return this.model.updateMany(
       filter,
-      { ...update, $inc: { __v: 1 } },
+      {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      },
       options
     );
   };
 
-  updateOne = async ({
+  updateOne = async <TUpdate extends UpdateType = Record<string, any>>({
     filter = {},
     update,
     options = {},
   }: {
     filter?: RootFilterQuery<TDocument>;
-    update: UpdateQuery<TDocument> | UpdateWithAggregationPipeline;
+    update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
     return this.model.updateOne(
       filter,
-      { ...update, $inc: { __v: 1 } },
+      {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      },
       options
     );
   };
@@ -170,7 +180,12 @@ abstract class DatabaseRepository<TDocument> {
       });
       toUpdateObject = update;
     } else {
-      toUpdateObject = { ...update, $inc: { __v: 1 } };
+      toUpdateObject = {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      };
     }
     return this.model.updateOne({ _id: id }, toUpdateObject, options);
   };
@@ -186,7 +201,12 @@ abstract class DatabaseRepository<TDocument> {
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
     return this.model.findOneAndUpdate(
       filter,
-      { ...update, $inc: { __v: 1 } },
+      {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      },
       options
     );
   };
@@ -202,7 +222,12 @@ abstract class DatabaseRepository<TDocument> {
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
     return this.model.findByIdAndUpdate(
       id,
-      { ...update, $inc: { __v: 1 } },
+      {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      },
       options
     );
   };
@@ -247,6 +272,14 @@ abstract class DatabaseRepository<TDocument> {
     options?: MongooseBaseQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
     return this.model.replaceOne(filter, replacement, options);
+  };
+
+  countDocuments = async ({
+    filter = {},
+  }: {
+    filter?: RootFilterQuery<TDocument>;
+  }): Promise<number> => {
+    return this.model.countDocuments(filter);
   };
 }
 

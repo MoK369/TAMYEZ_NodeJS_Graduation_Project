@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { CareerModel } from "../../db/models/index.ts";
-import { CareerRepository } from "../../db/repositories/index.ts";
+import {
+  CareerRepository,
+} from "../../db/repositories/index.ts";
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type {
   CreateCareerBodyDto,
@@ -21,10 +23,32 @@ import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 
 class CareerService {
   private readonly _careerRepository = new CareerRepository(CareerModel);
+  // private readonly _roadmapStepRepository = new RoadmapStepRepository(
+  //   RoadmapStepModel
+  // );
+
+  // private getResourceSpecifiedStepsIds = (
+  //   resources: ICareerResource[]
+  // ): Set<string> => {
+  //   const specifiedStepsIdsSet = new Set<string>();
+  //   if (resources?.length) {
+  //     for (const resource of resources) {
+  //       if (
+  //         resource.appliesTo === CareerResourceAppliesToEnum.specific &&
+  //         resource.specifiedSteps?.length
+  //       ) {
+  //         resource.specifiedSteps.forEach((stepId) =>
+  //           specifiedStepsIdsSet.add(stepId.toString())
+  //         );
+  //       }
+  //     }
+  //   }
+  //   return specifiedStepsIdsSet;
+  // };
 
   createCareer = async (req: Request, res: Response): Promise<Response> => {
     const { title, description, courses, youtubePlaylists, books } =
-      req.body as CreateCareerBodyDto;
+      req.validationResult.body as CreateCareerBodyDto;
 
     const careerExists = await this._careerRepository.findOne({
       filter: { title, paranoid: false },
@@ -38,6 +62,31 @@ class CareerService {
     }
 
     // check on specfiedSteps existence
+    // const specifiedStepsIdsSet = new Set<string>();
+    // specifiedStepsIdsSet.union(
+    //   this.getResourceSpecifiedStepsIds(courses as unknown as ICareerResource[])
+    // );
+    // specifiedStepsIdsSet.union(
+    //   this.getResourceSpecifiedStepsIds(
+    //     youtubePlaylists as unknown as ICareerResource[]
+    //   )
+    // );
+    // specifiedStepsIdsSet.union(
+    //   this.getResourceSpecifiedStepsIds(books as unknown as ICareerResource[])
+    // );
+
+    // if (specifiedStepsIdsSet.size > 0) {
+    //   const existingStepsCount =
+    //     await this._roadmapStepRepository.countDocuments({
+    //       filter: { _id: { $in: Array.from(specifiedStepsIdsSet) } },
+    //     });
+
+    //   if (existingStepsCount !== specifiedStepsIdsSet.size) {
+    //     throw new NotFoundException(
+    //       `One or more specifiedSteps do not exist ❌`
+    //     );
+    //   }
+    // }
 
     const [newCareer] = await this._careerRepository.create({
       data: [

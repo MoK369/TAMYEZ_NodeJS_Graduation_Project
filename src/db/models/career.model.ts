@@ -16,8 +16,8 @@ import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 
 const careerResourceSchema = new mongoose.Schema<ICareerResource>(
   {
-    title: { type: String, unique: true, required: true, min: 3, max: 300 },
-    url: { type: String, unique: true, required: true },
+    title: { type: String, required: true, min: 3, max: 300 },
+    url: { type: String, required: true },
     pricingType: {
       type: String,
       enum: Object.values(RoadmapStepPricingTypesEnum),
@@ -33,7 +33,7 @@ const careerResourceSchema = new mongoose.Schema<ICareerResource>(
     appliesTo: {
       type: String,
       enum: Object.values(CareerResourceAppliesToEnum),
-      required: true,
+      default: CareerResourceAppliesToEnum.all,
     },
 
     specifiedSteps: {

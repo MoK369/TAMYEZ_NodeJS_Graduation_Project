@@ -5,7 +5,9 @@ import { Types } from "mongoose";
 import { StorageTypesEnum } from "./enum.constants.js";
 import Stream from "node:stream";
 const generalValidationConstants = {
-    objectId: z.string().refine((value) => {
+    objectId: z
+        .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("id") })
+        .refine((value) => {
         return Types.ObjectId.isValid(value);
     }, { error: StringConstants.INVALID_PARAMETER_MESSAGE() }),
     name: z
@@ -137,5 +139,67 @@ const generalValidationConstants = {
         .regex(AppRegex.fcmTokenRegex, {
         error: "Invalid fcmToken format ❌",
     }),
+    checkCoureseUrls: ({ data, ctx, }) => {
+        if (data.courses?.length &&
+            data.courses.findIndex((c) => c.url.includes("youtube.com") || c.url.includes("youtu.be")) !== -1) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["courses"],
+                message: "Some courses have YouTube URLs ❌",
+            });
+        }
+    },
+    checkYoutubePlaylistsUrls: ({ data, ctx, }) => {
+        if (data.youtubePlaylists?.length &&
+            data.youtubePlaylists.findIndex((c) => !(c.url.includes("youtube.com") || c.url.includes("youtu.be"))) !== -1) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["youtubePlaylists"],
+                message: "Some youtube playlists have non-YouTube URLs ❌",
+            });
+        }
+    },
+    checkBooksUrls: ({ data, ctx, }) => {
+        if (data.books?.length &&
+            data.books.findIndex((c) => c.url.includes("youtube.com") || c.url.includes("youtu.be")) !== -1) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["books"],
+                message: "Some books have YouTube URLs ❌",
+            });
+        }
+    },
+    checkDuplicateCourses: ({ data, ctx, }) => {
+        if (new Set(data.courses.map((c) => c.title)).size !== data.courses.length ||
+            new Set(data.courses.map((c) => c.url)).size !== data.courses.length) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["courses"],
+                message: "Duplicate titles or urls found in courses ❌",
+            });
+        }
+    },
+    checkDuplicateYoutubePlaylists: ({ data, ctx, }) => {
+        if (new Set(data.youtubePlaylists.map((c) => c.title)).size !==
+            data.youtubePlaylists.length ||
+            new Set(data.youtubePlaylists.map((c) => c.url)).size !==
+                data.youtubePlaylists.length) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["youtubePlaylists"],
+                message: "Duplicate titles or urls found in youtube playlists ❌",
+            });
+        }
+    },
+    checkDuplicateBooks: ({ data, ctx, }) => {
+        if (new Set(data.books.map((c) => c.title)).size !== data.books.length ||
+            new Set(data.books.map((c) => c.url)).size !== data.books.length) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["books"],
+                message: "Duplicate titles or urls found in books ❌",
+            });
+        }
+    },
 };
 export default generalValidationConstants;

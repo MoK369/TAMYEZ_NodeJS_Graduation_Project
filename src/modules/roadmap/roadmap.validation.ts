@@ -5,6 +5,7 @@ import {
   RoadmapStepPricingTypesEnum,
 } from "../../utils/constants/enum.constants.ts";
 import generalValidationConstants from "../../utils/constants/validation.constants.ts";
+import StringFormats from "../../utils/formats/string.formats.ts";
 
 class RoadmapValidators {
   static roadmapStepResource = {
@@ -30,6 +31,8 @@ class RoadmapValidators {
         order: z
           .number({ error: StringConstants.PATH_REQUIRED_MESSAGE("order") })
           .int()
+          .min(1)
+          .max(500)
           .optional(),
         description: z
           .string({
@@ -54,6 +57,8 @@ class RoadmapValidators {
           .default([]),
       })
       .superRefine((data, ctx) => {
+        data.title = StringFormats.normalizeStepTitle(data.title);
+
         generalValidationConstants.checkCoureseUrls({
           data: { courses: data.courses },
           ctx,

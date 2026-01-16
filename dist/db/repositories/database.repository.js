@@ -43,10 +43,20 @@ class DatabaseRepository {
         return this.model.findById(id, projection, options);
     };
     updateMany = async ({ filter = {}, update, options = {}, }) => {
-        return this.model.updateMany(filter, { ...update, $inc: { __v: 1 } }, options);
+        return this.model.updateMany(filter, {
+            ...update,
+            $inc: Object.assign(update["$inc"] ?? {}, {
+                __v: 1,
+            }),
+        }, options);
     };
     updateOne = async ({ filter = {}, update, options = {}, }) => {
-        return this.model.updateOne(filter, { ...update, $inc: { __v: 1 } }, options);
+        return this.model.updateOne(filter, {
+            ...update,
+            $inc: Object.assign(update["$inc"] ?? {}, {
+                __v: 1,
+            }),
+        }, options);
     };
     updateById = async ({ id, update, options = {}, }) => {
         let toUpdateObject;
@@ -59,15 +69,30 @@ class DatabaseRepository {
             toUpdateObject = update;
         }
         else {
-            toUpdateObject = { ...update, $inc: { __v: 1 } };
+            toUpdateObject = {
+                ...update,
+                $inc: Object.assign(update["$inc"] ?? {}, {
+                    __v: 1,
+                }),
+            };
         }
         return this.model.updateOne({ _id: id }, toUpdateObject, options);
     };
     findOneAndUpdate = async ({ filter = {}, update, options = { new: true }, }) => {
-        return this.model.findOneAndUpdate(filter, { ...update, $inc: { __v: 1 } }, options);
+        return this.model.findOneAndUpdate(filter, {
+            ...update,
+            $inc: Object.assign(update["$inc"] ?? {}, {
+                __v: 1,
+            }),
+        }, options);
     };
     findByIdAndUpdate = async ({ id, update, options = { new: true }, }) => {
-        return this.model.findByIdAndUpdate(id, { ...update, $inc: { __v: 1 } }, options);
+        return this.model.findByIdAndUpdate(id, {
+            ...update,
+            $inc: Object.assign(update["$inc"] ?? {}, {
+                __v: 1,
+            }),
+        }, options);
     };
     deleteOne = async ({ filter = {}, options = {}, }) => {
         return this.model.deleteOne(filter, options);
@@ -80,6 +105,9 @@ class DatabaseRepository {
     };
     replaceOne = async ({ filter = {}, replacement, options = {}, }) => {
         return this.model.replaceOne(filter, replacement, options);
+    };
+    countDocuments = async ({ filter = {}, }) => {
+        return this.model.countDocuments(filter);
     };
 }
 export default DatabaseRepository;
