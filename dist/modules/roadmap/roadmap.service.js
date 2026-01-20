@@ -78,7 +78,7 @@ class RoadmapService {
     };
     updateRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
-        const body = req.body;
+        const body = req.validationResult.body;
         const roadmapStep = await this._roadmapStepRepository.findOne({
             filter: { _id: roadmapStepId },
             options: {
@@ -108,12 +108,15 @@ class RoadmapService {
         const session = await startSession();
         await session.withTransaction(async () => {
             if (body.order && body.order != roadmapStep.order) {
-                await this._roadmapStepRepository.updateOne({
+                await this._roadmapStepRepository.updateMany({
                     filter: {
                         careerId: roadmapStep.careerId._id,
-                        order: body.order,
+                        order: {
+                            $gte: Math.min(body.order, roadmapStep.order),
+                            $lte: Math.max(body.order, roadmapStep.order),
+                        },
                     },
-                    update: { $inc: { order: 600 } },
+                    update: { $inc: { order: 700 } },
                     options: { session },
                 });
             }
@@ -147,12 +150,16 @@ class RoadmapService {
                 options: { session },
             });
             if (body.order && body.order != roadmapStep.order) {
-                await this._roadmapStepRepository.updateOne({
+                await this._roadmapStepRepository.updateMany({
                     filter: {
                         careerId: roadmapStep.careerId._id,
-                        order: body.order + 600,
+                        order: { $gte: Math.min(body.order, roadmapStep.order) + 700 },
                     },
-                    update: { order: roadmapStep.order },
+                    update: {
+                        $inc: {
+                            order: body.order < roadmapStep.order ? -699 : -701,
+                        },
+                    },
                     options: { session },
                 });
             }
