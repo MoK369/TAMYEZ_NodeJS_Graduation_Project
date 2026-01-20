@@ -20,3 +20,11 @@ export type UpdateCareerParamsDto = z.infer<
 export type UpdateCareerBodyDto = z.infer<
   typeof CareerValidators.updateCareer.body
 >;
+
+export type UpdateCareerResourceParamsDto = z.infer<
+  typeof CareerValidators.updateCareerResource.params
+>;
+
+export type UpdateCareerResourceBodyDto = z.infer<
+  typeof CareerValidators.updateCareerResource.body
+>;

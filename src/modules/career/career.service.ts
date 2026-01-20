@@ -9,6 +9,8 @@ import type {
   CreateCareerBodyDto,
   UpdateCareerBodyDto,
   UpdateCareerParamsDto,
+  UpdateCareerResourceBodyDto,
+  UpdateCareerResourceParamsDto,
   UploadCareerPictureBodyDto,
   UploadCareerPictureParamsDto,
 } from "./career.dto.ts";
@@ -31,6 +33,7 @@ import { CareerResourceAppliesToEnum } from "../../utils/constants/enum.constant
 import { Types } from "mongoose";
 import type { ICareer } from "../../db/interfaces/career.interface.ts";
 import { RoadmapService } from "../roadmap/index.ts";
+import StringConstants from "../../utils/constants/strings.constants.ts";
 
 class CareerService {
   private readonly _careerRepository = new CareerRepository(CareerModel);
@@ -128,13 +131,13 @@ class CareerService {
 
     // check on specfiedSteps existence
     const specifiedStepsIdsSet = new Set<string>([
-      ...this.getResourceSpecifiedStepsIds(
+      ...this._getResourceSpecifiedStepsIds(
         body.courses as unknown as ICareerResource[],
       ).values(),
-      ...this.getResourceSpecifiedStepsIds(
+      ...this._getResourceSpecifiedStepsIds(
         body.youtubePlaylists as unknown as ICareerResource[],
       ).values(),
-      ...this.getResourceSpecifiedStepsIds(
+      ...this._getResourceSpecifiedStepsIds(
         body.books as unknown as ICareerResource[],
       ).values(),
     ]);
@@ -142,7 +145,7 @@ class CareerService {
     if (specifiedStepsIdsSet.size > 0) {
       const existingStepsCount =
         await this._roadmapStepRepository.countDocuments({
-          filter: { _id: { $in: Array.from(specifiedStepsIdsSet) } },
+          filter: { _id: { $in: Array.from(specifiedStepsIdsSet) }, careerId },
         });
 
       if (existingStepsCount !== specifiedStepsIdsSet.size) {
@@ -233,7 +236,7 @@ class CareerService {
     return successHandler({ res });
   };
 
-  private getResourceSpecifiedStepsIds = (
+  private _getResourceSpecifiedStepsIds = (
     resources: ICareerResource[],
   ): Set<string> => {
     const specifiedStepsIdsSet = new Set<string>();
@@ -250,6 +253,136 @@ class CareerService {
       }
     }
     return specifiedStepsIdsSet;
+  };
+
+  updateCareerResource = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
+    const { careerId, resourceName, resourceId } =
+      req.params as UpdateCareerResourceParamsDto;
+    const body = req.validationResult.body as UpdateCareerResourceBodyDto;
+
+    const career = await this._careerRepository.findOne({
+      filter: {
+        _id: careerId,
+        [`${resourceName}`]: {
+          $elemMatch: { _id: Types.ObjectId.createFromHexString(resourceId) },
+        },
+      },
+      projection: {
+        assetFolderId: 1,
+        [`${resourceName}`]: {
+          $elemMatch: { _id: Types.ObjectId.createFromHexString(resourceId) },
+        },
+      },
+    });
+
+    if (!career) {
+      throw new NotFoundException(
+        "Invalid careerId, career freezed or invalid resourceId ❌",
+      );
+    }
+
+    if (body.url || body.title) {
+      const exist = await this._careerRepository.findOne({
+        filter: {
+          _id: careerId,
+          [`${resourceName}`]: {
+            $elemMatch: { $or: [{ title: body.title }, { url: body.url }] },
+          },
+        },
+        projection: {
+          _id: 0,
+          [`${resourceName}`]: {
+            $elemMatch: { $or: [{ title: body.title }, { url: body.url }] },
+          },
+        },
+      });
+
+      if (exist) {
+        throw new BadRequestException(
+          `This title or url already exists in the ${resourceName} list ❌`,
+        );
+      }
+    }
+
+    if (body.specifiedSteps) {
+      if (
+        body.appliesTo !== CareerResourceAppliesToEnum.specific &&
+        career[resourceName]![0]?.appliesTo == CareerResourceAppliesToEnum.all
+      ) {
+        throw new BadRequestException(
+          "specifiedSteps can't have values when appliesTo equals All ❌",
+        );
+      }
+      const specifiedStepsIdsSet = new Set(body.specifiedSteps);
+      const existingStepsCount =
+        await this._roadmapStepRepository.countDocuments({
+          filter: { _id: { $in: Array.from(specifiedStepsIdsSet) }, careerId },
+        });
+
+      if (existingStepsCount !== specifiedStepsIdsSet.size) {
+        throw new NotFoundException(
+          `One or more specifiedSteps do not exist for this career ❌`,
+        );
+      }
+    }
+
+    let subKey;
+    if (body.attachment) {
+      subKey = (
+        await Promise.all([
+          career[resourceName]![0]?.pictureUrl
+            ? S3Service.deleteFile({
+                SubKey: career[resourceName]![0]?.pictureUrl,
+              })
+            : undefined,
+          S3Service.uploadFile({
+            File: body.attachment,
+            Path: S3FoldersPaths.careerResourceFolderPath(
+              career.assetFolderId,
+              resourceName,
+            ),
+          }),
+        ])
+      )[1];
+    }
+
+    const setObj: any = {};
+    for (const [k, v] of Object.entries(body)) {
+      setObj[
+        `${resourceName}.$[el].${k == StringConstants.ATTACHMENT_FIELD_NAME ? "pictureUrl" : k}`
+      ] = k == StringConstants.ATTACHMENT_FIELD_NAME ? subKey : v;
+    }
+
+    const result = await this._careerRepository.findOneAndUpdate<[]>({
+      filter: {
+        _id: careerId,
+        [`${resourceName}`]: {
+          $elemMatch: { _id: resourceId },
+        },
+      },
+      update: setObj,
+      options: {
+        new: true,
+        arrayFilters: [
+          { "el._id": Types.ObjectId.createFromHexString(resourceId) },
+        ],
+        projection: {
+          _id: 0,
+          [`${resourceName}`]: {
+            $elemMatch: { _id: Types.ObjectId.createFromHexString(resourceId) },
+          },
+        },
+      },
+    });
+
+    if (!result) {
+      throw new NotFoundException("Invalid resourceId ❌");
+    }
+
+    return successHandler({ res, body: result });
   };
 }
 

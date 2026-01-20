@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CareerResourceAppliesToEnum } from "../../utils/constants/enum.constants.js";
+import { CareerResourceAppliesToEnum, CareerResourceNamesEnum, LanguagesEnum, RoadmapStepPricingTypesEnum, } from "../../utils/constants/enum.constants.js";
 import generalValidationConstants from "../../utils/constants/validation.constants.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import AppRegex from "../../utils/constants/regex.constants.js";
@@ -25,6 +25,14 @@ class CareerValidators {
                     code: "custom",
                     path: ["specifiedSteps"],
                     message: "specifiedSteps are missing or less then 2 ❌",
+                });
+            }
+            else if (data.appliesTo == CareerResourceAppliesToEnum.all &&
+                data.specifiedSteps?.length) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["specifiedSteps"],
+                    message: "specifiedSteps can have values when appliesTo equals All ❌",
                 });
             }
         }),
@@ -156,6 +164,62 @@ class CareerValidators {
                 data: { books: data.books },
                 ctx,
             });
+        }),
+    };
+    static updateCareerResource = {
+        params: this.uploadCareerPicture.params.extend({
+            resourceName: z.enum(Object.values(CareerResourceNamesEnum)),
+            resourceId: generalValidationConstants.objectId,
+        }),
+        body: z
+            .strictObject({
+            attachment: generalValidationConstants
+                .fileKeys({
+                fieldName: StringConstants.ATTACHMENT_FIELD_NAME,
+                maxSize: Number(process.env[EnvFields.CAREER_PICTURE_SIZE]),
+                mimetype: fileValidation.image,
+            })
+                .optional(),
+            title: z
+                .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("title") })
+                .min(3)
+                .max(100)
+                .optional(),
+            url: z.url().min(5).optional(),
+            pricingType: z.enum(RoadmapStepPricingTypesEnum).optional(),
+            language: z.enum(LanguagesEnum).optional(),
+            appliesTo: z.enum(CareerResourceAppliesToEnum).optional(),
+            specifiedSteps: z
+                .array(generalValidationConstants.objectId)
+                .default([])
+                .optional(),
+        })
+            .superRefine((data, ctx) => {
+            if (!Object.values(data).length) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: [""],
+                    message: "All fields are empty ⚠️",
+                });
+            }
+            if (data.appliesTo == CareerResourceAppliesToEnum.specific &&
+                (!data.specifiedSteps?.length || !(data.specifiedSteps.length > 1))) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["specifiedSteps"],
+                    message: "specifiedSteps are missing or less then 2 ❌",
+                });
+            }
+            else if (data.appliesTo == CareerResourceAppliesToEnum.all) {
+                if (data.specifiedSteps?.length) {
+                    ctx.addIssue({
+                        code: "custom",
+                        path: ["specifiedSteps"],
+                        message: "specifiedSteps can have values when appliesTo equals All ❌",
+                    });
+                }
+                data.specifiedSteps = [];
+            }
         }),
     };
 }

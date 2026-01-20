@@ -103,12 +103,24 @@ class DatabaseRepository {
         return this.model.updateOne({ _id: id }, toUpdateObject, options);
     };
     findOneAndUpdate = async ({ filter = {}, update, options = { new: true }, }) => {
-        return this.model.findOneAndUpdate(filter, {
-            ...update,
-            $inc: Object.assign(update["$inc"] ?? {}, {
-                __v: 1,
-            }),
-        }, options);
+        let toUpdateObject;
+        if (Array.isArray(update)) {
+            update.push({
+                $set: {
+                    __v: { $add: ["$__v", 1] },
+                },
+            });
+            toUpdateObject = update;
+        }
+        else {
+            toUpdateObject = {
+                ...update,
+                $inc: Object.assign(update["$inc"] ?? {}, {
+                    __v: 1,
+                }),
+            };
+        }
+        return this.model.findOneAndUpdate(filter, toUpdateObject, options);
     };
     findByIdAndUpdate = async ({ id, update, options = { new: true }, }) => {
         return this.model.findByIdAndUpdate(id, {

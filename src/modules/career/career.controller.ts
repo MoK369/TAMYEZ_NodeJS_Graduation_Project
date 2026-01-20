@@ -48,4 +48,21 @@ careerRouter.patch(
   careerService.updateCareer,
 );
 
+careerRouter.patch(
+  RoutePaths.updateCareerResource,
+  rateLimit({
+    limit: 10,
+    windowMs: 10 * 60 * 1000,
+    message: "Too many update career requests, please try after a while.",
+  }),
+  Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
+   CloudMulter.handleSingleFileUpload({
+    fieldName: StringConstants.ATTACHMENT_FIELD_NAME,
+    validation: fileValidation.image,
+    storageApproach: StorageTypesEnum.memory,
+  }),
+  validationMiddleware({ schema: CareerValidators.updateCareerResource }),
+  careerService.updateCareerResource,
+);
+
 export default careerRouter;

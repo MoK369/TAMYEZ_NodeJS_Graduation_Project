@@ -8,5 +8,8 @@ class S3FoldersPaths {
     static careerFolderPath = (assetFolderId) => {
         return `careers/${assetFolderId}`;
     };
+    static careerResourceFolderPath = (assetFolderId, resourceName) => {
+        return `careers/${assetFolderId}/${resourceName}`;
+    };
 }
 export default S3FoldersPaths;

@@ -136,3 +136,9 @@ export var CareerResourceAppliesToEnum;
     CareerResourceAppliesToEnum["all"] = "All";
     CareerResourceAppliesToEnum["specific"] = "Specific";
 })(CareerResourceAppliesToEnum || (CareerResourceAppliesToEnum = {}));
+export var CareerResourceNamesEnum;
+(function (CareerResourceNamesEnum) {
+    CareerResourceNamesEnum["courses"] = "courses";
+    CareerResourceNamesEnum["youtubePlaylists"] = "youtubePlaylists";
+    CareerResourceNamesEnum["books"] = "books";
+})(CareerResourceNamesEnum || (CareerResourceNamesEnum = {}));

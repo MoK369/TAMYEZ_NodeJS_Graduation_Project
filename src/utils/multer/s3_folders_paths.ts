@@ -10,6 +10,13 @@ abstract class S3FoldersPaths {
   static careerFolderPath = (assetFolderId: string): string => {
     return `careers/${assetFolderId}`;
   };
+
+  static careerResourceFolderPath = (
+    assetFolderId: string,
+    resourceName: string,
+  ): string => {
+    return `careers/${assetFolderId}/${resourceName}`;
+  };
 }
 
 export default S3FoldersPaths;

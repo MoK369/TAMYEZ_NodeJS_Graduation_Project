@@ -36,7 +36,10 @@ class S3KeyUtil {
     })}${tag ? `_${tag}` : ""}_${originalname}`;
   };
 
-  static generateS3UploadsUrlFromSubKey = (subKey: string): string => {
+  static generateS3UploadsUrlFromSubKey = (
+    subKey?: string,
+  ): string | undefined => {
+    if (!subKey) return undefined;
     return `${process.env[EnvFields.PROTOCOL]}://${
       process.env[EnvFields.HOST]
     }/uploads/${encodeURIComponent(subKey)}`;

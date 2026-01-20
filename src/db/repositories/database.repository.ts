@@ -204,25 +204,35 @@ abstract class DatabaseRepository<TDocument> {
     return this.model.updateOne({ _id: id }, toUpdateObject, options);
   };
 
-  findOneAndUpdate = async <TLean extends boolean = false>({
+  findOneAndUpdate = async <
+    TUpdate extends UpdateType = Record<string, any>,
+    TLean extends boolean = false,
+  >({
     filter = {},
     update,
     options = { new: true },
   }: {
     filter?: RootFilterQuery<TDocument>;
-    update: UpdateQuery<TDocument>;
+    update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
-    return this.model.findOneAndUpdate(
-      filter,
-      {
+    let toUpdateObject;
+    if (Array.isArray(update)) {
+      update.push({
+        $set: {
+          __v: { $add: ["$__v", 1] },
+        },
+      });
+      toUpdateObject = update;
+    } else {
+      toUpdateObject = {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
           __v: 1,
         }),
-      },
-      options,
-    );
+      };
+    }
+    return this.model.findOneAndUpdate(filter, toUpdateObject, options);
   };
 
   findByIdAndUpdate = async <TLean extends LeanType = false>({

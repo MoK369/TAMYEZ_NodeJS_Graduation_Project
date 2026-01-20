@@ -135,3 +135,9 @@ export enum CareerResourceAppliesToEnum {
   all = "All",
   specific = "Specific",
 }
+
+export enum CareerResourceNamesEnum {
+  courses = "courses",
+  youtubePlaylists = "youtubePlaylists",
+  books = "books",
+}

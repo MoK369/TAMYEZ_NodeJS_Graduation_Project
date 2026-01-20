@@ -44,7 +44,7 @@ export interface IRoadmapStepResource {
   url: string;
   pricingType?: RoadmapStepPricingTypesEnum;
   language: LanguagesEnum;
-  pictureUrl?: string;
+  pictureUrl?: string | undefined;
 }
 
 export type FullIRoadmapStepResource = Require_id<

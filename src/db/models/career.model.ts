@@ -6,7 +6,10 @@ import DocumentFormat from "../../utils/formats/document.format.ts";
 import { atByObjectSchema } from "./common_schemas.model.ts";
 import slugify from "slugify";
 import type { FullIRoadmapStep } from "../interfaces/roadmap_step.interface.ts";
-import type { ICareerResource } from "../interfaces/common.interface.ts";
+import type {
+  FullICareerResource,
+  ICareerResource,
+} from "../interfaces/common.interface.ts";
 import {
   CareerResourceAppliesToEnum,
   LanguagesEnum,
@@ -87,6 +90,10 @@ const careerSchema = new mongoose.Schema<ICareer>(
   },
 );
 
+careerSchema.index({ _id: 1, "courses._id": 1 }, { unique: true });
+careerSchema.index({ _id: 1, "youtubePlaylists._id": 1 }, { unique: true });
+careerSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
+
 careerSchema.virtual("id").get(function (this) {
   return this._id.toHexString();
 });
@@ -100,18 +107,20 @@ careerSchema.virtual("roadmapSteps", {
 });
 
 careerSchema.methods.toJSON = function () {
-  const userObject: ICareer = DocumentFormat.getIdFrom_Id<ICareer>(
+  const careerObject: ICareer = DocumentFormat.getIdFrom_Id<ICareer>(
     this.toObject(),
   );
 
   return {
-    id: userObject.id,
-    title: userObject.title,
-    slug: userObject.slug,
-    pictureUrl: S3KeyUtil.generateS3UploadsUrlFromSubKey(userObject.pictureUrl),
-    description: userObject.description,
-    isActive: userObject.isActive,
-    roadmapSteps: userObject?.roadmapSteps?.map((step) => {
+    id: careerObject?.id,
+    title: careerObject?.title,
+    slug: careerObject?.slug,
+    pictureUrl: S3KeyUtil.generateS3UploadsUrlFromSubKey(
+      careerObject?.pictureUrl,
+    ),
+    description: careerObject?.description,
+    isActive: careerObject?.isActive,
+    roadmapSteps: careerObject?.roadmapSteps?.map((step) => {
       return {
         id: (step as FullIRoadmapStep)?._id,
         order: step?.order,
@@ -120,10 +129,28 @@ careerSchema.methods.toJSON = function () {
         description: step?.description,
       };
     }),
-    freezed: userObject?.freezed,
-    restored: userObject?.restored,
-    createdAt: userObject.createdAt,
-    updatedAt: userObject.updatedAt,
+    courses: careerObject?.courses?.map((c) => {
+      c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+      return DocumentFormat.getIdFrom_Id<FullICareerResource>(
+        c as FullICareerResource,
+      );
+    }),
+    youtubePlaylists: careerObject?.youtubePlaylists?.map((c) => {
+      c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+      return DocumentFormat.getIdFrom_Id<FullICareerResource>(
+        c as FullICareerResource,
+      );
+    }),
+    books: careerObject?.books?.map((c) => {
+      c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+      return DocumentFormat.getIdFrom_Id<FullICareerResource>(
+        c as FullICareerResource,
+      );
+    }),
+    freezed: careerObject?.freezed,
+    restored: careerObject?.restored,
+    createdAt: careerObject?.createdAt,
+    updatedAt: careerObject?.updatedAt,
   };
 };
 

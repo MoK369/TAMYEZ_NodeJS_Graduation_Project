@@ -25,6 +25,7 @@ class RoutePaths {
     static createCareer = "/";
     static updateCareer = "/:careerId";
     static uploadCareerPicture = "/:careerId/picture";
+    static updateCareerResource = "/:careerId/:resourceName/:resourceId";
     static roadmap = "/roadmap";
     static createRoadmapStep = "/";
     static updateRoadmapStep = "/:roadmapStepId";

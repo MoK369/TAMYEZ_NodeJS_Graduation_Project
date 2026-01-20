@@ -59,6 +59,9 @@ const careerSchema = new mongoose.Schema({
     toObject: { virtuals: true },
     id: false,
 });
+careerSchema.index({ _id: 1, "courses._id": 1 }, { unique: true });
+careerSchema.index({ _id: 1, "youtubePlaylists._id": 1 }, { unique: true });
+careerSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
 careerSchema.virtual("id").get(function () {
     return this._id.toHexString();
 });
@@ -70,15 +73,15 @@ careerSchema.virtual("roadmapSteps", {
     options: { sort: { order: 1 } },
 });
 careerSchema.methods.toJSON = function () {
-    const userObject = DocumentFormat.getIdFrom_Id(this.toObject());
+    const careerObject = DocumentFormat.getIdFrom_Id(this.toObject());
     return {
-        id: userObject.id,
-        title: userObject.title,
-        slug: userObject.slug,
-        pictureUrl: S3KeyUtil.generateS3UploadsUrlFromSubKey(userObject.pictureUrl),
-        description: userObject.description,
-        isActive: userObject.isActive,
-        roadmapSteps: userObject?.roadmapSteps?.map((step) => {
+        id: careerObject?.id,
+        title: careerObject?.title,
+        slug: careerObject?.slug,
+        pictureUrl: S3KeyUtil.generateS3UploadsUrlFromSubKey(careerObject?.pictureUrl),
+        description: careerObject?.description,
+        isActive: careerObject?.isActive,
+        roadmapSteps: careerObject?.roadmapSteps?.map((step) => {
             return {
                 id: step?._id,
                 order: step?.order,
@@ -87,10 +90,22 @@ careerSchema.methods.toJSON = function () {
                 description: step?.description,
             };
         }),
-        freezed: userObject?.freezed,
-        restored: userObject?.restored,
-        createdAt: userObject.createdAt,
-        updatedAt: userObject.updatedAt,
+        courses: careerObject?.courses?.map((c) => {
+            c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+            return DocumentFormat.getIdFrom_Id(c);
+        }),
+        youtubePlaylists: careerObject?.youtubePlaylists?.map((c) => {
+            c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+            return DocumentFormat.getIdFrom_Id(c);
+        }),
+        books: careerObject?.books?.map((c) => {
+            c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
+            return DocumentFormat.getIdFrom_Id(c);
+        }),
+        freezed: careerObject?.freezed,
+        restored: careerObject?.restored,
+        createdAt: careerObject?.createdAt,
+        updatedAt: careerObject?.updatedAt,
     };
 };
 careerSchema.pre("save", async function (next) {
