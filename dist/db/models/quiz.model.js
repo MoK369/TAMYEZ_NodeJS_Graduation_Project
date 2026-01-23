@@ -72,6 +72,7 @@ quizSchema.methods.toJSON = function () {
         updatedAt: quizObject.updatedAt,
         freezed: quizObject.freezed,
         restored: quizObject.restored,
+        v: quizObject.v,
     };
 };
 quizSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {

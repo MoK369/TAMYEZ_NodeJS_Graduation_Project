@@ -16,6 +16,8 @@ const careerService = new CareerService();
 careerRouter.post(RoutePaths.createCareer, Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }), validationMiddleware({ schema: CareerValidators.createCareer }), careerService.createCareer);
 careerRouter.get(RoutePaths.getCareers, validationMiddleware({ schema: CareerValidators.getCareers }), careerService.getCareers());
 careerRouter.get(RoutePaths.getArchivedCareers, Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }), validationMiddleware({ schema: CareerValidators.getCareers }), careerService.getCareers({ archived: true }));
+careerRouter.get(RoutePaths.getArchivedCareer, Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }), validationMiddleware({ schema: CareerValidators.getCareer }), careerService.getCareer({ archived: true }));
+careerRouter.get(RoutePaths.getCareer, validationMiddleware({ schema: CareerValidators.getCareer }), careerService.getCareer());
 careerRouter.patch(RoutePaths.uploadCareerPicture, Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }), CloudMulter.handleSingleFileUpload({
     fieldName: StringConstants.ATTACHMENT_FIELD_NAME,
     maxFileSize: Number(process.env[EnvFields.CAREER_PICTURE_SIZE]),

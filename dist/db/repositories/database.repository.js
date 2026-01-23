@@ -1,4 +1,4 @@
-import { BadRequestException } from "../../utils/exceptions/custom.exceptions.js";
+import { BadRequestException, ContentTooLargeException, } from "../../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 class DatabaseRepository {
     model;
@@ -17,22 +17,25 @@ class DatabaseRepository {
     find = async ({ filter = {}, projection, options = {}, } = {}) => {
         return this.model.find(filter, projection, options);
     };
-    paginate = async ({ filter, projection, options = {}, page = "all", size, }) => {
+    paginate = async ({ filter, projection, options = {}, page = "All", size, maxAllCount, }) => {
         let docsCount;
         let totalPages;
-        if (page !== "all") {
+        if (page !== "All") {
             page = Math.floor(!page || page < 1 ? 1 : page);
             options.limit = Math.floor(!size || size < 1 ? 5 : size);
             options.skip = (page - 1) * size;
             docsCount = await this.model.countDocuments(filter);
+            if (maxAllCount && docsCount > maxAllCount) {
+                throw new ContentTooLargeException(`All docs count exceeded the maximum limit ${maxAllCount}`);
+            }
             totalPages = Math.ceil(docsCount / size);
         }
         const data = await this.model.find(filter, projection, options);
         return {
             totalCount: docsCount,
             totalPages,
-            currentPage: page !== "all" ? page : undefined,
-            size: page !== "all" ? size : undefined,
+            currentPage: page !== "All" ? page : undefined,
+            size: page !== "All" ? size : undefined,
             data: data,
         };
     };

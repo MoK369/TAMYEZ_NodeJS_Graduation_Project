@@ -1,6 +1,11 @@
-import { CareerModel, RoadmapStepModel } from "../../db/models/index.ts";
+import {
+  CareerModel,
+  QuizModel,
+  RoadmapStepModel,
+} from "../../db/models/index.ts";
 import {
   CareerRepository,
+  QuizRepository,
   RoadmapStepRepository,
 } from "../../db/repositories/index.ts";
 import type { Request, Response } from "express";
@@ -11,6 +16,9 @@ import type {
   UpdateRoadmapStepParamsDto,
   UpdateRoadmapStepResourceParamsDto,
   UpdateRoadmapResourceStepBodyDto,
+  GetRoadmapQueryDto,
+  GetRoadmapParamsDto,
+  GetRoadmapStepParamsDto,
 } from "./roadmap.dto.ts";
 import {
   BadRequestException,
@@ -38,6 +46,7 @@ class RoadmapService {
   private readonly _roadmapStepRepository = new RoadmapStepRepository(
     RoadmapStepModel,
   );
+  private readonly _quizRespoistory = new QuizRepository(QuizModel);
 
   async checkAndUpdateOrder({
     career,
@@ -78,6 +87,29 @@ class RoadmapService {
     }
   }
 
+  private async _checkQuizzesExists({
+    quizzesIds,
+  }: {
+    quizzesIds: string[] | undefined;
+  }): Promise<void> {
+    if (!quizzesIds?.length) {
+      return;
+    }
+    if (
+      (await this._quizRespoistory.countDocuments({
+        filter: {
+          _id: {
+            $in: [
+              quizzesIds.map((id) => Types.ObjectId.createFromHexString(id)),
+            ],
+          },
+        },
+      })) !== quizzesIds.length
+    ) {
+      throw new NotFoundException("some of quizzes are not found ❌");
+    }
+  }
+
   createRoadmapStep = async (
     req: Request,
     res: Response,
@@ -90,6 +122,8 @@ class RoadmapService {
       courses,
       youtubePlaylists,
       books,
+      quizzesIds,
+      allowGlobalResources,
     } = req.validationResult.body as CreateRoadmapStepBodyDto;
 
     const career = await this._careerRepository.findOne({
@@ -107,6 +141,8 @@ class RoadmapService {
       throw new ConflictException("Step with this title already exists ❌");
     }
 
+    this._checkQuizzesExists({ quizzesIds });
+
     /// check order
     await this.checkAndUpdateOrder({ career, order });
 
@@ -120,6 +156,8 @@ class RoadmapService {
           courses,
           youtubePlaylists,
           books,
+          quizzesIds: quizzesIds as unknown as Types.ObjectId[],
+          allowGlobalResources,
         },
       ],
     });
@@ -139,6 +177,109 @@ class RoadmapService {
       res,
       message: "Roadmap step created successfully ✅",
     });
+  };
+
+  getRoadmap = ({ archived = false }: { archived?: boolean } = {}) => {
+    return async (req: Request, res: Response): Promise<Response> => {
+      const { careerId } = req.params as GetRoadmapParamsDto;
+      const { page, size, searchKey } = req.validationResult
+        .query as GetRoadmapQueryDto;
+
+      const career = await this._careerRepository.findOne({
+        filter: {
+          _id: careerId,
+          ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+        },
+      });
+
+      if (!career) {
+        throw new NotFoundException(
+          archived
+            ? "Archived career is NOT found 🔍❌"
+            : "Career is NOT found 🔍❌",
+        );
+      }
+
+      const result = await this._roadmapStepRepository.paginate({
+        filter: {
+          careerId,
+          ...(searchKey
+            ? {
+                $or: [
+                  { title: { $regex: searchKey, $options: "i" } },
+                  {
+                    description: { $regex: searchKey, $options: "i" },
+                  },
+                ],
+              }
+            : {}),
+          ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+        },
+        page,
+        size,
+        maxAllCount: 60,
+        options: {
+          projection: {
+            courses: 0,
+            youtubePlaylists: 0,
+            books: 0,
+            quizzesIds: 0,
+          },
+        },
+      });
+
+      if (!result.data || result.data.length == 0) {
+        throw new NotFoundException(
+          archived ? "No archived roadmap found 🔍❌" : "No roadmap found 🔍❌",
+        );
+      }
+
+      return successHandler({ res, body: result });
+    };
+  };
+
+  getRoadmapStep = ({ archived = false }: { archived?: boolean } = {}) => {
+    return async (req: Request, res: Response): Promise<Response> => {
+      const { roadmapStepId } = req.params as GetRoadmapStepParamsDto;
+
+      const result = await this._roadmapStepRepository.findOne({
+        filter: {
+          _id: roadmapStepId,
+          ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+        },
+        options: {
+          populate: [
+            {
+              path: "career",
+              match: {
+                ...(!archived ? { freezed: { $exists: false } } : undefined),
+              },
+            },
+            {
+              path: "quizzesIds",
+              match: { freezed: { $exists: false } },
+              options: {
+                projection: {
+                  title: 1,
+                  description: 1,
+                  duration: 1,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!result || !result.careerId) {
+        throw new NotFoundException(
+          archived
+            ? "No archived roadmapStep found or career is NOT freezed 🔍❌"
+            : "No roadmapStep found or career is freezed 🔍❌",
+        );
+      }
+
+      return successHandler({ res, body: result });
+    };
   };
 
   updateRoadmapStep = async (
@@ -184,6 +325,8 @@ class RoadmapService {
       );
     }
 
+    this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
+
     const session = await startSession();
     await session.withTransaction(async () => {
       if (body.order && body.order != roadmapStep.order) {
@@ -205,6 +348,12 @@ class RoadmapService {
       if (body.order && roadmapStep.order !== body.order)
         toUpdate.order = body.order;
       if (body.description) toUpdate.description = body.description;
+      if (body.quizzesIds?.length)
+        toUpdate.quizzesIds = body.quizzesIds.map((id) =>
+          Types.ObjectId.createFromHexString(id),
+        );
+      if (body.allowGlobalResources != undefined)
+        toUpdate.allowGlobalResources = body.allowGlobalResources;
 
       await this._roadmapStepRepository.updateOne<[]>({
         filter: { _id: roadmapStepId },

@@ -1,5 +1,6 @@
 import { GenderEnum, QuizTypesEnum, SignatureLevelsEnum, } from "./enum.constants.js";
 class StringConstants {
+    static ALL = "All";
     static GENERIC_ERROR_MESSAGE = "An unexpected error occurred. Please try again later. 🤔";
     static SOMETHING_WRONG_MESSAGE = "Something went wrong. 🤔";
     static CONNECTED_TO_DB_MESSAGE = `Connected to DB Successfully 👌`;

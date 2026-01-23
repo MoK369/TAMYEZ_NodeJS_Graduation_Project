@@ -79,3 +79,10 @@ export class S3Exception extends ApplicationException {
         Error.captureStackTrace(this, this.constructor);
     }
 }
+export class ContentTooLargeException extends ApplicationException {
+    constructor(message, details, cause) {
+        super(ErrorCodesEnum.CONTENT_TOO_LARGE, 413, message, details, cause);
+        this.name = this.constructor.name;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}

@@ -13,7 +13,7 @@ export interface IRoadmapStep {
 
   courses: IRoadmapStepResource[];
   youtubePlaylists: IRoadmapStepResource[];
-  books?: IRoadmapStepResource[];
+  books: IRoadmapStepResource[];
 
   allowGlobalResources?: boolean;
 

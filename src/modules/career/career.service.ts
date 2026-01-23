@@ -7,6 +7,7 @@ import {
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type {
   CreateCareerBodyDto,
+  GetCareerParamsDto,
   GetCareersQueryDto,
   UpdateCareerBodyDto,
   UpdateCareerParamsDto,
@@ -95,7 +96,7 @@ class CareerService {
           ...(searchKey
             ? {
                 $or: [
-                  { name: { $regex: searchKey, $options: "i" } },
+                  { title: { $regex: searchKey, $options: "i" } },
                   {
                     description: { $regex: searchKey, $options: "i" },
                   },
@@ -122,6 +123,37 @@ class CareerService {
       if (!result.data || result.data.length == 0) {
         throw new NotFoundException(
           archived ? "No archived careers found 🔍❌" : "No careers found 🔍❌",
+        );
+      }
+
+      return successHandler({ res, body: result });
+    };
+  };
+
+  getCareer = ({ archived = false }: { archived?: boolean } = {}) => {
+    return async (req: Request, res: Response): Promise<Response> => {
+      const { careerId } = req.params as GetCareerParamsDto;
+      const result = await this._careerRepository.findOne({
+        filter: {
+          _id: careerId,
+          ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+        },
+        options: {
+          populate: [
+            {
+              path: "roadmap",
+              match: {
+                order: { $lte: 30 },
+                ...(!archived ? { freezed: { $exists: false } } : undefined),
+              },
+            },
+          ],
+        },
+      });
+
+      if (!result) {
+        throw new NotFoundException(
+          archived ? "No archived career found 🔍❌" : "No career found 🔍❌",
         );
       }
 

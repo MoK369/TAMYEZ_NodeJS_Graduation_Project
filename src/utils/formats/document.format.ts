@@ -2,13 +2,14 @@ import type { Default__v, Require_id, Types } from "mongoose";
 
 class DocumentFromat {
   static getIdFrom_Id = <TDocument>(
-    documentInstance: Require_id<Default__v<TDocument>>
-  ): Omit<Require_id<Default__v<TDocument>>, "_id"> & {
+    documentInstance: Require_id<Default__v<TDocument>>,
+  ): Omit<Require_id<TDocument>, "_id" | "__v"> & {
     id: Types.ObjectId | undefined;
+    v: number | undefined;
   } => {
-    const { _id, ...restObject } = documentInstance;
+    const { _id, __v, ...restObject } = documentInstance;
 
-    return { id: _id ? _id : undefined, ...restObject };
+    return { id: _id, ...restObject, v: __v as number | undefined };
   };
 }
 

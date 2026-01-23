@@ -7,6 +7,7 @@ import slugify from "slugify";
 import { CareerResourceAppliesToEnum, LanguagesEnum, RoadmapStepPricingTypesEnum, } from "../../utils/constants/enum.constants.js";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
+import { careerArraySchemaValidator } from "../../utils/validators/mongoose.validators.js";
 const careerResourceSchema = new mongoose.Schema({
     title: { type: String, required: true, min: 3, max: 100 },
     url: { type: String, min: 5, required: true },
@@ -43,13 +44,21 @@ const careerSchema = new mongoose.Schema({
     description: { type: String, min: 5, max: 10_000, required: true },
     assetFolderId: { type: String, required: true },
     isActive: { type: Boolean, default: false },
-    courses: { type: [careerResourceSchema], max: 5, default: [] },
+    courses: {
+        type: [careerResourceSchema],
+        default: [],
+        validate: careerArraySchemaValidator(),
+    },
     youtubePlaylists: {
         type: [careerResourceSchema],
-        max: 5,
         default: [],
+        validate: careerArraySchemaValidator(),
     },
-    books: { type: [careerResourceSchema], max: 5, default: [] },
+    books: {
+        type: [careerResourceSchema],
+        default: [],
+        validate: careerArraySchemaValidator(),
+    },
     stepsCount: { type: Number, default: 0 },
     freezed: atByObjectSchema,
     restored: atByObjectSchema,
@@ -66,7 +75,7 @@ careerSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
 careerSchema.virtual("id").get(function () {
     return this._id.toHexString();
 });
-careerSchema.virtual("roadmapSteps", {
+careerSchema.virtual("roadmap", {
     ref: ModelsNames.roadmapStepModel,
     localField: "_id",
     foreignField: "careerId",
@@ -85,15 +94,6 @@ careerSchema.methods.toJSON = function () {
             : S3KeyUtil.generateS3UploadsUrlFromSubKey(careerObject?.pictureUrl),
         description: careerObject?.description,
         isActive: careerObject?.isActive,
-        roadmapSteps: careerObject?.roadmapSteps?.map((step) => {
-            return {
-                id: step?._id,
-                order: step?.order,
-                careerId: step?.careerId,
-                title: step?.title,
-                description: step?.description,
-            };
-        }),
         courses: careerObject?.courses?.map((c) => {
             c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
             return DocumentFormat.getIdFrom_Id(c);
@@ -106,11 +106,22 @@ careerSchema.methods.toJSON = function () {
             c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
             return DocumentFormat.getIdFrom_Id(c);
         }),
+        roadmap: careerObject?.roadmap?.map((step) => {
+            return {
+                id: step?._id,
+                title: step?.title,
+                description: step?.description,
+                order: step?.order,
+                createdAt: step?.createdAt,
+                updatedAT: step?.updatedAt,
+                v: step?.__v,
+            };
+        }),
         freezed: careerObject?.freezed,
         restored: careerObject?.restored,
         createdAt: careerObject?.createdAt,
         updatedAt: careerObject?.updatedAt,
-        v: careerObject?.__v,
+        v: careerObject?.v,
     };
 };
 careerSchema.pre("save", async function (next) {

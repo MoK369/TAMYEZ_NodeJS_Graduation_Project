@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import ModelsNames from "../../utils/constants/models.names.constants.ts";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
 import DocumentFormat from "../../utils/formats/document.format.ts";
@@ -6,13 +6,18 @@ import { atByObjectSchema } from "./common_schemas.model.ts";
 import type { IRoadmapStep } from "../interfaces/roadmap_step.interface.ts";
 import type {
   FullIRoadmapStepResource,
+  ICareerResource,
   IRoadmapStepResource,
 } from "../interfaces/common.interface.ts";
 import {
+  CareerResourceAppliesToEnum,
   LanguagesEnum,
   RoadmapStepPricingTypesEnum,
 } from "../../utils/constants/enum.constants.ts";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
+import { roadmapStepArraySchemaValidator } from "../../utils/validators/mongoose.validators.ts";
+import type { FullIQuiz, IQuiz } from "../interfaces/quiz.interface.ts";
+import type { ICareer } from "../interfaces/career.interface.ts";
 
 const roadmapStepResourceSchema = new mongoose.Schema<IRoadmapStepResource>(
   {
@@ -58,28 +63,25 @@ const roadmapStepSchema = new mongoose.Schema<IRoadmapStep>(
 
     courses: {
       type: [roadmapStepResourceSchema],
-      min: 1,
-      max: 5,
       required: true,
+      validate: roadmapStepArraySchemaValidator(),
     },
     youtubePlaylists: {
       type: [roadmapStepResourceSchema],
-      min: 1,
-      max: 5,
       required: true,
+      validate: roadmapStepArraySchemaValidator(),
     },
     books: { type: [roadmapStepResourceSchema], max: 5, default: [] },
 
-    allowGlobalResources: { type: Boolean, default: false },
+    allowGlobalResources: { type: Boolean, default: true },
 
     quizzesIds: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: ModelsNames.quizModel,
-      min: 1,
-      max: 5,
+      type: [
+        { type: mongoose.Schema.Types.ObjectId, ref: ModelsNames.quizModel },
+      ],
       required: true,
+      validate: roadmapStepArraySchemaValidator(),
     },
-
     freezed: atByObjectSchema,
 
     restored: atByObjectSchema,
@@ -107,6 +109,44 @@ roadmapStepSchema.virtual("id").get(function (this) {
   return this._id.toHexString();
 });
 
+roadmapStepSchema.virtual("career", {
+  ref: ModelsNames.careerModel,
+  localField: "careerId",
+  foreignField: "_id",
+  justOne: true,
+  options: {
+    projection: {
+      courses: 1,
+      youtubePlaylists: 1,
+      books: 1,
+    },
+  },
+});
+
+function mergeResources({
+  stepId,
+  current,
+  global,
+}: {
+  stepId: Types.ObjectId;
+  current: IRoadmapStepResource[];
+  global: ICareerResource[];
+}) {
+  const out = current;
+
+  for (const res of global) {
+    if (
+      (res.appliesTo === CareerResourceAppliesToEnum.all ||
+        res.specifiedSteps?.includes(stepId)) &&
+      current.findIndex((c) => c.title == res.title || c.url == res.url) == -1
+    ) {
+      out.push(res);
+    }
+  }
+
+  return out;
+}
+
 roadmapStepSchema.methods.toJSON = function () {
   const roadmapStepObject: IRoadmapStep =
     DocumentFormat.getIdFrom_Id<IRoadmapStep>(this.toObject());
@@ -114,7 +154,7 @@ roadmapStepSchema.methods.toJSON = function () {
   return {
     id: roadmapStepObject?.id,
     order: roadmapStepObject?.order,
-    careerId: roadmapStepObject?.careerId,
+    careerId: roadmapStepObject?.careerId || undefined,
     title: roadmapStepObject?.title,
     description: roadmapStepObject?.description,
     courses: roadmapStepObject?.courses?.map((course) => {
@@ -142,7 +182,17 @@ roadmapStepSchema.methods.toJSON = function () {
         book as FullIRoadmapStepResource,
       );
     }),
-    quizzesIds: roadmapStepObject.quizzesIds,
+    quizzesIds:
+      roadmapStepObject?.quizzesIds?.length &&
+      !Types.ObjectId.isValid(roadmapStepObject.quizzesIds[0]?.toString() ?? "")
+        ? roadmapStepObject.quizzesIds.map((quiz) => {
+            console.log("Inside map");
+
+            return DocumentFormat.getIdFrom_Id<IQuiz>(
+              quiz as unknown as FullIQuiz,
+            );
+          })
+        : roadmapStepObject?.quizzesIds,
     freezed: roadmapStepObject?.freezed,
     restored: roadmapStepObject?.restored,
     createdAt: roadmapStepObject.createdAt,
@@ -158,6 +208,34 @@ roadmapStepSchema.pre(
     next();
   },
 );
+
+roadmapStepSchema.post("findOne", function (doc, next) {
+  if (doc.allowGlobalResources) {
+    mergeResources({
+      current: doc.courses,
+      global: (doc as unknown as IRoadmapStep & { career: ICareer }).career
+        .courses,
+      stepId: doc._id,
+    });
+
+    mergeResources({
+      current: doc.youtubePlaylists,
+      global: (doc as unknown as IRoadmapStep & { career: ICareer }).career
+        .youtubePlaylists,
+      stepId: doc._id,
+    });
+
+    mergeResources({
+      current: doc.books,
+      global:
+        (doc as unknown as IRoadmapStep & { career: ICareer }).career.books ??
+        [],
+      stepId: doc._id,
+    });
+  }
+
+  next();
+});
 
 const RoadmapStepModel =
   (mongoose.models?.RoadmapStep as mongoose.Model<IRoadmapStep>) ||

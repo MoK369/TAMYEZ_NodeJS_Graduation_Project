@@ -65,7 +65,7 @@ const quizSchema = new mongoose.Schema<IQuiz>(
     strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 quizSchema.methods.toJSON = function () {
@@ -84,6 +84,7 @@ quizSchema.methods.toJSON = function () {
     updatedAt: quizObject.updatedAt,
     freezed: quizObject.freezed,
     restored: quizObject.restored,
+    v: quizObject.v,
   };
 };
 
@@ -92,7 +93,7 @@ quizSchema.pre(
   function (next) {
     softDeleteFunction(this);
     next();
-  }
+  },
 );
 
 const QuizModel =

@@ -44,20 +44,29 @@ class RoadmapValidators {
           .min(5)
           .max(10_000),
         courses: z
-          .array(this.roadmapStepResource.body)
-          .max(5)
-          .optional()
-          .default([]),
+          .array(this.roadmapStepResource.body, {
+            error: StringConstants.PATH_REQUIRED_MESSAGE("courses"),
+          })
+          .min(1)
+          .max(5),
         youtubePlaylists: z
-          .array(this.roadmapStepResource.body)
-          .max(5)
-          .optional()
-          .default([]),
+          .array(this.roadmapStepResource.body, {
+            error: StringConstants.PATH_REQUIRED_MESSAGE("youtubePlaylists"),
+          })
+          .min(1)
+          .max(5),
         books: z
           .array(this.roadmapStepResource.body)
           .max(5)
           .optional()
           .default([]),
+        quizzesIds: z
+          .array(generalValidationConstants.objectId, {
+            error: StringConstants.PATH_REQUIRED_MESSAGE("quizzesIds"),
+          })
+          .min(1)
+          .max(5),
+        allowGlobalResources: z.boolean().optional(),
       })
       .superRefine((data, ctx) => {
         data.title = StringFormats.normalizeStepTitle(data.title);
@@ -91,13 +100,39 @@ class RoadmapValidators {
           data: { books: data.books },
           ctx,
         });
+
+        if (new Set(data.quizzesIds).size !== data.quizzesIds.length) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["quizzesIds"],
+            message: "Some quiz ids are duplicated ⚠️",
+          });
+        }
       }),
   };
 
-  static updateRoadmapStep = {
+  static getRoadmap = {
+    params: z.strictObject({
+      careerId: generalValidationConstants.objectId,
+    }),
+    query: z.strictObject({
+      size: z.coerce.number().int().min(2).max(30).optional().default(15),
+      page: z.union([
+        z.enum([StringConstants.ALL]),
+        z.coerce.number().int().min(1).max(300).optional().default(1),
+      ]),
+      searchKey: z.string().nonempty().min(1).optional(),
+    }),
+  };
+
+  static getRoadmapStep = {
     params: z.strictObject({
       roadmapStepId: generalValidationConstants.objectId,
     }),
+  };
+
+  static updateRoadmapStep = {
+    params: this.getRoadmapStep.params,
     body: z
       .strictObject({
         title: z
@@ -136,6 +171,14 @@ class RoadmapValidators {
           .array(generalValidationConstants.objectId)
           .max(5)
           .optional(),
+        quizzesIds: z
+          .array(generalValidationConstants.objectId, {
+            error: StringConstants.PATH_REQUIRED_MESSAGE("quizzesIds"),
+          })
+          .min(1)
+          .max(5)
+          .optional(),
+        allowGlobalResources: z.boolean().optional(),
       })
       .superRefine((data, ctx) => {
         if (!Object.values(data).length) {
@@ -178,6 +221,16 @@ class RoadmapValidators {
           data: { books: data.books },
           ctx,
         });
+        if (
+          data.quizzesIds?.length &&
+          new Set(data.quizzesIds).size !== data.quizzesIds.length
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["quizzesIds"],
+            message: "Some quiz ids are duplicated ⚠️",
+          });
+        }
       }),
   };
 

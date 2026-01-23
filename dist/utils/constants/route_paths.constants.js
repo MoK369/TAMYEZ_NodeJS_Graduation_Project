@@ -25,11 +25,17 @@ class RoutePaths {
     static createCareer = "/";
     static getCareers = "/";
     static getArchivedCareers = "/archives";
+    static getCareer = "/:careerId";
+    static getArchivedCareer = "/:careerId/archives";
     static updateCareer = "/:careerId";
     static uploadCareerPicture = "/:careerId/picture";
     static updateCareerResource = "/:careerId/:resourceName/:resourceId";
     static roadmap = "/roadmap";
     static createRoadmapStep = "/";
+    static getRoadmap = "/by-career/:careerId";
+    static getArchivedRoadmap = "/by-career/:careerId/archives";
+    static getRoadmapStep = "/:roadmapStepId";
+    static getArchivedRoadmapStep = "/:roadmapStepId/archives";
     static updateRoadmapStep = "/:roadmapStepId";
     static updateRoadmapStepResource = "/:roadmapStepId/:resourceName/:resourceId";
     static quiz = "/quiz";

@@ -49,7 +49,7 @@ adminNotificationsLimitSchema.methods.toJSON = function () {
         expiresAt: adminLimit.expiresAt,
         createdAt: adminLimit?.createdAt,
         updatedAt: adminLimit?.updatedAt,
-        __v: adminLimit?.__v,
+        v: adminLimit?.v,
     };
 };
 const AdminNotificationsLimitModel = mongoose.models

@@ -1,5 +1,5 @@
-import { CareerModel, RoadmapStepModel } from "../../db/models/index.js";
-import { CareerRepository, RoadmapStepRepository, } from "../../db/repositories/index.js";
+import { CareerModel, QuizModel, RoadmapStepModel, } from "../../db/models/index.js";
+import { CareerRepository, QuizRepository, RoadmapStepRepository, } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { BadRequestException, ConflictException, NotFoundException, ServerException, } from "../../utils/exceptions/custom.exceptions.js";
 import { startSession, Types } from "mongoose";
@@ -9,6 +9,7 @@ import listUpdateFieldsHandler from "../../utils/handlers/list_update_fields.han
 class RoadmapService {
     _careerRepository = new CareerRepository(CareerModel);
     _roadmapStepRepository = new RoadmapStepRepository(RoadmapStepModel);
+    _quizRespoistory = new QuizRepository(QuizModel);
     async checkAndUpdateOrder({ career, order, }) {
         if (order && order > 0) {
             if (order <= career.stepsCount && career.stepsCount > 0) {
@@ -39,8 +40,24 @@ class RoadmapService {
             }
         }
     }
+    async _checkQuizzesExists({ quizzesIds, }) {
+        if (!quizzesIds?.length) {
+            return;
+        }
+        if ((await this._quizRespoistory.countDocuments({
+            filter: {
+                _id: {
+                    $in: [
+                        quizzesIds.map((id) => Types.ObjectId.createFromHexString(id)),
+                    ],
+                },
+            },
+        })) !== quizzesIds.length) {
+            throw new NotFoundException("some of quizzes are not found ❌");
+        }
+    }
     createRoadmapStep = async (req, res) => {
-        const { careerId, title, order, description, courses, youtubePlaylists, books, } = req.validationResult.body;
+        const { careerId, title, order, description, courses, youtubePlaylists, books, quizzesIds, allowGlobalResources, } = req.validationResult.body;
         const career = await this._careerRepository.findOne({
             filter: { _id: careerId },
         });
@@ -53,6 +70,7 @@ class RoadmapService {
         if (stepExists) {
             throw new ConflictException("Step with this title already exists ❌");
         }
+        this._checkQuizzesExists({ quizzesIds });
         await this.checkAndUpdateOrder({ career, order });
         const [newStep] = await this._roadmapStepRepository.create({
             data: [
@@ -64,6 +82,8 @@ class RoadmapService {
                     courses,
                     youtubePlaylists,
                     books,
+                    quizzesIds: quizzesIds,
+                    allowGlobalResources,
                 },
             ],
         });
@@ -78,6 +98,93 @@ class RoadmapService {
             res,
             message: "Roadmap step created successfully ✅",
         });
+    };
+    getRoadmap = ({ archived = false } = {}) => {
+        return async (req, res) => {
+            const { careerId } = req.params;
+            const { page, size, searchKey } = req.validationResult
+                .query;
+            const career = await this._careerRepository.findOne({
+                filter: {
+                    _id: careerId,
+                    ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+                },
+            });
+            if (!career) {
+                throw new NotFoundException(archived
+                    ? "Archived career is NOT found 🔍❌"
+                    : "Career is NOT found 🔍❌");
+            }
+            const result = await this._roadmapStepRepository.paginate({
+                filter: {
+                    careerId,
+                    ...(searchKey
+                        ? {
+                            $or: [
+                                { title: { $regex: searchKey, $options: "i" } },
+                                {
+                                    description: { $regex: searchKey, $options: "i" },
+                                },
+                            ],
+                        }
+                        : {}),
+                    ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+                },
+                page,
+                size,
+                maxAllCount: 60,
+                options: {
+                    projection: {
+                        courses: 0,
+                        youtubePlaylists: 0,
+                        books: 0,
+                        quizzesIds: 0,
+                    },
+                },
+            });
+            if (!result.data || result.data.length == 0) {
+                throw new NotFoundException(archived ? "No archived roadmap found 🔍❌" : "No roadmap found 🔍❌");
+            }
+            return successHandler({ res, body: result });
+        };
+    };
+    getRoadmapStep = ({ archived = false } = {}) => {
+        return async (req, res) => {
+            const { roadmapStepId } = req.params;
+            const result = await this._roadmapStepRepository.findOne({
+                filter: {
+                    _id: roadmapStepId,
+                    ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+                },
+                options: {
+                    populate: [
+                        {
+                            path: "career",
+                            match: {
+                                ...(!archived ? { freezed: { $exists: false } } : undefined),
+                            },
+                        },
+                        {
+                            path: "quizzesIds",
+                            match: { freezed: { $exists: false } },
+                            options: {
+                                projection: {
+                                    title: 1,
+                                    description: 1,
+                                    duration: 1,
+                                },
+                            },
+                        },
+                    ],
+                },
+            });
+            if (!result || !result.careerId) {
+                throw new NotFoundException(archived
+                    ? "No archived roadmapStep found or career is NOT freezed 🔍❌"
+                    : "No roadmapStep found or career is freezed 🔍❌");
+            }
+            return successHandler({ res, body: result });
+        };
     };
     updateRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
@@ -108,6 +215,7 @@ class RoadmapService {
             }) > 5) {
             throw new BadRequestException("Each career resource list (courses | youtubePlaylists | books) must be at most 5 items length ❌");
         }
+        this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
         const session = await startSession();
         await session.withTransaction(async () => {
             if (body.order && body.order != roadmapStep.order) {
@@ -130,6 +238,10 @@ class RoadmapService {
                 toUpdate.order = body.order;
             if (body.description)
                 toUpdate.description = body.description;
+            if (body.quizzesIds?.length)
+                toUpdate.quizzesIds = body.quizzesIds.map((id) => Types.ObjectId.createFromHexString(id));
+            if (body.allowGlobalResources != undefined)
+                toUpdate.allowGlobalResources = body.allowGlobalResources;
             await this._roadmapStepRepository.updateOne({
                 filter: { _id: roadmapStepId },
                 update: [

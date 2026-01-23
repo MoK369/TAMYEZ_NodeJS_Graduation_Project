@@ -12,7 +12,10 @@ import type {
   UpdateQuery,
 } from "mongoose";
 import type { CreateOptions, Model } from "mongoose";
-import { BadRequestException } from "../../utils/exceptions/custom.exceptions.ts";
+import {
+  BadRequestException,
+  ContentTooLargeException,
+} from "../../utils/exceptions/custom.exceptions.ts";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import type {
   FindFunctionOptionsType,
@@ -66,23 +69,30 @@ abstract class DatabaseRepository<TDocument> {
     filter,
     projection,
     options = {},
-    page = "all",
+    page = "All",
     size,
+    maxAllCount,
   }: {
     filter: RootFilterQuery<TDocument>;
     projection?: ProjectionType<TDocument>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
-    page: number | "all";
+    page: number | "All";
     size: number;
+    maxAllCount?: number | undefined;
   }): Promise<IPaginationResult<TDocument, TLean>> => {
     let docsCount;
     let totalPages;
-    if (page !== "all") {
+    if (page !== "All") {
       page = Math.floor(!page || page < 1 ? 1 : page);
       options.limit = Math.floor(!size || size < 1 ? 5 : size);
       options.skip = (page - 1) * size;
 
       docsCount = await this.model.countDocuments(filter);
+      if (maxAllCount && docsCount > maxAllCount) {
+        throw new ContentTooLargeException(
+          `All docs count exceeded the maximum limit ${maxAllCount}`,
+        );
+      }
       totalPages = Math.ceil(docsCount / size);
     }
     const data = await this.model.find(filter, projection, options);
@@ -90,8 +100,8 @@ abstract class DatabaseRepository<TDocument> {
     return {
       totalCount: docsCount,
       totalPages,
-      currentPage: page !== "all" ? page : undefined,
-      size: page !== "all" ? size : undefined,
+      currentPage: page !== "All" ? page : undefined,
+      size: page !== "All" ? size : undefined,
       data: data as unknown as FindFunctionsReturnType<TDocument, TLean>,
     };
   };

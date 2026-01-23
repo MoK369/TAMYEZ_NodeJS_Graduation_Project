@@ -9,6 +9,10 @@ export type GetCareersQueryDto = z.infer<
   typeof CareerValidators.getCareers.query
 >;
 
+export type GetCareerParamsDto = z.infer<
+  typeof CareerValidators.getCareer.params
+>;
+
 export type UploadCareerPictureParamsDto = z.infer<
   typeof CareerValidators.uploadCareerPicture.params
 >;

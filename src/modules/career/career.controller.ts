@@ -36,6 +36,19 @@ careerRouter.get(
   careerService.getCareers({ archived: true }),
 );
 
+careerRouter.get(
+  RoutePaths.getArchivedCareer,
+  Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
+  validationMiddleware({ schema: CareerValidators.getCareer }),
+  careerService.getCareer({ archived: true }),
+);
+
+careerRouter.get(
+  RoutePaths.getCareer,
+  validationMiddleware({ schema: CareerValidators.getCareer }),
+  careerService.getCareer(),
+);
+
 careerRouter.patch(
   RoutePaths.uploadCareerPicture,
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),

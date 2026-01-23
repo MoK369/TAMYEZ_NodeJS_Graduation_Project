@@ -19,7 +19,7 @@ export interface ICareer {
   youtubePlaylists: ICareerResource[];
   books?: ICareerResource[];
 
-  roadmapSteps?: Partial<IRoadmapStep>[]; // virtual
+  roadmap?: Partial<IRoadmapStep>[]; // virtual
 
   stepsCount: number;
 

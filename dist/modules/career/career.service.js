@@ -50,7 +50,7 @@ class CareerService {
                     ...(searchKey
                         ? {
                             $or: [
-                                { name: { $regex: searchKey, $options: "i" } },
+                                { title: { $regex: searchKey, $options: "i" } },
                                 {
                                     description: { $regex: searchKey, $options: "i" },
                                 },
@@ -75,6 +75,32 @@ class CareerService {
             });
             if (!result.data || result.data.length == 0) {
                 throw new NotFoundException(archived ? "No archived careers found 🔍❌" : "No careers found 🔍❌");
+            }
+            return successHandler({ res, body: result });
+        };
+    };
+    getCareer = ({ archived = false } = {}) => {
+        return async (req, res) => {
+            const { careerId } = req.params;
+            const result = await this._careerRepository.findOne({
+                filter: {
+                    _id: careerId,
+                    ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
+                },
+                options: {
+                    populate: [
+                        {
+                            path: "roadmap",
+                            match: {
+                                order: { $lte: 30 },
+                                ...(!archived ? { freezed: { $exists: false } } : undefined),
+                            },
+                        },
+                    ],
+                },
+            });
+            if (!result) {
+                throw new NotFoundException(archived ? "No archived career found 🔍❌" : "No career found 🔍❌");
             }
             return successHandler({ res, body: result });
         };

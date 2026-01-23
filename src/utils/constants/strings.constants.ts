@@ -7,6 +7,7 @@ import {
 import type { RequestKeysType } from "../types/valdiation_schema.type.ts";
 
 class StringConstants {
+  static readonly ALL = "All";
   static readonly GENERIC_ERROR_MESSAGE =
     "An unexpected error occurred. Please try again later. 🤔";
 
@@ -53,7 +54,7 @@ class StringConstants {
     "confirmPassword mismatch password ☹️";
 
   static readonly INVALID_GENDER_MESSAGE = `Invalid gender, it must be either [${Object.values(
-    GenderEnum
+    GenderEnum,
   )}] 🚻`;
 
   static readonly SINGED_UP_SUCCESSFUL_WITH_LINK_MESSAGE =
@@ -110,7 +111,7 @@ class StringConstants {
   static readonly INVALID_VALIDATION_TOKEN_MESSAGE = `Token must consist of three parts having any characters accept line terimantors, each part seperated with dot ❌`;
 
   static readonly INVALID_VALIDATION_BEARER_TOKEN_MESSAGE = `Token must start with one of ${Object.values(
-    SignatureLevelsEnum
+    SignatureLevelsEnum,
   )} followed by a space, and ${this.INVALID_VALIDATION_TOKEN_MESSAGE}`;
 
   static readonly FAILED_VERIFY_GMAIL_ACCOUNT_MESSAGE =
@@ -181,7 +182,7 @@ class StringConstants {
     theEnum: Record<string, any>;
   }): string {
     return `Invalid ${enumValueName}, allowed values are ${Object.values(
-      theEnum
+      theEnum,
     )}`;
   }
 

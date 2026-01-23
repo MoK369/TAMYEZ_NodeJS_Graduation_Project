@@ -17,6 +17,7 @@ import {
 } from "../../utils/constants/enum.constants.ts";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
 import EnvFields from "../../utils/constants/env_fields.constants.ts";
+import { careerArraySchemaValidator } from "../../utils/validators/mongoose.validators.ts";
 
 const careerResourceSchema = new mongoose.Schema<ICareerResource>(
   {
@@ -66,15 +67,23 @@ const careerSchema = new mongoose.Schema<ICareer>(
 
     isActive: { type: Boolean, default: false },
 
-    courses: { type: [careerResourceSchema], max: 5, default: [] },
+    courses: {
+      type: [careerResourceSchema],
+      default: [],
+      validate: careerArraySchemaValidator(),
+    },
 
     youtubePlaylists: {
       type: [careerResourceSchema],
-      max: 5,
       default: [],
+      validate: careerArraySchemaValidator(),
     },
 
-    books: { type: [careerResourceSchema], max: 5, default: [] },
+    books: {
+      type: [careerResourceSchema],
+      default: [],
+      validate: careerArraySchemaValidator(),
+    },
 
     stepsCount: { type: Number, default: 0 },
 
@@ -99,7 +108,7 @@ careerSchema.virtual("id").get(function (this) {
   return this._id.toHexString();
 });
 
-careerSchema.virtual("roadmapSteps", {
+careerSchema.virtual("roadmap", {
   ref: ModelsNames.roadmapStepModel,
   localField: "_id",
   foreignField: "careerId",
@@ -121,15 +130,6 @@ careerSchema.methods.toJSON = function () {
         : S3KeyUtil.generateS3UploadsUrlFromSubKey(careerObject?.pictureUrl),
     description: careerObject?.description,
     isActive: careerObject?.isActive,
-    roadmapSteps: careerObject?.roadmapSteps?.map((step) => {
-      return {
-        id: (step as FullIRoadmapStep)?._id,
-        order: step?.order,
-        careerId: step?.careerId,
-        title: step?.title,
-        description: step?.description,
-      };
-    }),
     courses: careerObject?.courses?.map((c) => {
       c.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(c.pictureUrl);
       return DocumentFormat.getIdFrom_Id<FullICareerResource>(
@@ -148,11 +148,22 @@ careerSchema.methods.toJSON = function () {
         c as FullICareerResource,
       );
     }),
+    roadmap: careerObject?.roadmap?.map((step) => {
+      return {
+        id: (step as FullIRoadmapStep)?._id,
+        title: step?.title,
+        description: step?.description,
+        order: step?.order,
+        createdAt: step?.createdAt,
+        updatedAT: step?.updatedAt,
+        v: (step as FullIRoadmapStep)?.__v,
+      };
+    }),
     freezed: careerObject?.freezed,
     restored: careerObject?.restored,
     createdAt: careerObject?.createdAt,
     updatedAt: careerObject?.updatedAt,
-    v: careerObject?.__v,
+    v: careerObject?.v,
   };
 };
 

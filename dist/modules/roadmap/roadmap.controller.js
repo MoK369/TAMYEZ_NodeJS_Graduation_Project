@@ -15,6 +15,14 @@ const roadmapService = new RoadmapService();
 roadmapRouter.post(RoutePaths.createRoadmapStep, Auths.combined({
     accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
 }), validationMiddleware({ schema: RoadmapValidators.createRoadmapStep }), roadmapService.createRoadmapStep);
+roadmapRouter.get(RoutePaths.getRoadmap, validationMiddleware({ schema: RoadmapValidators.getRoadmap }), roadmapService.getRoadmap());
+roadmapRouter.get(RoutePaths.getArchivedRoadmap, Auths.combined({
+    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
+}), validationMiddleware({ schema: RoadmapValidators.getRoadmap }), roadmapService.getRoadmap({ archived: true }));
+roadmapRouter.get(RoutePaths.getArchivedRoadmapStep, Auths.combined({
+    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
+}), validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }), roadmapService.getRoadmapStep({ archived: true }));
+roadmapRouter.get(RoutePaths.getRoadmapStep, Auths.authenticationMiddleware(), validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }), roadmapService.getRoadmapStep());
 roadmapRouter.patch(RoutePaths.updateRoadmapStep, rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,

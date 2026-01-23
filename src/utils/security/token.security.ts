@@ -25,7 +25,7 @@ import type { Types } from "mongoose";
 class TokenSecurityUtil {
   private static _userRepository = new UserRepository(UserModel);
   private static _revokedTokenRepository = new RevokedTokenRepository(
-    RevokedTokenModel
+    RevokedTokenModel,
   );
 
   static generateToken = ({
@@ -49,7 +49,11 @@ class TokenSecurityUtil {
     token: string;
     secretKey: string;
   }): ITokenPayload => {
-    return jwt.verify(token, secretKey) as ITokenPayload;
+    try {
+      return jwt.verify(token, secretKey) as ITokenPayload;
+    } catch (e: any) {
+      throw new BadRequestException(e.message || "Invalid token ❌");
+    }
   };
 
   static getSignatureLevel = ({
@@ -78,7 +82,7 @@ class TokenSecurityUtil {
   }): { accessSignature: string } => {
     if ((!signatureLevel && !userRole) || (signatureLevel && userRole)) {
       throw new ServerException(
-        "Either signatureLever or userRole should be only provided ⚠️"
+        "Either signatureLever or userRole should be only provided ⚠️",
       );
     }
 
@@ -135,13 +139,13 @@ class TokenSecurityUtil {
     const [bearer, token] = authorization.split(" ");
     if (!bearer || !token) {
       throw new UnauthorizedException(
-        StringConstants.MISSING_TOKEN_PARTS_MESSAGE
+        StringConstants.MISSING_TOKEN_PARTS_MESSAGE,
       );
     }
 
     if (
       !Object.values(SignatureLevelsEnum).includes(
-        bearer as SignatureLevelsEnum
+        bearer as SignatureLevelsEnum,
       )
     ) {
       throw new BadRequestException(StringConstants.INVALID_BEARER_KEY_MESSAGE);
@@ -160,7 +164,7 @@ class TokenSecurityUtil {
     });
     if (!payload.id || !payload.iat || !payload.jti) {
       throw new BadRequestException(
-        StringConstants.INVALID_TOKEN_PAYLOAD_MESSAGE
+        StringConstants.INVALID_TOKEN_PAYLOAD_MESSAGE,
       );
     }
 
@@ -177,7 +181,7 @@ class TokenSecurityUtil {
     });
     if (!user?.confirmedAt) {
       throw new BadRequestException(
-        StringConstants.INVALID_USER_ACCOUNT_MESSAGE
+        StringConstants.INVALID_USER_ACCOUNT_MESSAGE,
       );
     }
 
@@ -212,7 +216,7 @@ class TokenSecurityUtil {
           })
           .catch((err) => {
             throw new ServerException(
-              StringConstants.FAILED_REVOKE_TOKEN_MESSAGE
+              StringConstants.FAILED_REVOKE_TOKEN_MESSAGE,
             );
           });
         break;
@@ -225,7 +229,7 @@ class TokenSecurityUtil {
                 expiresAt: new Date(
                   (tokenPayload.iat! +
                     Number(process.env[EnvFields.ACCESS_TOKEN_EXPIRES_IN])) *
-                    1000
+                    1000,
                 ),
                 userId,
               },
@@ -233,7 +237,7 @@ class TokenSecurityUtil {
           })
           .catch((err) => {
             throw new ServerException(
-              StringConstants.FAILED_REVOKE_TOKEN_MESSAGE
+              StringConstants.FAILED_REVOKE_TOKEN_MESSAGE,
             );
           });
         statusCode = 201;
@@ -267,7 +271,7 @@ class TokenSecurityUtil {
     });
     if (!payload.id || !payload.iat || !payload.jti || !payload.exp) {
       throw new BadRequestException(
-        StringConstants.INVALID_TOKEN_PAYLOAD_MESSAGE
+        StringConstants.INVALID_TOKEN_PAYLOAD_MESSAGE,
       );
     }
 

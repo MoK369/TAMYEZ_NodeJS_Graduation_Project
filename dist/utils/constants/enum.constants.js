@@ -15,6 +15,7 @@ export var ErrorCodesEnum;
     ErrorCodesEnum["FORBIDDEN"] = "FORBIDDEN";
     ErrorCodesEnum["TOO_MANY_RQUESTS"] = "TOO_MANY_REQUESTS";
     ErrorCodesEnum["ASSET_ERROR"] = "ASSET_ERROR";
+    ErrorCodesEnum["CONTENT_TOO_LARGE"] = "CONTENT_TOO_LARGE";
 })(ErrorCodesEnum || (ErrorCodesEnum = {}));
 export var EmailEventsEnum;
 (function (EmailEventsEnum) {

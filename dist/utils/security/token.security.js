@@ -15,7 +15,12 @@ class TokenSecurityUtil {
         return jwt.sign(payload, secretKey, options);
     };
     static verifyToken = ({ token, secretKey, }) => {
-        return jwt.verify(token, secretKey);
+        try {
+            return jwt.verify(token, secretKey);
+        }
+        catch (e) {
+            throw new BadRequestException(e.message || "Invalid token ❌");
+        }
     };
     static getSignatureLevel = ({ role, }) => {
         switch (role) {

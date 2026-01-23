@@ -1,10 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import ModelsNames from "../../utils/constants/models.names.constants.js";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.js";
 import DocumentFormat from "../../utils/formats/document.format.js";
 import { atByObjectSchema } from "./common_schemas.model.js";
-import { LanguagesEnum, RoadmapStepPricingTypesEnum, } from "../../utils/constants/enum.constants.js";
+import { CareerResourceAppliesToEnum, LanguagesEnum, RoadmapStepPricingTypesEnum, } from "../../utils/constants/enum.constants.js";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
+import { roadmapStepArraySchemaValidator } from "../../utils/validators/mongoose.validators.js";
 const roadmapStepResourceSchema = new mongoose.Schema({
     title: { type: String, required: true, min: 3, max: 300 },
     url: { type: String, required: true },
@@ -42,24 +43,22 @@ const roadmapStepSchema = new mongoose.Schema({
     description: { type: String, min: 5, max: 10_000, required: true },
     courses: {
         type: [roadmapStepResourceSchema],
-        min: 1,
-        max: 5,
         required: true,
+        validate: roadmapStepArraySchemaValidator(),
     },
     youtubePlaylists: {
         type: [roadmapStepResourceSchema],
-        min: 1,
-        max: 5,
         required: true,
+        validate: roadmapStepArraySchemaValidator(),
     },
     books: { type: [roadmapStepResourceSchema], max: 5, default: [] },
-    allowGlobalResources: { type: Boolean, default: false },
+    allowGlobalResources: { type: Boolean, default: true },
     quizzesIds: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: ModelsNames.quizModel,
-        min: 1,
-        max: 5,
+        type: [
+            { type: mongoose.Schema.Types.ObjectId, ref: ModelsNames.quizModel },
+        ],
         required: true,
+        validate: roadmapStepArraySchemaValidator(),
     },
     freezed: atByObjectSchema,
     restored: atByObjectSchema,
@@ -78,12 +77,36 @@ roadmapStepSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
 roadmapStepSchema.virtual("id").get(function () {
     return this._id.toHexString();
 });
+roadmapStepSchema.virtual("career", {
+    ref: ModelsNames.careerModel,
+    localField: "careerId",
+    foreignField: "_id",
+    justOne: true,
+    options: {
+        projection: {
+            courses: 1,
+            youtubePlaylists: 1,
+            books: 1,
+        },
+    },
+});
+function mergeResources({ stepId, current, global, }) {
+    const out = current;
+    for (const res of global) {
+        if ((res.appliesTo === CareerResourceAppliesToEnum.all ||
+            res.specifiedSteps?.includes(stepId)) &&
+            current.findIndex((c) => c.title == res.title || c.url == res.url) == -1) {
+            out.push(res);
+        }
+    }
+    return out;
+}
 roadmapStepSchema.methods.toJSON = function () {
     const roadmapStepObject = DocumentFormat.getIdFrom_Id(this.toObject());
     return {
         id: roadmapStepObject?.id,
         order: roadmapStepObject?.order,
-        careerId: roadmapStepObject?.careerId,
+        careerId: roadmapStepObject?.careerId || undefined,
         title: roadmapStepObject?.title,
         description: roadmapStepObject?.description,
         courses: roadmapStepObject?.courses?.map((course) => {
@@ -98,7 +121,13 @@ roadmapStepSchema.methods.toJSON = function () {
             book.pictureUrl = S3KeyUtil.generateS3UploadsUrlFromSubKey(book.pictureUrl);
             return DocumentFormat.getIdFrom_Id(book);
         }),
-        quizzesIds: roadmapStepObject.quizzesIds,
+        quizzesIds: roadmapStepObject?.quizzesIds?.length &&
+            !Types.ObjectId.isValid(roadmapStepObject.quizzesIds[0]?.toString() ?? "")
+            ? roadmapStepObject.quizzesIds.map((quiz) => {
+                console.log("Inside map");
+                return DocumentFormat.getIdFrom_Id(quiz);
+            })
+            : roadmapStepObject?.quizzesIds,
         freezed: roadmapStepObject?.freezed,
         restored: roadmapStepObject?.restored,
         createdAt: roadmapStepObject.createdAt,
@@ -107,6 +136,29 @@ roadmapStepSchema.methods.toJSON = function () {
 };
 roadmapStepSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
     softDeleteFunction(this);
+    next();
+});
+roadmapStepSchema.post("findOne", function (doc, next) {
+    if (doc.allowGlobalResources) {
+        mergeResources({
+            current: doc.courses,
+            global: doc.career
+                .courses,
+            stepId: doc._id,
+        });
+        mergeResources({
+            current: doc.youtubePlaylists,
+            global: doc.career
+                .youtubePlaylists,
+            stepId: doc._id,
+        });
+        mergeResources({
+            current: doc.books,
+            global: doc.career.books ??
+                [],
+            stepId: doc._id,
+        });
+    }
     next();
 });
 const RoadmapStepModel = mongoose.models?.RoadmapStep ||
