@@ -1,4 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, {
+  type UpdateQuery,
+  type UpdateWithAggregationPipeline,
+} from "mongoose";
 import type { ICareer } from "../interfaces/career.interface.ts";
 import ModelsNames from "../../utils/constants/models.names.constants.ts";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.ts";
@@ -105,7 +108,7 @@ careerSchema.index({ _id: 1, "youtubePlaylists._id": 1 }, { unique: true });
 careerSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
 
 careerSchema.virtual("id").get(function (this) {
-  return this._id.toHexString();
+  return this?._id?.toHexString();
 });
 
 careerSchema.virtual("roadmap", {
@@ -176,8 +179,25 @@ careerSchema.pre("save", async function (next) {
 });
 
 careerSchema.pre(
-  ["find", "findOne", "findOneAndUpdate", "countDocuments"],
+  ["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"],
   function (next) {
+    const update: UpdateWithAggregationPipeline | UpdateQuery<ICareer> | null =
+      this.getUpdate();
+    if (update) {
+      if (Array.isArray(update)) {
+        if ((update[0] as Record<string, any>)["$set"]?.title) {
+          (update[0] as Record<string, any>)["$set"].slug = slugify.default(
+            (update[0] as Record<string, any>)["$set"]?.title,
+          );
+        }
+      } else {
+        if (update.title) {
+          update.slug = slugify.default(update.title);
+        }
+      }
+      this.setUpdate(update);
+    }
+
     softDeleteFunction(this);
 
     next();

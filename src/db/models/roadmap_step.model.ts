@@ -148,8 +148,9 @@ function mergeResources({
 }
 
 roadmapStepSchema.methods.toJSON = function () {
-  const roadmapStepObject: IRoadmapStep =
-    DocumentFormat.getIdFrom_Id<IRoadmapStep>(this.toObject());
+  const roadmapStepObject = DocumentFormat.getIdFrom_Id<IRoadmapStep>(
+    this.toObject(),
+  );
 
   return {
     id: roadmapStepObject?.id,
@@ -197,6 +198,7 @@ roadmapStepSchema.methods.toJSON = function () {
     restored: roadmapStepObject?.restored,
     createdAt: roadmapStepObject.createdAt,
     updatedAt: roadmapStepObject.updatedAt,
+    v: roadmapStepObject.v,
   };
 };
 

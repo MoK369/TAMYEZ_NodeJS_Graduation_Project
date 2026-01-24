@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {} from "mongoose";
 import ModelsNames from "../../utils/constants/models.names.constants.js";
 import { softDeleteFunction } from "../../utils/soft_delete/soft_delete.js";
 import DocumentFormat from "../../utils/formats/document.format.js";
@@ -73,7 +73,7 @@ careerSchema.index({ _id: 1, "courses._id": 1 }, { unique: true });
 careerSchema.index({ _id: 1, "youtubePlaylists._id": 1 }, { unique: true });
 careerSchema.index({ _id: 1, "books._id": 1 }, { unique: true });
 careerSchema.virtual("id").get(function () {
-    return this._id.toHexString();
+    return this?._id?.toHexString();
 });
 careerSchema.virtual("roadmap", {
     ref: ModelsNames.roadmapStepModel,
@@ -130,7 +130,21 @@ careerSchema.pre("save", async function (next) {
     }
     next();
 });
-careerSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
+careerSchema.pre(["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"], function (next) {
+    const update = this.getUpdate();
+    if (update) {
+        if (Array.isArray(update)) {
+            if (update[0]["$set"]?.title) {
+                update[0]["$set"].slug = slugify.default(update[0]["$set"]?.title);
+            }
+        }
+        else {
+            if (update.title) {
+                update.slug = slugify.default(update.title);
+            }
+        }
+        this.setUpdate(update);
+    }
     softDeleteFunction(this);
     next();
 });

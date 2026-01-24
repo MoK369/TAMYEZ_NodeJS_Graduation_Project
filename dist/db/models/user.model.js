@@ -99,6 +99,7 @@ userSchema.methods.toJSON = function () {
         createdAt: userObject.createdAt,
         updatedAt: userObject.updatedAt,
         confirmedAt: userObject.confirmedAt,
+        v: userObject.v,
     };
 };
 userSchema.pre("save", async function (next) {
@@ -132,11 +133,11 @@ userSchema.pre(["updateOne", "findOneAndUpdate"], async function () {
     }
     this.setUpdate(updateObject);
 });
-userSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
+userSchema.pre(["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"], function (next) {
     softDeleteFunction(this);
     next();
 });
-userSchema.post(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (docs, next) {
+userSchema.post(["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"], function (docs, next) {
     if (!docs)
         return next();
     const decryptPhone = (doc) => {

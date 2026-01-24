@@ -142,6 +142,7 @@ class AuthService {
             filter: {
                 userId,
                 deviceId,
+                __v: undefined,
             },
             update: { fcmToken, isActive: true, jwtTokenExpiresAt },
         });
@@ -336,6 +337,7 @@ class AuthService {
         await this._userRepository.updateOne({
             filter: {
                 _id: user._id,
+                __v: user.__v,
             },
             update: {
                 $unset: {
@@ -377,6 +379,7 @@ class AuthService {
         await this._userRepository.updateOne({
             filter: {
                 _id: user._id,
+                __v: user.__v,
             },
             update: {
                 $unset: {

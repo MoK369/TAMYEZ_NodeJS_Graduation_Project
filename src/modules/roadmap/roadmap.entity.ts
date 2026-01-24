@@ -4,4 +4,5 @@ export interface UpdateRoadmapStepResourceResponse {
   courses?: IRoadmapStepResource | undefined;
   youtubePlaylists?: IRoadmapStepResource | undefined;
   books?: IRoadmapStepResource | undefined;
+  v: number;
 }

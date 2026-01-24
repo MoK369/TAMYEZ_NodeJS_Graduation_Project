@@ -148,8 +148,10 @@ class QuizValidators {
                 .max(36_000)
                 .optional(),
             tags: z.array(z.string().toLowerCase()).min(2).max(20).optional(),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
+            generalValidationConstants.checkValuesForUpdate(data, ctx);
             if (data.type === QuizTypesEnum.careerAssessment &&
                 data.title != undefined) {
                 ctx.addIssue({

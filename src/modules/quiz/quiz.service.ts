@@ -63,11 +63,11 @@ import pause from "../../utils/pause/code.pause.ts";
 class QuizService {
   private _quizRepository = new QuizRepository(QuizModel);
   private _quizQuestionsRepository = new QuizAttemptRepository(
-    QuizAttemptModel
+    QuizAttemptModel,
   );
   private _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
   private _quizCooldownRepository = new QuizCooldownRepository(
-    QuizCooldownModel
+    QuizCooldownModel,
   );
   //private _quizApisManager = new QuizApisManager();
 
@@ -79,7 +79,7 @@ class QuizService {
       const quiz = await this._quizRepository.findOne({ filter: { type } });
       if (quiz) {
         throw new ConflictException(
-          `Quiz of type ${QuizTypesEnum.careerAssessment} already exists 🚫`
+          `Quiz of type ${QuizTypesEnum.careerAssessment} already exists 🚫`,
         );
       }
     }
@@ -95,7 +95,7 @@ class QuizService {
       })
     ) {
       throw new ConflictException(
-        "A quiz with the same title and tags already exists ❌"
+        "A quiz with the same title and tags already exists ❌",
       );
     }
 
@@ -122,7 +122,7 @@ class QuizService {
 
   updateQuiz = async (req: Request, res: Response): Promise<Response> => {
     const { quizId } = req.params as UpdateQuizParamsDtoType;
-    const { title, description, aiPrompt, type, duration, tags } = req
+    const { title, description, aiPrompt, type, duration, tags, v } = req
       .validationResult.body as UpdateQuizBodyDtoType;
 
     const quiz = await this._quizRepository.findOne({
@@ -131,7 +131,7 @@ class QuizService {
 
     if (!quiz) {
       throw new NotFoundException(
-        StringConstants.INVALID_PARAMETER_MESSAGE("quizId")
+        StringConstants.INVALID_PARAMETER_MESSAGE("quizId"),
       );
     }
 
@@ -145,12 +145,12 @@ class QuizService {
       (type || duration || tags?.length)
     ) {
       throw new ValidationException(
-        `Only description and aiPrompt of ${StringConstants.CAREER_ASSESSMENT} can be updated 🔒`
+        `Only description and aiPrompt of ${StringConstants.CAREER_ASSESSMENT} can be updated 🔒`,
       );
     } else {
       if (type === QuizTypesEnum.careerAssessment) {
         throw new BadRequestException(
-          `${QuizTypesEnum.stepQuiz} can not be update to ${QuizTypesEnum.careerAssessment} 🔒`
+          `${QuizTypesEnum.stepQuiz} can not be update to ${QuizTypesEnum.careerAssessment} 🔒`,
         );
       }
       if (title || tags) {
@@ -160,7 +160,7 @@ class QuizService {
           })
         ) {
           throw new ConflictException(
-            "A quiz with the same title and tags already exists ❌"
+            "A quiz with the same title and tags already exists ❌",
           );
         }
       }
@@ -171,11 +171,15 @@ class QuizService {
       updatedObject: { title, description, aiPrompt, type, duration, tags },
     });
 
-    await quiz.updateOne({
-      uniqueKey:
-        updateObject.title || updateObject.tags?.length ? uniqueKey : undefined,
-      ...updateObject,
-      __v: { $inc: 1 },
+    await this._quizRepository.updateOne({
+      filter: { _id: quizId, __v: v },
+      update: {
+        uniqueKey:
+          updateObject.title || updateObject.tags?.length
+            ? uniqueKey
+            : undefined,
+        ...updateObject,
+      },
     });
 
     return successHandler({
@@ -211,7 +215,7 @@ class QuizService {
 
     if (!quiz) {
       throw new NotFoundException(
-        StringConstants.INVALID_PARAMETER_MESSAGE("quizId")
+        StringConstants.INVALID_PARAMETER_MESSAGE("quizId"),
       );
     }
 
@@ -356,7 +360,7 @@ class QuizService {
 
     if (!quiz) {
       throw new NotFoundException(
-        StringConstants.INVALID_PARAMETER_MESSAGE("quizId")
+        StringConstants.INVALID_PARAMETER_MESSAGE("quizId"),
       );
     }
 
@@ -367,7 +371,7 @@ class QuizService {
           15 * 60 * 1000
       ) {
         throw new TooManyRequestsException(
-          "Too many request, please wait 15 minutes from your last quiz attempt ⏳"
+          "Too many request, please wait 15 minutes from your last quiz attempt ⏳",
         );
       } else if (
         Date.now() - req.user!.quizAttempts.lastAttempt.getTime() <=
@@ -385,7 +389,7 @@ class QuizService {
       })
     ) {
       throw new BadRequestException(
-        `You are in cooldown period for this quiz. Please try again later ❌`
+        `You are in cooldown period for this quiz. Please try again later ❌`,
       );
     }
 
@@ -417,13 +421,13 @@ class QuizService {
                 ? Number(
                     process.env[
                       EnvFields.CAREER_ASSESSMENT_QUESTIONS_EXPIRES_IN_SECONDS
-                    ]
+                    ],
                   )
                 : quiz.duration! +
                   Number(
-                    process.env[EnvFields.QUIZ_QUESTIONS_EXPIRES_IN_SECONDS]
+                    process.env[EnvFields.QUIZ_QUESTIONS_EXPIRES_IN_SECONDS],
                   )) *
-                1000
+                1000,
           ),
         },
       ],
@@ -502,7 +506,7 @@ class QuizService {
 
     if (!quizQuestions || !quizQuestions.quizId) {
       throw new NotFoundException(
-        "Quiz questions not found for the given quizId and user 🚫"
+        "Quiz questions not found for the given quizId and user 🚫",
       );
     }
 
@@ -511,13 +515,13 @@ class QuizService {
       StringConstants.CAREER_ASSESSMENT
     ) {
       throw new BadRequestException(
-        `Answers of ${StringConstants.CAREER_ASSESSMENT} quiz, use get suggested careers API 🚫`
+        `Answers of ${StringConstants.CAREER_ASSESSMENT} quiz, use get suggested careers API 🚫`,
       );
     }
 
     if (answers.length !== quizQuestions.questions.length) {
       throw new ValidationException(
-        "Number of answers provided does not match number of questions ❌"
+        "Number of answers provided does not match number of questions ❌",
       );
     }
 
@@ -538,11 +542,11 @@ class QuizService {
 
       if (!question) {
         throw new NotFoundException(
-          `Not found questionId in the quiz questions ${answer.questionId} ❌`
+          `Not found questionId in the quiz questions ${answer.questionId} ❌`,
         );
       } else if (question.type !== answer.type) {
         throw new ValidationException(
-          `Question type mismatch for questionId ${answer.questionId} ❌`
+          `Question type mismatch for questionId ${answer.questionId} ❌`,
         );
       }
       if (answer.type === QuestionTypesEnum.written) {
@@ -603,7 +607,7 @@ class QuizService {
           ...question,
           isCorrect: true,
           userAnswer: writtenAnswers.find(
-            (wa) => wa.questionId === writtenAnswerResult.questionId
+            (wa) => wa.questionId === writtenAnswerResult.questionId,
           )!.userAnswer,
         });
       } else {
@@ -612,7 +616,7 @@ class QuizService {
           ...question,
           isCorrect: false,
           userAnswer: writtenAnswers.find(
-            (wa) => wa.questionId === writtenAnswerResult.questionId
+            (wa) => wa.questionId === writtenAnswerResult.questionId,
           )!.userAnswer,
           correction: writtenAnswerResult.correction!,
           explanation: writtenAnswerResult.explenation!,
@@ -623,7 +627,7 @@ class QuizService {
     // saving the checked answers
     const scoreNumber = Math.round(
       ((checkedAnswers.length - wrongAnswersCount) / checkedAnswers.length) *
-        100
+        100,
     );
 
     if (scoreNumber >= 50) {
@@ -632,6 +636,7 @@ class QuizService {
           filter: {
             quizId: quizQuestions.quizId!._id!,
             userId: req.user!._id!,
+            __v: undefined,
           },
           update: {
             questions: checkedAnswers,
@@ -667,7 +672,8 @@ class QuizService {
               userId: req.user!._id!,
               cooldownEndsAt: new Date(
                 Date.now() +
-                  Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000
+                  Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) *
+                    1000,
               ),
             },
           ],

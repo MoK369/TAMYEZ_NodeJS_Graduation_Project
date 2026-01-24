@@ -113,7 +113,7 @@ class TokenSecurityUtil {
             case LogoutFlagsEnum.all:
                 await this._userRepository
                     .updateOne({
-                    filter: { _id: userId },
+                    filter: { _id: userId, __v: undefined },
                     update: {
                         changeCredentialsTime: Date.now(),
                     },

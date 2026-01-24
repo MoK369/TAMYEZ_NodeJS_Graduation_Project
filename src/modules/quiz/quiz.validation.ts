@@ -169,8 +169,11 @@ class QuizValidators {
           .max(36_000)
           .optional(),
         tags: z.array(z.string().toLowerCase()).min(2).max(20).optional(),
+        v: generalValidationConstants.v,
       })
       .superRefine((data, ctx) => {
+        generalValidationConstants.checkValuesForUpdate(data, ctx);
+
         if (
           data.type === QuizTypesEnum.careerAssessment &&
           data.title != undefined
@@ -229,7 +232,7 @@ class QuizValidators {
                     .min(1)
                     .max(10),
                 ],
-                { error: "Answer format is invalid ❌" }
+                { error: "Answer format is invalid ❌" },
               ),
             })
             .superRefine((data, ctx) => {
@@ -245,7 +248,7 @@ class QuizValidators {
                 if (
                   !Array.isArray(data.answer) ||
                   data.answer.some(
-                    (ans) => !Object.values(OptionIdsEnum).includes(ans)
+                    (ans) => !Object.values(OptionIdsEnum).includes(ans),
                   )
                 ) {
                   ctx.addIssue({
@@ -256,7 +259,7 @@ class QuizValidators {
                     } Or ${
                       QuestionTypesEnum.mcqMulti
                     }, answer must be an array of otpionIds ${Object.values(
-                      OptionIdsEnum
+                      OptionIdsEnum,
                     )} numbers ❌`,
                   });
                 } else if (
@@ -270,7 +273,7 @@ class QuizValidators {
                   });
                 }
               }
-            })
+            }),
         )
         .min(2)
         .max(200),

@@ -13,8 +13,12 @@ const generalValidationConstants = {
       (value) => {
         return Types.ObjectId.isValid(value);
       },
-      { error: StringConstants.INVALID_PARAMETER_MESSAGE() }
+      { error: StringConstants.INVALID_PARAMETER_MESSAGE() },
     ),
+  v: z.coerce
+    .number({ error: StringConstants.PATH_REQUIRED_MESSAGE("v") })
+    .int()
+    .min(0),
   name: z
     .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("name") })
     .regex(AppRegex.nameRegex, StringConstants.NAME_VALIDATION_MESSAGE),
@@ -23,7 +27,7 @@ const generalValidationConstants = {
     .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("fullName") })
     .regex(
       AppRegex.fullNameRegex,
-      StringConstants.FULL_NAME_VALIDATION_MESSAGE
+      StringConstants.FULL_NAME_VALIDATION_MESSAGE,
     ),
 
   email: z.email(StringConstants.INVALID_EMAIL_MESSAGE),
@@ -32,7 +36,7 @@ const generalValidationConstants = {
       .string({ error: StringConstants.PATH_REQUIRED_MESSAGE(fieldName) })
       .regex(
         AppRegex.passwordRegex,
-        StringConstants.PASSWORD_VALIDATION_MESSAGE
+        StringConstants.PASSWORD_VALIDATION_MESSAGE,
       );
   },
 
@@ -43,13 +47,27 @@ const generalValidationConstants = {
     }),
   confirmPasswordChecker: (
     data: { confirmPassword: string; password: String } & Record<string, any>,
-    ctx: z.core.$RefinementCtx
+    ctx: z.core.$RefinementCtx,
   ) => {
     if (data.confirmPassword !== data.password) {
       ctx.addIssue({
         code: "custom",
         path: ["confirmPassword"],
         message: StringConstants.MISMATCH_CONFIRM_PASSWORD_MESSAGE,
+      });
+    }
+  },
+
+  checkValuesForUpdate: (
+    data: Record<string, any> & { v?: number | undefined },
+    ctx: z.core.$RefinementCtx,
+  ) => {
+    const { v, ...mainData } = data;
+    if (!Object.values(mainData).length) {
+      ctx.addIssue({
+        code: "custom",
+        path: [""],
+        message: "All fields are empty ❌",
       });
     }
   },
@@ -103,7 +121,7 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("basePath") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("basePath") },
             ),
           finalPath: z
             .string()
@@ -115,7 +133,7 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("finalPath") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("finalPath") },
             ),
           destination: z
             .string()
@@ -127,7 +145,7 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("destination") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("destination") },
             ),
           filename: z
             .string()
@@ -139,7 +157,7 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("filename") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("filename") },
             ),
           path: z
             .string()
@@ -151,7 +169,7 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("path") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("path") },
             ),
           size: z.number().positive().max(maxSize),
           buffer: z
@@ -165,10 +183,10 @@ const generalValidationConstants = {
 
                 return true;
               },
-              { error: StringConstants.PATH_REQUIRED_MESSAGE("buffer") }
+              { error: StringConstants.PATH_REQUIRED_MESSAGE("buffer") },
             ),
         },
-        { error: StringConstants.PATH_REQUIRED_MESSAGE("image") }
+        { error: StringConstants.PATH_REQUIRED_MESSAGE("image") },
       )
       .superRefine((data, ctx) => {
         if (data.fieldname !== fieldName) {
@@ -210,7 +228,7 @@ const generalValidationConstants = {
     if (
       data.courses?.length &&
       data.courses.findIndex(
-        (c) => c.url.includes("youtube.com") || c.url.includes("youtu.be")
+        (c) => c.url.includes("youtube.com") || c.url.includes("youtu.be"),
       ) !== -1
     ) {
       ctx.addIssue({
@@ -233,7 +251,7 @@ const generalValidationConstants = {
     if (
       data.youtubePlaylists?.length &&
       data.youtubePlaylists.findIndex(
-        (c) => !(c.url.includes("youtube.com") || c.url.includes("youtu.be"))
+        (c) => !(c.url.includes("youtube.com") || c.url.includes("youtu.be")),
       ) !== -1
     ) {
       ctx.addIssue({
@@ -256,7 +274,7 @@ const generalValidationConstants = {
     if (
       data.books?.length &&
       data.books.findIndex(
-        (c) => c.url.includes("youtube.com") || c.url.includes("youtu.be")
+        (c) => c.url.includes("youtube.com") || c.url.includes("youtu.be"),
       ) !== -1
     ) {
       ctx.addIssue({

@@ -10,6 +10,10 @@ const generalValidationConstants = {
         .refine((value) => {
         return Types.ObjectId.isValid(value);
     }, { error: StringConstants.INVALID_PARAMETER_MESSAGE() }),
+    v: z.coerce
+        .number({ error: StringConstants.PATH_REQUIRED_MESSAGE("v") })
+        .int()
+        .min(0),
     name: z
         .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("name") })
         .regex(AppRegex.nameRegex, StringConstants.NAME_VALIDATION_MESSAGE),
@@ -33,6 +37,16 @@ const generalValidationConstants = {
                 code: "custom",
                 path: ["confirmPassword"],
                 message: StringConstants.MISMATCH_CONFIRM_PASSWORD_MESSAGE,
+            });
+        }
+    },
+    checkValuesForUpdate: (data, ctx) => {
+        const { v, ...mainData } = data;
+        if (!Object.values(mainData).length) {
+            ctx.addIssue({
+                code: "custom",
+                path: [""],
+                message: "All fields are empty ❌",
             });
         }
     },

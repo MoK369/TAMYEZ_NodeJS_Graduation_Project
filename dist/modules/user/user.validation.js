@@ -12,6 +12,7 @@ class UserValidators {
                 maxSize: Number(process.env[EnvFields.PROFILE_PICTURE_SIZE]),
                 mimetype: fileValidation.image,
             }),
+            v: generalValidationConstants.v,
         }),
     };
     static updateProfile = {
@@ -21,15 +22,10 @@ class UserValidators {
             lastName: generalValidationConstants.name.optional(),
             phoneNumber: generalValidationConstants.phoneNumber.optional(),
             gender: z.enum(Object.values(GenderEnum)).optional(),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
-            if (!Object.values(data).length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: [""],
-                    message: "All fields are empty ❌",
-                });
-            }
+            generalValidationConstants.checkValuesForUpdate(data, ctx);
         }),
     };
     static changePassword = {
@@ -42,6 +38,7 @@ class UserValidators {
                 .enum(Object.values(LogoutFlagsEnum))
                 .optional()
                 .default(LogoutFlagsEnum.stay),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
             if (data.currentPassword == data.newPassword) {

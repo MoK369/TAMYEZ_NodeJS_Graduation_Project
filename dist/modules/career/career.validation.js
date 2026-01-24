@@ -101,6 +101,7 @@ class CareerValidators {
                 maxSize: Number(process.env[EnvFields.CAREER_PICTURE_SIZE]),
                 mimetype: fileValidation.image,
             }),
+            v: generalValidationConstants.v,
         }),
     };
     static getCareers = {
@@ -141,15 +142,10 @@ class CareerValidators {
                 .array(generalValidationConstants.objectId)
                 .max(5)
                 .optional(),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
-            if (!Object.values(data).length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: [""],
-                    message: "All fields are empty ⚠️",
-                });
-            }
+            generalValidationConstants.checkValuesForUpdate(data, ctx);
             generalValidationConstants.checkCoureseUrls({
                 data: { courses: data.courses },
                 ctx,

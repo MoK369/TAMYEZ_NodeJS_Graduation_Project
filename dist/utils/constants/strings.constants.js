@@ -45,6 +45,7 @@ class StringConstants {
     static INVALID_VALIDATION_BEARER_TOKEN_MESSAGE = `Token must start with one of ${Object.values(SignatureLevelsEnum)} followed by a space, and ${this.INVALID_VALIDATION_TOKEN_MESSAGE}`;
     static FAILED_VERIFY_GMAIL_ACCOUNT_MESSAGE = "Failed to verify this gmail account 🇬✉️";
     static INVALID_GMAIL_CREDENTIALS_MESSAGE = "Invaild gmail account credentials 🇬🪪";
+    static INVALID_VERSION_MESSAGE = `Version doesn't match ❌`;
     static EMAIL_EXISTS_PROVIDER_MESSAGE = "Email exists with another provider ✉️❌";
     static PHONE_NUMBER_VALIDATION_MESSAGE = "Phone number must start with country code (+20) followed by one of the code [10,11,12,15] followed by 8 digits 📱🔢 ❌";
     static NOT_AUTHORIZED_ACCOUNT_MESSAGE = "Not Authorized Account ⛔";

@@ -163,15 +163,10 @@ class RoadmapValidators {
                 .max(5)
                 .optional(),
             allowGlobalResources: z.boolean().optional(),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
-            if (!Object.values(data).length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: [""],
-                    message: "All fields are empty ⚠️",
-                });
-            }
+            generalValidationConstants.checkValuesForUpdate(data, ctx);
             if (data.title)
                 data.title = StringFormats.normalizeStepTitle(data.title);
             generalValidationConstants.checkCoureseUrls({
@@ -230,15 +225,10 @@ class RoadmapValidators {
             url: z.url().min(5).optional(),
             pricingType: z.enum(RoadmapStepPricingTypesEnum).optional(),
             language: z.enum(LanguagesEnum).optional(),
+            v: generalValidationConstants.v,
         })
             .superRefine((data, ctx) => {
-            if (!Object.values(data).length) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: [""],
-                    message: "All fields are empty ⚠️",
-                });
-            }
+            generalValidationConstants.checkValuesForUpdate(data, ctx);
         }),
     };
 }

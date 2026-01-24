@@ -4,6 +4,7 @@ export interface UpdateCareerResourceResponse {
   courses?: ICareerResource | undefined;
   youtubePlaylists?: ICareerResource | undefined;
   books?: ICareerResource | undefined;
+  v: number;
 }
 
 export interface UploadCareerPictureResponse {

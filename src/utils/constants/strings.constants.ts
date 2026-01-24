@@ -120,6 +120,8 @@ class StringConstants {
   static readonly INVALID_GMAIL_CREDENTIALS_MESSAGE =
     "Invaild gmail account credentials 🇬🪪";
 
+  static readonly INVALID_VERSION_MESSAGE = `Version doesn't match ❌`;
+
   static readonly EMAIL_EXISTS_PROVIDER_MESSAGE =
     "Email exists with another provider ✉️❌";
 

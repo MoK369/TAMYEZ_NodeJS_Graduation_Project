@@ -169,7 +169,7 @@ class RoadmapService {
     }
 
     await this._careerRepository.updateOne({
-      filter: { _id: careerId },
+      filter: { _id: careerId, __v: career.__v },
       update: { $inc: { stepsCount: 1 } },
     });
 
@@ -356,7 +356,7 @@ class RoadmapService {
         toUpdate.allowGlobalResources = body.allowGlobalResources;
 
       await this._roadmapStepRepository.updateOne<[]>({
-        filter: { _id: roadmapStepId },
+        filter: { _id: roadmapStepId, __v: body.v },
         update: [
           { $set: { ...toUpdate } },
           ...RoadmapService.buildUniqueAppendStages({
@@ -619,6 +619,7 @@ class RoadmapService {
         [`${resourceName}`]: {
           $elemMatch: { _id: resourceId },
         },
+        __v: body.v,
       },
       update: listUpdateFieldsHandler({
         resourceName,
@@ -632,6 +633,7 @@ class RoadmapService {
         ],
         projection: {
           _id: 0,
+          __v: 1,
           [`${resourceName}`]: {
             $elemMatch: { _id: Types.ObjectId.createFromHexString(resourceId) },
           },
@@ -645,7 +647,10 @@ class RoadmapService {
 
     return successHandler<UpdateRoadmapStepResourceResponse>({
       res,
-      body: { [`${resourceName}`]: result[resourceName]! },
+      body: {
+        [`${resourceName}`]: result.toJSON()[resourceName]!,
+        v: result.__v,
+      },
     });
   };
 }

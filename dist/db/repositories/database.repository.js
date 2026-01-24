@@ -1,4 +1,4 @@
-import { BadRequestException, ContentTooLargeException, } from "../../utils/exceptions/custom.exceptions.js";
+import { BadRequestException, ContentTooLargeException, VersionConflictException, } from "../../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 class DatabaseRepository {
     model;
@@ -40,98 +40,146 @@ class DatabaseRepository {
         };
     };
     findOne = async ({ filter, projection, options = {}, }) => {
-        return this.model.findOne(filter, projection, options);
+        const res = await this.model.findOne(filter, projection, options);
+        if (filter?.__v && !res) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
     findById = async ({ id, projection, options = {}, }) => {
         return this.model.findById(id, projection, options);
     };
     updateMany = async ({ filter = {}, update, options = {}, }) => {
-        let toUpdateObject;
         if (Array.isArray(update)) {
             update.push({
                 $set: {
                     __v: { $add: ["$__v", 1] },
                 },
             });
-            toUpdateObject = update;
         }
         else {
-            toUpdateObject = {
+            update = {
                 ...update,
                 $inc: Object.assign(update["$inc"] ?? {}, {
                     __v: 1,
                 }),
             };
         }
-        return this.model.updateMany(filter, toUpdateObject, options);
+        return this.model.updateMany(filter, update, options);
     };
-    updateOne = async ({ filter = {}, update, options = {}, }) => {
-        let toUpdateObject;
+    bulkWrite = async ({ operations = [], options = { ordered: false }, }) => {
+        return this.model.bulkWrite(operations, options);
+    };
+    updateOne = async ({ filter = { __v: 0 }, update, options = {}, }) => {
         if (Array.isArray(update)) {
             update.push({
                 $set: {
                     __v: { $add: ["$__v", 1] },
                 },
             });
-            toUpdateObject = update;
         }
         else {
-            toUpdateObject = {
+            update = {
                 ...update,
                 $inc: Object.assign(update["$inc"] ?? {}, {
                     __v: 1,
                 }),
             };
         }
-        return this.model.updateOne(filter, toUpdateObject, options);
+        const res = await this.model.updateOne(filter, update, options);
+        if (!res.matchedCount) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
-    updateById = async ({ id, update, options = {}, }) => {
-        let toUpdateObject;
+    updateById = async ({ id, v, update, options = {}, }) => {
         if (Array.isArray(update)) {
             update.push({
                 $set: {
                     __v: { $add: ["$__v", 1] },
                 },
             });
-            toUpdateObject = update;
         }
         else {
-            toUpdateObject = {
+            update = {
                 ...update,
                 $inc: Object.assign(update["$inc"] ?? {}, {
                     __v: 1,
                 }),
             };
         }
-        return this.model.updateOne({ _id: id }, toUpdateObject, options);
+        const res = await this.model.updateOne({ _id: id, __v: v }, update, options);
+        if (!res.matchedCount) {
+            const existsIgnoringVersion = await this.model.exists({ _id: id });
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
-    findOneAndUpdate = async ({ filter = {}, update, options = { new: true }, }) => {
-        let toUpdateObject;
+    findOneAndUpdate = async ({ filter = { __v: 0 }, update, options = { new: true }, }) => {
         if (Array.isArray(update)) {
             update.push({
                 $set: {
                     __v: { $add: ["$__v", 1] },
                 },
             });
-            toUpdateObject = update;
         }
         else {
-            toUpdateObject = {
+            update = {
                 ...update,
                 $inc: Object.assign(update["$inc"] ?? {}, {
                     __v: 1,
                 }),
             };
         }
-        return this.model.findOneAndUpdate(filter, toUpdateObject, options);
+        const res = await this.model.findOneAndUpdate(filter, update, options);
+        if (!res) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
-    findByIdAndUpdate = async ({ id, update, options = { new: true }, }) => {
-        return this.model.findByIdAndUpdate(id, {
+    findByIdAndUpdate = async ({ id, v, update, options = { new: true }, }) => {
+        if (Array.isArray(update)) {
+            update.push({
+                $set: {
+                    __v: { $add: ["$__v", 1] },
+                },
+            });
+        }
+        else {
+            update = {
+                ...update,
+                $inc: Object.assign(update["$inc"] ?? {}, {
+                    __v: 1,
+                }),
+            };
+        }
+        const res = await this.model.findOneAndUpdate({ _id: id, __v: v }, {
             ...update,
             $inc: Object.assign(update["$inc"] ?? {}, {
                 __v: 1,
             }),
         }, options);
+        if (!res) {
+            const existsIgnoringVersion = await this.model.exists({ _id: id });
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
     deleteOne = async ({ filter = {}, options = {}, }) => {
         return this.model.deleteOne(filter, options);
@@ -147,6 +195,9 @@ class DatabaseRepository {
     };
     countDocuments = async ({ filter = {}, }) => {
         return this.model.countDocuments(filter);
+    };
+    exists = async ({ filter, }) => {
+        return this.model.exists(filter);
     };
 }
 export default DatabaseRepository;

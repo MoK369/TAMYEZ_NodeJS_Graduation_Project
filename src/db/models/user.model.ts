@@ -24,7 +24,7 @@ const quizAttemptsSchema = new mongoose.Schema<IQuizAttempts>(
     count: { type: Number, required: true, min: 0, max: 5 },
     lastAttempt: { type: Date, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -105,7 +105,7 @@ const userSchema = new mongoose.Schema<IUser>(
     strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 userSchema
@@ -119,7 +119,7 @@ userSchema
   });
 
 userSchema.methods.toJSON = function () {
-  const userObject: IUser = DocumentFormat.getIdFrom_Id<IUser>(this.toObject());
+  const userObject = DocumentFormat.getIdFrom_Id<IUser>(this.toObject());
 
   return {
     id: userObject.id,
@@ -136,6 +136,7 @@ userSchema.methods.toJSON = function () {
     createdAt: userObject.createdAt,
     updatedAt: userObject.updatedAt,
     confirmedAt: userObject.confirmedAt,
+    v: userObject.v,
   };
 };
 
@@ -185,16 +186,16 @@ userSchema.pre(["updateOne", "findOneAndUpdate"], async function () {
 });
 
 userSchema.pre(
-  ["find", "findOne", "findOneAndUpdate", "countDocuments"],
+  ["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"],
   function (next) {
     softDeleteFunction(this);
 
     next();
-  }
+  },
 );
 
 userSchema.post(
-  ["find", "findOne", "findOneAndUpdate", "countDocuments"],
+  ["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"],
   function (this, docs, next) {
     // docs is an array for 'find', or a single document for 'findOne'
 
@@ -218,7 +219,7 @@ userSchema.post(
     }
 
     next();
-  }
+  },
 );
 
 const UserModel =

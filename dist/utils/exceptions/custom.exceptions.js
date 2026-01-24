@@ -86,3 +86,10 @@ export class ContentTooLargeException extends ApplicationException {
         Error.captureStackTrace(this, this.constructor);
     }
 }
+export class VersionConflictException extends ApplicationException {
+    constructor(message, details, cause) {
+        super(ErrorCodesEnum.VERSION_CONFLICT, 409, message, details, cause);
+        this.name = this.constructor.name;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}

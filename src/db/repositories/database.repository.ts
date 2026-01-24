@@ -1,6 +1,8 @@
 import type {
+  AnyBulkWriteOperation,
   DeleteResult,
   MongooseBaseQueryOptions,
+  MongooseBulkWriteResult,
   UpdateWriteOpResult,
 } from "mongoose";
 import type {
@@ -15,6 +17,7 @@ import type { CreateOptions, Model } from "mongoose";
 import {
   BadRequestException,
   ContentTooLargeException,
+  VersionConflictException,
 } from "../../utils/exceptions/custom.exceptions.ts";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import type {
@@ -30,6 +33,8 @@ import type {
 } from "../../utils/types/update_functions.type.ts";
 import type { PartialUndefined } from "../../utils/types/partial_undefined.type.ts";
 import type { UpdateOptions } from "mongodb";
+import type { MongooseBulkWriteOptions } from "mongoose";
+import type { InferId } from "mongoose";
 
 abstract class DatabaseRepository<TDocument> {
   constructor(protected readonly model: Model<TDocument>) {}
@@ -111,11 +116,21 @@ abstract class DatabaseRepository<TDocument> {
     projection,
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     projection?: ProjectionType<TDocument>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
-    return this.model.findOne(filter, projection, options);
+    const res = await this.model.findOne(filter, projection, options);
+    if (filter?.__v && !res) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+    return res as FindOneFunctionsReturnType<TDocument, TLean>;
   };
 
   findById = async <TLean extends boolean = false>({
@@ -139,123 +154,182 @@ abstract class DatabaseRepository<TDocument> {
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: UpdateOptions & MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
-    let toUpdateObject;
     if (Array.isArray(update)) {
       update.push({
         $set: {
           __v: { $add: ["$__v", 1] },
         },
       });
-      toUpdateObject = update;
     } else {
-      toUpdateObject = {
+      update = {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
           __v: 1,
         }),
       };
     }
-    return this.model.updateMany(filter, toUpdateObject, options);
+    return this.model.updateMany(filter, update, options);
+  };
+
+  bulkWrite = async ({
+    operations = [],
+    options = { ordered: false },
+  }: {
+    operations?: Array<AnyBulkWriteOperation<TDocument>>;
+    options?: MongooseBulkWriteOptions;
+  }): Promise<MongooseBulkWriteResult> => {
+    return this.model.bulkWrite(operations, options);
   };
 
   updateOne = async <TUpdate extends UpdateType = Record<string, any>>({
-    filter = {},
+    filter = { __v: 0 },
     update,
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: UpdateOptions & MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
-    let toUpdateObject;
     if (Array.isArray(update)) {
       update.push({
         $set: {
           __v: { $add: ["$__v", 1] },
         },
       });
-      toUpdateObject = update;
     } else {
-      toUpdateObject = {
+      update = {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
           __v: 1,
         }),
       };
     }
-    return this.model.updateOne(filter, toUpdateObject, options);
+    const res = await this.model.updateOne(filter, update, options);
+
+    if (!res.matchedCount) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+
+    return res;
   };
 
   updateById = async <TUpdate extends UpdateType>({
     id,
+    v,
     update,
     options = {},
   }: {
     id: Types.ObjectId | string;
+    v: number;
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
-    let toUpdateObject;
     if (Array.isArray(update)) {
       update.push({
         $set: {
           __v: { $add: ["$__v", 1] },
         },
       });
-      toUpdateObject = update;
     } else {
-      toUpdateObject = {
+      update = {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
           __v: 1,
         }),
       };
     }
-    return this.model.updateOne({ _id: id }, toUpdateObject, options);
+    const res = await this.model.updateOne(
+      { _id: id, __v: v },
+      update,
+      options,
+    );
+
+    if (!res.matchedCount) {
+      const existsIgnoringVersion = await this.model.exists({ _id: id });
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+    return res;
   };
 
   findOneAndUpdate = async <
     TUpdate extends UpdateType = Record<string, any>,
     TLean extends boolean = false,
   >({
-    filter = {},
+    filter = { __v: 0 },
     update,
     options = { new: true },
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
-    let toUpdateObject;
     if (Array.isArray(update)) {
       update.push({
         $set: {
           __v: { $add: ["$__v", 1] },
         },
       });
-      toUpdateObject = update;
     } else {
-      toUpdateObject = {
+      update = {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
           __v: 1,
         }),
       };
     }
-    return this.model.findOneAndUpdate(filter, toUpdateObject, options);
+    const res = await this.model.findOneAndUpdate(filter, update, options);
+
+    if (!res) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+
+    return res as FindOneFunctionsReturnType<TDocument, TLean>;
   };
 
   findByIdAndUpdate = async <TLean extends LeanType = false>({
     id,
+    v,
     update,
     options = { new: true },
   }: {
     id: Types.ObjectId | string;
+    v: number;
     update: UpdateQuery<TDocument>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
-    return this.model.findByIdAndUpdate(
-      id,
+    if (Array.isArray(update)) {
+      update.push({
+        $set: {
+          __v: { $add: ["$__v", 1] },
+        },
+      });
+    } else {
+      update = {
+        ...update,
+        $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
+          __v: 1,
+        }),
+      };
+    }
+
+    const res = await this.model.findOneAndUpdate(
+      { _id: id, __v: v },
       {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
@@ -264,6 +338,17 @@ abstract class DatabaseRepository<TDocument> {
       },
       options,
     );
+
+    if (!res) {
+      const existsIgnoringVersion = await this.model.exists({ _id: id });
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+
+    return res as FindOneFunctionsReturnType<TDocument, TLean>;
   };
 
   deleteOne = async ({
@@ -314,6 +399,14 @@ abstract class DatabaseRepository<TDocument> {
     filter?: RootFilterQuery<TDocument>;
   }): Promise<number> => {
     return this.model.countDocuments(filter);
+  };
+
+  exists = async ({
+    filter,
+  }: {
+    filter: RootFilterQuery<TDocument>;
+  }): Promise<{ _id: InferId<TDocument> } | null> => {
+    return this.model.exists(filter);
   };
 }
 

@@ -107,24 +107,34 @@ class CareerService {
     };
     uploadCareerPicture = async (req, res) => {
         const { careerId } = req.params;
-        const { attachment } = req.body;
+        const { attachment, v } = req.body;
         const career = await this._careerRepository.findOne({
-            filter: { _id: careerId },
+            filter: { _id: careerId, __v: v },
         });
         if (!career) {
             throw new NotFoundException("Invalid careerId or career freezed ❌");
         }
-        const [_, subKey] = await Promise.all([
-            career.pictureUrl &&
-                career.pictureUrl != process.env[EnvFields.CAREER_DEFAULT_PICTURE_URL]
-                ? S3Service.deleteFile({ SubKey: career.pictureUrl })
-                : undefined,
-            S3Service.uploadFile({
-                File: attachment,
-                Path: S3FoldersPaths.careerFolderPath(career.assetFolderId),
-            }),
-        ]);
-        await career.updateOne({ pictureUrl: subKey });
+        const subKey = await S3Service.uploadFile({
+            File: attachment,
+            Path: S3FoldersPaths.careerFolderPath(career.assetFolderId),
+        });
+        const result = await this._careerRepository
+            .updateOne({
+            filter: { _id: careerId, __v: v },
+            update: { pictureUrl: subKey },
+        })
+            .catch(async (error) => {
+            await S3Service.deleteFile({ SubKey: subKey });
+            throw error;
+        });
+        if (result.matchedCount) {
+            if (career.pictureUrl &&
+                career.pictureUrl != process.env[EnvFields.CAREER_DEFAULT_PICTURE_URL])
+                await S3Service.deleteFile({ SubKey: career.pictureUrl });
+        }
+        else {
+            await S3Service.deleteFile({ SubKey: subKey });
+        }
         return successHandler({
             res,
             body: {
@@ -177,7 +187,7 @@ class CareerService {
         if (body.description)
             toUpdate.description = body.description;
         await this._careerRepository.updateOne({
-            filter: { _id: careerId },
+            filter: { _id: careerId, __v: body.v },
             update: [
                 { $set: { ...toUpdate } },
                 ...RoadmapService.buildUniqueAppendStages({
@@ -303,6 +313,7 @@ class CareerService {
                 [`${resourceName}`]: {
                     $elemMatch: { _id: resourceId },
                 },
+                __v: body.v,
             },
             update: listUpdateFieldsHandler({
                 resourceName,
@@ -316,6 +327,7 @@ class CareerService {
                 ],
                 projection: {
                     _id: 0,
+                    __v: 1,
                     [`${resourceName}`]: {
                         $elemMatch: { _id: Types.ObjectId.createFromHexString(resourceId) },
                     },
@@ -327,7 +339,10 @@ class CareerService {
         }
         return successHandler({
             res,
-            body: { [`${resourceName}`]: result[resourceName] },
+            body: {
+                [`${resourceName}`]: result.toJSON()[resourceName],
+                v: result.__v,
+            },
         });
     };
 }

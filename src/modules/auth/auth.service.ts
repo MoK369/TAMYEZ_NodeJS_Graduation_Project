@@ -109,7 +109,7 @@ class AuthService {
             }),
             expiresAt: new Date(
               Date.now() +
-                Number(process.env[EnvFields.OTP_EXPIRES_IN_MILLISECONDS])
+                Number(process.env[EnvFields.OTP_EXPIRES_IN_MILLISECONDS]),
             ),
             count: 0,
           },
@@ -147,13 +147,13 @@ class AuthService {
 
       if (!user) {
         throw new BadRequestException(
-          StringConstants.INVALID_EMAIL_ACCOUNT_OR_VARIFIED_MESSAGE
+          StringConstants.INVALID_EMAIL_ACCOUNT_OR_VARIFIED_MESSAGE,
         );
       }
 
       if (Date.now() >= user.confirmEmailLink!.expiresAt.getTime()) {
         throw new BadRequestException(
-          StringConstants.EMAIL_VERIFICATION_LINK_EXPIRE_MESSAGE
+          StringConstants.EMAIL_VERIFICATION_LINK_EXPIRE_MESSAGE,
         );
       }
 
@@ -191,7 +191,7 @@ class AuthService {
 
   resendEmailVerificationLink = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { email } = req.body as ResendEmailVerificationLinkBodyDtoType;
 
@@ -239,6 +239,7 @@ class AuthService {
       filter: {
         userId,
         deviceId,
+        __v: undefined,
       },
       update: { fcmToken, isActive: true, jwtTokenExpiresAt },
     });
@@ -273,7 +274,7 @@ class AuthService {
       }))
     ) {
       throw new BadRequestException(
-        StringConstants.INVALID_LOGIN_CREDENTIALS_MESSAGE
+        StringConstants.INVALID_LOGIN_CREDENTIALS_MESSAGE,
       );
     }
     const { accessToken } = TokenSecurityUtil.getTokensBasedOnRole({ user });
@@ -286,7 +287,7 @@ class AuthService {
           TokenSecurityUtil.getTokenExpiresAt({
             userRole: user.role,
             token: accessToken,
-          }) * 1000
+          }) * 1000,
         ),
         deviceId,
         fcmToken,
@@ -324,13 +325,13 @@ class AuthService {
 
       if (!payload?.email_verified) {
         throw new BadRequestException(
-          StringConstants.FAILED_VERIFY_GMAIL_ACCOUNT_MESSAGE
+          StringConstants.FAILED_VERIFY_GMAIL_ACCOUNT_MESSAGE,
         );
       }
       return payload;
     } catch (error: any) {
       throw new BadRequestException(
-        `Failed to verify idToken ❌. Error: ${error?.message}`
+        `Failed to verify idToken ❌. Error: ${error?.message}`,
       );
     }
   };
@@ -344,7 +345,7 @@ class AuthService {
 
     if (!email || !given_name || given_name.length < 2) {
       throw new BadRequestException(
-        StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE
+        StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE,
       );
     }
 
@@ -357,7 +358,7 @@ class AuthService {
         return await this.logInWithGmail(req, res);
       }
       throw new ConflictException(
-        StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE
+        StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE,
       );
     }
 
@@ -387,7 +388,7 @@ class AuthService {
 
     if (!user) {
       throw new ServerException(
-        "Failed to create user account, please try again later ☹️"
+        "Failed to create user account, please try again later ☹️",
       );
     }
 
@@ -403,7 +404,7 @@ class AuthService {
           TokenSecurityUtil.getTokenExpiresAt({
             userRole: user.role,
             token: accessToken,
-          }) * 1000
+          }) * 1000,
         ),
         deviceId,
         fcmToken,
@@ -429,7 +430,7 @@ class AuthService {
 
     if (!email) {
       throw new BadRequestException(
-        StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE
+        StringConstants.INVALID_GMAIL_CREDENTIALS_MESSAGE,
       );
     }
 
@@ -444,7 +445,7 @@ class AuthService {
       throw new NotFoundException(
         StringConstants.INVALID_USER_ACCOUNT_MESSAGE +
           " or " +
-          StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE
+          StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE,
       );
     }
 
@@ -460,7 +461,7 @@ class AuthService {
           TokenSecurityUtil.getTokenExpiresAt({
             userRole: user.role,
             token: accessToken,
-          }) * 1000
+          }) * 1000,
         ),
         deviceId,
         fcmToken,
@@ -498,11 +499,11 @@ class AuthService {
           Number(
             process.env[
               EnvFields.TIME_ELAPSED_TO_RESET_PASSWORD_IN_MILLISECONDS
-            ]
+            ],
           )
     ) {
       throw new BadRequestException(
-        StringConstants.RESET_PASSWORD_RECENTLY_MESSAGE
+        StringConstants.RESET_PASSWORD_RECENTLY_MESSAGE,
       );
     }
 
@@ -517,6 +518,7 @@ class AuthService {
     await this._userRepository.updateOne({
       filter: {
         _id: user._id!,
+        __v: user.__v,
       },
       update: {
         $unset: {
@@ -526,7 +528,7 @@ class AuthService {
           code: await HashingSecurityUtil.hashText({ plainText: otp }),
           expiresAt: new Date(
             Date.now() +
-              Number(process.env[EnvFields.OTP_EXPIRES_IN_MILLISECONDS])
+              Number(process.env[EnvFields.OTP_EXPIRES_IN_MILLISECONDS]),
           ),
           count,
         },
@@ -543,7 +545,7 @@ class AuthService {
 
   verifyForgetPassword = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { email, otp } = req.body as VerifyForgetPasswordBodyDtoType;
 
@@ -572,6 +574,7 @@ class AuthService {
     await this._userRepository.updateOne({
       filter: {
         _id: user._id!,
+        __v: user.__v,
       },
       update: {
         $unset: {
@@ -591,7 +594,7 @@ class AuthService {
 
   resetForgetPassword = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { email, password } = req.body as ResetForgetPasswordBodyDtoType;
 
@@ -609,7 +612,7 @@ class AuthService {
 
     if (Date.now() >= user.forgetPasswordVerificationExpiresAt!.getTime()) {
       throw new BadRequestException(
-        StringConstants.FORGET_PASSWORD_VERIFICATION_EXPIRE_MESSAGE
+        StringConstants.FORGET_PASSWORD_VERIFICATION_EXPIRE_MESSAGE,
       );
     }
 

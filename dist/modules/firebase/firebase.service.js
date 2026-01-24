@@ -136,6 +136,7 @@ class FirebaseService {
             filter: {
                 userId: req.user._id,
                 deviceId,
+                __v: undefined,
             },
             update: {
                 fcmToken,

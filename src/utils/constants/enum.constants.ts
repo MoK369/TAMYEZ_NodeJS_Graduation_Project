@@ -15,6 +15,7 @@ export enum ErrorCodesEnum {
   TOO_MANY_RQUESTS = "TOO_MANY_REQUESTS",
   ASSET_ERROR = "ASSET_ERROR",
   CONTENT_TOO_LARGE = "CONTENT_TOO_LARGE",
+  VERSION_CONFLICT = "VERSION_CONFLICT",
 }
 
 export enum EmailEventsEnum {

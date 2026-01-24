@@ -55,7 +55,7 @@ class QuizService {
     };
     updateQuiz = async (req, res) => {
         const { quizId } = req.params;
-        const { title, description, aiPrompt, type, duration, tags } = req
+        const { title, description, aiPrompt, type, duration, tags, v } = req
             .validationResult.body;
         const quiz = await this._quizRepository.findOne({
             filter: { _id: quizId, paranoid: false },
@@ -87,10 +87,14 @@ class QuizService {
             document: quiz,
             updatedObject: { title, description, aiPrompt, type, duration, tags },
         });
-        await quiz.updateOne({
-            uniqueKey: updateObject.title || updateObject.tags?.length ? uniqueKey : undefined,
-            ...updateObject,
-            __v: { $inc: 1 },
+        await this._quizRepository.updateOne({
+            filter: { _id: quizId, __v: v },
+            update: {
+                uniqueKey: updateObject.title || updateObject.tags?.length
+                    ? uniqueKey
+                    : undefined,
+                ...updateObject,
+            },
         });
         return successHandler({
             res,
@@ -444,6 +448,7 @@ class QuizService {
                 filter: {
                     quizId: quizQuestions.quizId._id,
                     userId: req.user._id,
+                    __v: undefined,
                 },
                 update: {
                     questions: checkedAnswers,
@@ -478,7 +483,8 @@ class QuizService {
                             quizId: quizQuestions.quizId._id,
                             userId: req.user._id,
                             cooldownEndsAt: new Date(Date.now() +
-                                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000),
+                                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) *
+                                    1000),
                         },
                     ],
                 }),

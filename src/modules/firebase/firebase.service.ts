@@ -39,7 +39,7 @@ class FirebaseService {
 
   sendFirebaseNotification = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { title, body, imageUrl, fcmToken } =
       req.body as SendNotificationBodyDtoType;
@@ -59,7 +59,7 @@ class FirebaseService {
 
   sendMultipleFirebaseNotifications = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { title, body, imageUrl, fcmTokens } =
       req.body as SendMultipleNotificationsBodyDtoType;
@@ -81,7 +81,7 @@ class FirebaseService {
 
   sendNotificationsToAllUsers = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const body = req.body as SendNotificationsToAllUsersBodyDtoType;
 
@@ -92,7 +92,7 @@ class FirebaseService {
 
     if (notificationLimit && notificationLimit.count >= 2) {
       throw new BadRequestException(
-        "The maximum number of send notifications to all Users have been reached ❌"
+        "The maximum number of send notifications to all Users have been reached ❌",
       );
     }
 
@@ -113,7 +113,7 @@ class FirebaseService {
             type: AdminNotificationTypesEnum.allUsers,
             expiresAt: new Date(
               Date.now() +
-                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000
+                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000,
             ),
             sentBy: [req.user!._id!],
             count: 1,
@@ -130,7 +130,7 @@ class FirebaseService {
 
   enableNotifications = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { replaceDeviceId, ...restObj } =
       req.body as EnableNotificationsBodyDtoType;
@@ -145,7 +145,7 @@ class FirebaseService {
       pushDevices.find((p) => p.deviceId === restObj.deviceId)
     ) {
       throw new ConflictException(
-        "This deviceId has already an enabled notification push device ❌"
+        "This deviceId has already an enabled notification push device ❌",
       );
     }
 
@@ -156,13 +156,13 @@ class FirebaseService {
         throw new BadRequestException(
           "You have two enabled push Devices, please choose one to replace:",
           undefined,
-          pushDevices
+          pushDevices,
         );
       } else if (
         pushDevices.findIndex((p) => p.deviceId === replaceDeviceId) == -1
       ) {
         throw new NotFoundException(
-          "Invalid replaceDeviceId not found for this user ❌"
+          "Invalid replaceDeviceId not found for this user ❌",
         );
       } else {
         const result = await this._notificationPushDeviceRepository.replaceOne({
@@ -177,7 +177,7 @@ class FirebaseService {
         if (!result.matchedCount) {
           if (!result) {
             throw new ServerException(
-              "Failed to enable notifications, please try again later ☹️"
+              "Failed to enable notifications, please try again later ☹️",
             );
           }
         }
@@ -196,7 +196,7 @@ class FirebaseService {
 
       if (!result) {
         throw new ServerException(
-          "Failed to enable notifications, please try again later ☹️"
+          "Failed to enable notifications, please try again later ☹️",
         );
       }
       statusCode = 201;
@@ -216,6 +216,7 @@ class FirebaseService {
       filter: {
         userId: req.user!._id!,
         deviceId,
+        __v: undefined,
       },
       update: {
         fcmToken,
@@ -224,7 +225,7 @@ class FirebaseService {
 
     if (!result.matchedCount) {
       throw new NotFoundException(
-        "Invalid deviceId, or notification is already disabled ❌"
+        "Invalid deviceId, or notification is already disabled ❌",
       );
     }
 
@@ -236,7 +237,7 @@ class FirebaseService {
 
   disableNotifications = async (
     req: Request,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     const { deviceId } = req.body as DisableNotificationsBodyDtoType;
 
@@ -247,7 +248,7 @@ class FirebaseService {
 
     if (!pushDevice) {
       throw new BadRequestException(
-        "Invalid deviceId, or notification is already disabled ❌"
+        "Invalid deviceId, or notification is already disabled ❌",
       );
     }
 

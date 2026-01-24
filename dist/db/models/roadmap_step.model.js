@@ -132,6 +132,7 @@ roadmapStepSchema.methods.toJSON = function () {
         restored: roadmapStepObject?.restored,
         createdAt: roadmapStepObject.createdAt,
         updatedAt: roadmapStepObject.updatedAt,
+        v: roadmapStepObject.v,
     };
 };
 roadmapStepSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
