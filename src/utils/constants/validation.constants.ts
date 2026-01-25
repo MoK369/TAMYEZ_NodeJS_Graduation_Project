@@ -5,6 +5,7 @@ import { Types } from "mongoose";
 import { StorageTypesEnum } from "./enum.constants.ts";
 import Stream from "node:stream";
 import type { IRoadmapStepResource } from "../../db/interfaces/common.interface.ts";
+import { isNumberBetweenOrEqual } from "../validators/numeric.validator.ts";
 
 const generalValidationConstants = {
   objectId: z
@@ -15,6 +16,29 @@ const generalValidationConstants = {
       },
       { error: StringConstants.INVALID_PARAMETER_MESSAGE() },
     ),
+  objectIdsSeparatedByCommas: ({ min, max }: { min: number; max: number }) => {
+    return z.string().refine(
+      (value) => {
+        const ids = value.split(",");
+        if (
+          !isNumberBetweenOrEqual({
+            value: ids.length,
+            min,
+            max,
+          })
+        ) {
+          return false;
+        }
+        for (const id of ids) {
+          if (!Types.ObjectId.isValid(id)) return false;
+        }
+        return true;
+      },
+      {
+        error: `Invalid haveQuizzes value, the value must be ${min} to ${max} Valid objectIds separated by commas ❌`,
+      },
+    );
+  },
   v: z.coerce
     .number({ error: StringConstants.PATH_REQUIRED_MESSAGE("v") })
     .int()

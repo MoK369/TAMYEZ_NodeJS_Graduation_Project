@@ -5,10 +5,6 @@ export type CreateRoadmapStepBodyDto = z.infer<
   typeof RoadmapValidators.createRoadmapStep.body
 >;
 
-export type GetRoadmapParamsDto = z.infer<
-  typeof RoadmapValidators.getRoadmap.params
->;
-
 export type GetRoadmapQueryDto = z.infer<
   typeof RoadmapValidators.getRoadmap.query
 >;

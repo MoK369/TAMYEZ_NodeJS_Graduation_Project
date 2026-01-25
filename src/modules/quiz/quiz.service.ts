@@ -4,20 +4,28 @@ import {
   QuizModel,
   QuizAttemptModel,
   SavedQuizModel,
+  RoadmapStepModel,
 } from "../../db/models/index.ts";
 import {
   QuizAttemptRepository,
   QuizRepository,
+  RoadmapStepRepository,
 } from "../../db/repositories/index.ts";
 import successHandler from "../../utils/handlers/success.handler.ts";
 import type {
+  ArchiveQuizBodyDtoType,
+  ArchiveQuizParamsDtoType,
   CheckQuizAnswersBodyDtoType,
   CheckQuizAnswersParamsDtoType,
   CreateQuizBodyDtoType,
+  DeleteQuizBodyDtoType,
+  DeleteQuizParamsDtoType,
   GetQuizParamsDtoType,
   GetQuizzesQueryDtoType,
   GetSavedQuizParamsDtoType,
   GetSavedQuizzesQueryDtoType,
+  RestoreQuizBodyDtoType,
+  RestoreQuizParamsDtoType,
   UpdateQuizBodyDtoType,
   UpdateQuizParamsDtoType,
 } from "./quiz.dto.ts";
@@ -69,6 +77,9 @@ class QuizService {
   private _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
   private _quizCooldownRepository = new QuizCooldownRepository(
     QuizCooldownModel,
+  );
+  private readonly _roadmapStepRepository = new RoadmapStepRepository(
+    RoadmapStepModel,
   );
   //private _quizApisManager = new QuizApisManager();
 
@@ -438,7 +449,7 @@ class QuizService {
 
     const [_, generatedQuestions] = await Promise.all([
       this._quizQuestionsRepository.deleteOne({
-        filter: { quizId: quiz._id, userId: req.user!._id! },
+        filter: { quizId: quiz._id, userId: req.user!._id!, __v: undefined },
       }),
       this._generateQuestions({
         title: quiz.title,
@@ -706,6 +717,7 @@ class QuizService {
           filter: {
             quizId: quizQuestions.quizId!._id!,
             userId: req.user!._id!,
+            __v: undefined,
           },
         }),
         this._quizCooldownRepository.create({
@@ -782,6 +794,83 @@ class QuizService {
       message: "Saved quiz fetched successfully ✅",
       body: { savedQuiz },
     });
+  };
+
+  archiveQuiz = async (req: Request, res: Response): Promise<Response> => {
+    const { quizId } = req.params as ArchiveQuizParamsDtoType;
+    const { v } = req.body as ArchiveQuizBodyDtoType;
+
+    if (
+      !(await this._quizRepository.findOne({
+        filter: { _id: quizId, __v: v },
+      }))
+    ) {
+      throw new NotFoundException("Invalid quizId or already freezed ❌");
+    }
+
+    if (
+      await this._roadmapStepRepository.countDocuments({
+        filter: { quizzesIds: { $in: [quizId] } },
+      })
+    ) {
+      throw new BadRequestException(
+        "Can't freeze this quiz because it's used on some roadmap steps ❌",
+      );
+    }
+
+    await this._quizRepository.updateOne({
+      filter: { _id: quizId, __v: v },
+      update: {
+        freezed: { at: new Date(), by: req.user!._id },
+        $unset: { restored: 1 },
+      },
+    });
+
+    return successHandler({ res });
+  };
+
+  restoreQuiz = async (req: Request, res: Response): Promise<Response> => {
+    const { quizId } = req.params as RestoreQuizParamsDtoType;
+    const { v } = req.body as RestoreQuizBodyDtoType;
+
+    const result = await this._quizRepository.updateOne({
+      filter: {
+        _id: quizId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+      update: {
+        restored: { at: new Date(), by: req.user!._id },
+        $unset: { freezed: 1 },
+      },
+    });
+
+    if (!result.matchedCount) {
+      throw new NotFoundException("Invalid quizId or Not freezed ❌");
+    }
+
+    return successHandler({ res });
+  };
+
+  deleteQuiz = async (req: Request, res: Response): Promise<Response> => {
+    const { quizId } = req.params as DeleteQuizParamsDtoType;
+    const { v } = req.body as DeleteQuizBodyDtoType;
+
+    const result = await this._quizRepository.deleteOne({
+      filter: {
+        _id: quizId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+    });
+
+    if (!result.deletedCount) {
+      throw new NotFoundException("Invalid quizId or Not freezed ❌");
+    }
+
+    return successHandler({ res });
   };
 }
 

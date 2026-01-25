@@ -17,7 +17,6 @@ import type {
   UpdateRoadmapStepResourceParamsDto,
   UpdateRoadmapResourceStepBodyDto,
   GetRoadmapQueryDto,
-  GetRoadmapParamsDto,
   GetRoadmapStepParamsDto,
 } from "./roadmap.dto.ts";
 import {
@@ -41,6 +40,7 @@ import S3FoldersPaths from "../../utils/multer/s3_folders_paths.ts";
 import listUpdateFieldsHandler from "../../utils/handlers/list_update_fields.handler.ts";
 import type { UpdateRoadmapStepResourceResponse } from "./roadmap.entity.ts";
 import { isNumberBetweenOrEqual } from "../../utils/validators/numeric.validator.ts";
+import StringConstants from "../../utils/constants/strings.constants.ts";
 
 class RoadmapService {
   private readonly _careerRepository = new CareerRepository(CareerModel);
@@ -182,28 +182,32 @@ class RoadmapService {
 
   getRoadmap = ({ archived = false }: { archived?: boolean } = {}) => {
     return async (req: Request, res: Response): Promise<Response> => {
-      const { careerId } = req.params as GetRoadmapParamsDto;
-      const { page, size, searchKey } = req.validationResult
-        .query as GetRoadmapQueryDto;
+      const { page, size, searchKey, haveQuizzes, belongToCareers } = req
+        .validationResult.query as GetRoadmapQueryDto;
 
-      const career = await this._careerRepository.findOne({
-        filter: {
-          _id: careerId,
-          ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
-        },
-      });
+      if (belongToCareers !== StringConstants.ALL) {
+        const careersCount = await this._careerRepository.countDocuments({
+          filter: {
+            _id: belongToCareers.split(","),
+            ...(archived
+              ? { paranoid: false, freezed: { $exists: true } }
+              : {}),
+          },
+        });
 
-      if (!career) {
-        throw new NotFoundException(
-          archived
-            ? "Archived career is NOT found 🔍❌"
-            : "Career is NOT found 🔍❌",
-        );
+        if (new Set(belongToCareers.split(",")).size != careersCount) {
+          throw new NotFoundException(
+            archived
+              ? "Some of archived careers are NOT found 🔍❌"
+              : "Some of careers are NOT found 🔍❌",
+          );
+        }
       }
-
       const result = await this._roadmapStepRepository.paginate({
         filter: {
-          careerId,
+          ...(belongToCareers !== StringConstants.ALL
+            ? { careerId: { $in: belongToCareers.split(",") } }
+            : {}),
           ...(searchKey
             ? {
                 $or: [
@@ -214,12 +218,19 @@ class RoadmapService {
                 ],
               }
             : {}),
+          ...(haveQuizzes
+            ? { quizzesIds: { $in: haveQuizzes.split(",") } }
+            : {}),
           ...(archived ? { paranoid: false, freezed: { $exists: true } } : {}),
         },
         page,
         size,
         maxAllCount: 60,
         options: {
+          sort:
+            belongToCareers === StringConstants.ALL
+              ? { title: 1 }
+              : { order: 1 },
           projection: {
             courses: 0,
             youtubePlaylists: 0,
@@ -231,7 +242,9 @@ class RoadmapService {
 
       if (!result.data || result.data.length == 0) {
         throw new NotFoundException(
-          archived ? "No archived roadmap found 🔍❌" : "No roadmap found 🔍❌",
+          archived
+            ? "No archived roadmap steps found 🔍❌"
+            : "No roadmap steps found 🔍❌",
         );
       }
 

@@ -4,12 +4,32 @@ import AppRegex from "./regex.constants.js";
 import { Types } from "mongoose";
 import { StorageTypesEnum } from "./enum.constants.js";
 import Stream from "node:stream";
+import { isNumberBetweenOrEqual } from "../validators/numeric.validator.js";
 const generalValidationConstants = {
     objectId: z
         .string({ error: StringConstants.PATH_REQUIRED_MESSAGE("id") })
         .refine((value) => {
         return Types.ObjectId.isValid(value);
     }, { error: StringConstants.INVALID_PARAMETER_MESSAGE() }),
+    objectIdsSeparatedByCommas: ({ min, max }) => {
+        return z.string().refine((value) => {
+            const ids = value.split(",");
+            if (!isNumberBetweenOrEqual({
+                value: ids.length,
+                min,
+                max,
+            })) {
+                return false;
+            }
+            for (const id of ids) {
+                if (!Types.ObjectId.isValid(id))
+                    return false;
+            }
+            return true;
+        }, {
+            error: `Invalid haveQuizzes value, the value must be ${min} to ${max} Valid objectIds separated by commas ❌`,
+        });
+    },
     v: z.coerce
         .number({ error: StringConstants.PATH_REQUIRED_MESSAGE("v") })
         .int()

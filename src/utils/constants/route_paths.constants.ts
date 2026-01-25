@@ -42,8 +42,8 @@ class RoutePaths {
   // roadmap routes
   static readonly roadmap = "/roadmap";
   static readonly createRoadmapStep = "/";
-  static readonly getRoadmap = "/by-career/:careerId";
-  static readonly getArchivedRoadmap = "/by-career/:careerId/archives";
+  static readonly getRoadmap = "/";
+  static readonly getArchivedRoadmap = "/archives";
   static readonly getRoadmapStep = "/:roadmapStepId";
   static readonly getArchivedRoadmapStep = "/:roadmapStepId/archives";
   static readonly updateRoadmapStep = "/:roadmapStepId";
@@ -60,8 +60,11 @@ class RoutePaths {
   static readonly getSavedQuizzes = "/saved";
   static readonly getSavedQuiz = "/saved/:savedQuizId";
   static readonly checkQuizAnswers = "/:quizId";
-  static readonly createQuiz = "/admin/";
-  static readonly updateQuiz = "/admin/:quizId";
+  static readonly createQuiz = "/";
+  static readonly updateQuiz = "/:quizId";
+  static readonly archiveQuiz = "/:quizId/archive";
+  static readonly restoreQuiz = "/:quizId/restore";
+  static readonly deleteQuiz = "/:quizId/delete";
 
   // firebase route
   static readonly firebase = "/firebase";

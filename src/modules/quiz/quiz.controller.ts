@@ -74,10 +74,31 @@ quizRouter.post(
 );
 
 quizRouter.patch(
+  RoutePaths.archiveQuiz,
+  Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }),
+  validationMiddleware({ schema: QuizValidators.archiveQuiz }),
+  quizService.archiveQuiz,
+);
+
+quizRouter.patch(
+  RoutePaths.restoreQuiz,
+  Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }),
+  validationMiddleware({ schema: QuizValidators.restoreQuiz }),
+  quizService.restoreQuiz,
+);
+
+quizRouter.patch(
   RoutePaths.updateQuiz,
-  Auths.combined({ accessRoles: quizAuthorizationEndpoints.updateQuiz }),
+  Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }),
   validationMiddleware({ schema: QuizValidators.updateQuiz }),
   quizService.updateQuiz,
+);
+
+quizRouter.delete(
+  RoutePaths.deleteQuiz,
+  Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }),
+  validationMiddleware({ schema: QuizValidators.deleteQuiz }),
+  quizService.deleteQuiz,
 );
 
 export default quizRouter;

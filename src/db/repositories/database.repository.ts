@@ -352,13 +352,24 @@ abstract class DatabaseRepository<TDocument> {
   };
 
   deleteOne = async ({
-    filter = {},
+    filter = { __v: undefined },
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
     options?: MongooseBaseQueryOptions<TDocument>;
   }): Promise<DeleteResult> => {
-    return this.model.deleteOne(filter, options);
+    const res = await this.model.deleteOne(filter, options);
+
+    if (!res.deletedCount) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+    return res;
   };
 
   deleteMany = async ({

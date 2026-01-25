@@ -16,5 +16,8 @@ quizRouter.get(RoutePaths.getArchivedQuiz, Auths.combined({ accessRoles: quizAut
 quizRouter.get(RoutePaths.getQuiz, Auths.authenticationMiddleware(), validationMiddleware({ schema: QuizValidators.getQuiz }), quizService.getQuiz());
 quizRouter.post(RoutePaths.createQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }), validationMiddleware({ schema: QuizValidators.createQuiz }), quizService.createQuiz);
 quizRouter.post(RoutePaths.checkQuizAnswers, Auths.authenticationMiddleware(), validationMiddleware({ schema: QuizValidators.checkQuizAnswers }), quizService.checkQuizAnswers);
-quizRouter.patch(RoutePaths.updateQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.updateQuiz }), validationMiddleware({ schema: QuizValidators.updateQuiz }), quizService.updateQuiz);
+quizRouter.patch(RoutePaths.archiveQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }), validationMiddleware({ schema: QuizValidators.archiveQuiz }), quizService.archiveQuiz);
+quizRouter.patch(RoutePaths.restoreQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }), validationMiddleware({ schema: QuizValidators.restoreQuiz }), quizService.restoreQuiz);
+quizRouter.patch(RoutePaths.updateQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }), validationMiddleware({ schema: QuizValidators.updateQuiz }), quizService.updateQuiz);
+quizRouter.delete(RoutePaths.deleteQuiz, Auths.combined({ accessRoles: quizAuthorizationEndpoints.createQuiz }), validationMiddleware({ schema: QuizValidators.deleteQuiz }), quizService.deleteQuiz);
 export default quizRouter;

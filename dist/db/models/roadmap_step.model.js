@@ -137,7 +137,7 @@ roadmapStepSchema.methods.toJSON = function () {
         v: roadmapStepObject.v,
     };
 };
-roadmapStepSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
+roadmapStepSchema.pre(["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"], function (next) {
     softDeleteFunction(this);
     next();
 });

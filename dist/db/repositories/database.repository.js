@@ -181,8 +181,16 @@ class DatabaseRepository {
         }
         return res;
     };
-    deleteOne = async ({ filter = {}, options = {}, }) => {
-        return this.model.deleteOne(filter, options);
+    deleteOne = async ({ filter = { __v: undefined }, options = {}, }) => {
+        const res = await this.model.deleteOne(filter, options);
+        if (!res.deletedCount) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
     deleteMany = async ({ filter = {}, options = {}, }) => {
         return this.model.deleteMany(filter, options);

@@ -98,16 +98,25 @@ class RoadmapValidators {
         }),
     };
     static getRoadmap = {
-        params: z.strictObject({
-            careerId: generalValidationConstants.objectId,
-        }),
         query: z.strictObject({
             size: z.coerce.number().int().min(2).max(30).optional().default(15),
             page: z.union([
                 z.enum([StringConstants.ALL]),
                 z.coerce.number().int().min(1).max(300).optional().default(1),
             ]),
-            searchKey: z.string().nonempty().min(1).optional(),
+            searchKey: z.string().nonempty().min(1).max(100).optional(),
+            belongToCareers: z
+                .union([
+                z.enum([StringConstants.ALL]),
+                generalValidationConstants.objectIdsSeparatedByCommas({
+                    min: 1,
+                    max: 2,
+                }),
+            ])
+                .default(StringConstants.ALL),
+            haveQuizzes: generalValidationConstants
+                .objectIdsSeparatedByCommas({ min: 1, max: 5 })
+                .optional(),
         }),
     };
     static getRoadmapStep = {

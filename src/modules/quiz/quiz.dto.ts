@@ -35,3 +35,27 @@ export type GetSavedQuizzesQueryDtoType = z.infer<
 export type GetSavedQuizParamsDtoType = z.infer<
   typeof QuizValidators.getSavedQuiz.params
 >;
+
+export type ArchiveQuizParamsDtoType = z.infer<
+  typeof QuizValidators.archiveQuiz.params
+>;
+
+export type ArchiveQuizBodyDtoType = z.infer<
+  typeof QuizValidators.archiveQuiz.body
+>;
+
+export type RestoreQuizParamsDtoType = z.infer<
+  typeof QuizValidators.restoreQuiz.params
+>;
+
+export type RestoreQuizBodyDtoType = z.infer<
+  typeof QuizValidators.restoreQuiz.body
+>;
+
+export type DeleteQuizParamsDtoType = z.infer<
+  typeof QuizValidators.deleteQuiz.params
+>;
+
+export type DeleteQuizBodyDtoType = z.infer<
+  typeof QuizValidators.deleteQuiz.body
+>;

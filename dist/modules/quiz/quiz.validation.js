@@ -252,5 +252,19 @@ class QuizValidators {
             savedQuizId: generalValidationConstants.objectId,
         }),
     };
+    static archiveQuiz = {
+        params: this.updateQuiz.params,
+        body: z.strictObject({
+            v: generalValidationConstants.v,
+        }),
+    };
+    static restoreQuiz = {
+        params: this.archiveQuiz.params,
+        body: this.archiveQuiz.body,
+    };
+    static deleteQuiz = {
+        params: this.archiveQuiz.params,
+        body: this.archiveQuiz.body,
+    };
 }
 export default QuizValidators;

@@ -32,8 +32,8 @@ class RoutePaths {
     static updateCareerResource = "/:careerId/:resourceName/:resourceId";
     static roadmap = "/roadmap";
     static createRoadmapStep = "/";
-    static getRoadmap = "/by-career/:careerId";
-    static getArchivedRoadmap = "/by-career/:careerId/archives";
+    static getRoadmap = "/";
+    static getArchivedRoadmap = "/archives";
     static getRoadmapStep = "/:roadmapStepId";
     static getArchivedRoadmapStep = "/:roadmapStepId/archives";
     static updateRoadmapStep = "/:roadmapStepId";
@@ -47,8 +47,11 @@ class RoutePaths {
     static getSavedQuizzes = "/saved";
     static getSavedQuiz = "/saved/:savedQuizId";
     static checkQuizAnswers = "/:quizId";
-    static createQuiz = "/admin/";
-    static updateQuiz = "/admin/:quizId";
+    static createQuiz = "/";
+    static updateQuiz = "/:quizId";
+    static archiveQuiz = "/:quizId/archive";
+    static restoreQuiz = "/:quizId/restore";
+    static deleteQuiz = "/:quizId/delete";
     static firebase = "/firebase";
     static sendNotification = "/test-send-notification";
     static sendMultipleNotifications = "/test-send-multiple-notifications";
