@@ -4,18 +4,18 @@ import validationMiddleware from "../../middlewares/validation.middleware.js";
 import AuthValidator from "./auth.validation.js";
 import RoutePaths from "../../utils/constants/route_paths.constants.js";
 import { ApplicationTypeEnum } from "../../utils/constants/enum.constants.js";
-const authRouter = Router();
+export const authRouter = Router();
+export const adminAuthRouter = Router();
 authRouter.post(RoutePaths.signUp, validationMiddleware({ schema: AuthValidator.signUp }), authService.signUp);
 authRouter.post(RoutePaths.logIn, validationMiddleware({ schema: AuthValidator.logIn }), authService.logIn());
-authRouter.post(RoutePaths.adminLogin, validationMiddleware({ schema: AuthValidator.adminLogIn }), authService.logIn({ applicationType: ApplicationTypeEnum.adminDashboard }));
 authRouter.post(RoutePaths.resendEmailVerificationLink, validationMiddleware({ schema: AuthValidator.resendEmailVerificationLink }), authService.resendEmailVerificationLink);
 authRouter.post(RoutePaths.signUpGmail, validationMiddleware({ schema: AuthValidator.signUpLogInGamil }), authService.signUpWithGmail);
 authRouter.post(RoutePaths.logInGmail, validationMiddleware({ schema: AuthValidator.signUpLogInGamil }), authService.logInWithGmail());
-authRouter.post(RoutePaths.adminLogInGmail, validationMiddleware({ schema: AuthValidator.adminLogInGmail }), authService.logInWithGmail({
-    applicationType: ApplicationTypeEnum.adminDashboard,
-}));
 authRouter.post(RoutePaths.forgetPassword, validationMiddleware({ schema: AuthValidator.forgetPassword }), authService.forgetPassword);
 authRouter.post(RoutePaths.verifyForgetPassowrd, validationMiddleware({ schema: AuthValidator.verifyForgetPassword }), authService.verifyForgetPassword);
 authRouter.post(RoutePaths.resetForgetPassword, validationMiddleware({ schema: AuthValidator.resetForgetPassword }), authService.resetForgetPassword);
 authRouter.get(RoutePaths.verifyEmail, validationMiddleware({ schema: AuthValidator.verifyEmail }), authService.verifyEmail);
-export default authRouter;
+adminAuthRouter.post(RoutePaths.logIn, validationMiddleware({ schema: AuthValidator.adminLogIn }), authService.logIn({ applicationType: ApplicationTypeEnum.adminDashboard }));
+adminAuthRouter.post(RoutePaths.logInGmail, validationMiddleware({ schema: AuthValidator.adminLogInGmail }), authService.logInWithGmail({
+    applicationType: ApplicationTypeEnum.adminDashboard,
+}));

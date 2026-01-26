@@ -11,17 +11,14 @@ import fileValidation from "../../utils/multer/file_validation.multer.ts";
 import { StorageTypesEnum } from "../../utils/constants/enum.constants.js";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import { rateLimit } from "express-rate-limit";
+import { expressRateLimitError } from "../../utils/constants/error.constants.ts";
 
-const careerRouter = Router();
+export const careerRouter = Router();
+export const adminCareerRouter = Router();
 
 const careerService = new CareerService();
 
-careerRouter.post(
-  RoutePaths.createCareer,
-  Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
-  validationMiddleware({ schema: CareerValidators.createCareer }),
-  careerService.createCareer,
-);
+// normal user apis
 
 careerRouter.get(
   RoutePaths.getCareers,
@@ -30,26 +27,34 @@ careerRouter.get(
 );
 
 careerRouter.get(
+  RoutePaths.getCareer,
+  validationMiddleware({ schema: CareerValidators.getCareer }),
+  careerService.getCareer(),
+);
+
+// admin apis
+adminCareerRouter.post(
+  RoutePaths.createCareer,
+  Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
+  validationMiddleware({ schema: CareerValidators.createCareer }),
+  careerService.createCareer,
+);
+
+adminCareerRouter.get(
   RoutePaths.getArchivedCareers,
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
   validationMiddleware({ schema: CareerValidators.getCareers }),
   careerService.getCareers({ archived: true }),
 );
 
-careerRouter.get(
+adminCareerRouter.get(
   RoutePaths.getArchivedCareer,
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
   validationMiddleware({ schema: CareerValidators.getCareer }),
   careerService.getCareer({ archived: true }),
 );
 
-careerRouter.get(
-  RoutePaths.getCareer,
-  validationMiddleware({ schema: CareerValidators.getCareer }),
-  careerService.getCareer(),
-);
-
-careerRouter.patch(
+adminCareerRouter.patch(
   RoutePaths.uploadCareerPicture,
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
   CloudMulter.handleSingleFileUpload({
@@ -62,24 +67,24 @@ careerRouter.patch(
   careerService.uploadCareerPicture,
 );
 
-careerRouter.patch(
+adminCareerRouter.patch(
   RoutePaths.updateCareer,
   rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,
-    message: "Too many update career requests, please try after a while.",
+    message: expressRateLimitError,
   }),
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
   validationMiddleware({ schema: CareerValidators.updateCareer }),
   careerService.updateCareer,
 );
 
-careerRouter.patch(
+adminCareerRouter.patch(
   RoutePaths.updateCareerResource,
   rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,
-    message: "Too many update career requests, please try after a while.",
+    message: expressRateLimitError,
   }),
   Auths.combined({ accessRoles: careerAuthorizationEndpoints.createCareer }),
   CloudMulter.handleSingleFileUpload({
@@ -90,5 +95,3 @@ careerRouter.patch(
   validationMiddleware({ schema: CareerValidators.updateCareerResource }),
   careerService.updateCareerResource,
 );
-
-export default careerRouter;

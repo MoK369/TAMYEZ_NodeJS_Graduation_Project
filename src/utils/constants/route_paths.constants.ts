@@ -10,12 +10,11 @@ class RoutePaths {
 
   // auth routes
   static readonly auth = "/auth";
+  static readonly adminAuth = "/admin/auth";
   static readonly signUp = "/sign-up";
   static readonly logIn = "/log-in";
-  static readonly adminLogin = "/admin-log-in";
   static readonly signUpGmail = "/sign-up-gmail";
   static readonly logInGmail = "/log-in-gmail";
-  static readonly adminLogInGmail = "/admin-log-in-gmail";
   static readonly verifyEmail = "/verify-email";
   static readonly forgetPassword = "/forget-password";
   static readonly verifyForgetPassowrd = "/verify-forget-password";
@@ -24,6 +23,7 @@ class RoutePaths {
 
   // user routes
   static readonly user = "/user";
+  static readonly adminUser = "/admin/user";
   static readonly userProfile = "/";
   static readonly profilePicture = "/profile-picture";
   static readonly updateProfile = "/";
@@ -32,6 +32,7 @@ class RoutePaths {
 
   // career routes
   static readonly career = "/career";
+  static readonly adminCareer = "/admin/career";
   static readonly createCareer = "/";
   static readonly getCareers = "/";
   static readonly getArchivedCareers = "/archives";
@@ -43,6 +44,7 @@ class RoutePaths {
 
   // roadmap routes
   static readonly roadmap = "/roadmap";
+  static readonly adminRoadmap = "/admin/roadmap"
   static readonly createRoadmapStep = "/";
   static readonly getRoadmap = "/";
   static readonly getArchivedRoadmap = "/archives";
@@ -54,6 +56,7 @@ class RoutePaths {
 
   // quiz routes
   static readonly quiz = "/quiz";
+  static readonly adminQuiz = "/admin/quiz";
   static readonly getQuizzes = "/";
   static readonly getArchivedQuizzes = "/archives";
   static readonly getQuiz = "/:quizId";
@@ -70,6 +73,7 @@ class RoutePaths {
 
   // firebase route
   static readonly firebase = "/firebase";
+  static readonly adminFirebase = "/admin/firebase"
   static readonly sendNotification = "/test-send-notification";
   static readonly sendMultipleNotifications =
     "/test-send-multiple-notifications";

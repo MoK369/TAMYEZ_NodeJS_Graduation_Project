@@ -9,21 +9,24 @@ import StringConstants from "../../utils/constants/strings.constants.ts";
 import fileValidation from "../../utils/multer/file_validation.multer.ts";
 import EnvFields from "../../utils/constants/env_fields.constants.ts";
 
-const userRouter = Router();
+export const userRouter = Router();
+export const adminUserRouter = Router();
 
 const userService = new UserService();
 
+
+// normal users apis
 userRouter.get(
   RoutePaths.userProfile,
   Auths.authenticationMiddleware(),
-  userService.getProfile
+  userService.getProfile,
 );
 
 userRouter.post(
   RoutePaths.logout,
   validationMiddleware({ schema: UserValidators.logout }),
   Auths.authenticationMiddleware(),
-  userService.logout
+  userService.logout,
 );
 
 userRouter.patch(
@@ -35,21 +38,22 @@ userRouter.patch(
     validation: fileValidation.image,
   }),
   validationMiddleware({ schema: UserValidators.uploadProfilePicture }),
-  userService.uploadProfilePicture
+  userService.uploadProfilePicture,
 );
 
 userRouter.patch(
   RoutePaths.updateProfile,
   Auths.authenticationMiddleware(),
   validationMiddleware({ schema: UserValidators.updateProfile }),
-  userService.updateProfile
+  userService.updateProfile,
 );
 
 userRouter.patch(
   RoutePaths.changePassword,
   Auths.authenticationMiddleware(),
   validationMiddleware({ schema: UserValidators.changePassword }),
-  userService.changePassword
+  userService.changePassword,
 );
 
-export default userRouter;
+
+// admin apis

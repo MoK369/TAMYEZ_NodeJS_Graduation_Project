@@ -5,8 +5,10 @@ import AuthValidator from "./auth.validation.ts";
 import RoutePaths from "../../utils/constants/route_paths.constants.ts";
 import { ApplicationTypeEnum } from "../../utils/constants/enum.constants.ts";
 
-const authRouter = Router();
+export const authRouter = Router();
+export const adminAuthRouter = Router();
 
+// normal user apis
 authRouter.post(
   RoutePaths.signUp,
   validationMiddleware({ schema: AuthValidator.signUp }),
@@ -17,12 +19,6 @@ authRouter.post(
   RoutePaths.logIn,
   validationMiddleware({ schema: AuthValidator.logIn }),
   authService.logIn(),
-);
-
-authRouter.post(
-  RoutePaths.adminLogin,
-  validationMiddleware({ schema: AuthValidator.adminLogIn }),
-  authService.logIn({ applicationType: ApplicationTypeEnum.adminDashboard }),
 );
 
 authRouter.post(
@@ -43,13 +39,6 @@ authRouter.post(
   authService.logInWithGmail(),
 );
 
-authRouter.post(
-  RoutePaths.adminLogInGmail,
-  validationMiddleware({ schema: AuthValidator.adminLogInGmail }),
-  authService.logInWithGmail({
-    applicationType: ApplicationTypeEnum.adminDashboard,
-  }),
-);
 
 authRouter.post(
   RoutePaths.forgetPassword,
@@ -75,4 +64,18 @@ authRouter.get(
   authService.verifyEmail,
 );
 
-export default authRouter;
+// admin apis
+
+adminAuthRouter.post(
+  RoutePaths.logIn,
+  validationMiddleware({ schema: AuthValidator.adminLogIn }),
+  authService.logIn({ applicationType: ApplicationTypeEnum.adminDashboard }),
+);
+
+adminAuthRouter.post(
+  RoutePaths.logInGmail,
+  validationMiddleware({ schema: AuthValidator.adminLogInGmail }),
+  authService.logInWithGmail({
+    applicationType: ApplicationTypeEnum.adminDashboard,
+  }),
+);

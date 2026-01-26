@@ -8,7 +8,8 @@ import CloudMulter from "../../utils/multer/cloud.multer.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import fileValidation from "../../utils/multer/file_validation.multer.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
-const userRouter = Router();
+export const userRouter = Router();
+export const adminUserRouter = Router();
 const userService = new UserService();
 userRouter.get(RoutePaths.userProfile, Auths.authenticationMiddleware(), userService.getProfile);
 userRouter.post(RoutePaths.logout, validationMiddleware({ schema: UserValidators.logout }), Auths.authenticationMiddleware(), userService.logout);
@@ -19,4 +20,3 @@ userRouter.patch(RoutePaths.profilePicture, Auths.authenticationMiddleware(), Cl
 }), validationMiddleware({ schema: UserValidators.uploadProfilePicture }), userService.uploadProfilePicture);
 userRouter.patch(RoutePaths.updateProfile, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.updateProfile }), userService.updateProfile);
 userRouter.patch(RoutePaths.changePassword, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.changePassword }), userService.changePassword);
-export default userRouter;

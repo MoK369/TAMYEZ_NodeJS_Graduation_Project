@@ -10,44 +10,21 @@ import CloudMulter from "../../utils/multer/cloud.multer.ts";
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import fileValidation from "../../utils/multer/file_validation.multer.ts";
 import {
-  ErrorCodesEnum,
   StorageTypesEnum,
 } from "../../utils/constants/enum.constants.ts";
+import { expressRateLimitError } from "../../utils/constants/error.constants.ts";
 
-const roadmapRouter: Router = Router();
+export const roadmapRouter: Router = Router();
+export const adminRoadmapRouter = Router();
+
 const roadmapService = new RoadmapService();
 
-roadmapRouter.post(
-  RoutePaths.createRoadmapStep,
-  Auths.combined({
-    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
-  }),
-  validationMiddleware({ schema: RoadmapValidators.createRoadmapStep }),
-  roadmapService.createRoadmapStep,
-);
+// normal user apis
 
 roadmapRouter.get(
   RoutePaths.getRoadmap,
   validationMiddleware({ schema: RoadmapValidators.getRoadmap }),
   roadmapService.getRoadmap(),
-);
-
-roadmapRouter.get(
-  RoutePaths.getArchivedRoadmap,
-  Auths.combined({
-    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
-  }),
-  validationMiddleware({ schema: RoadmapValidators.getRoadmap }),
-  roadmapService.getRoadmap({ archived: true }),
-);
-
-roadmapRouter.get(
-  RoutePaths.getArchivedRoadmapStep,
-  Auths.combined({
-    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
-  }),
-  validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }),
-  roadmapService.getRoadmapStep({ archived: true }),
 );
 
 roadmapRouter.get(
@@ -57,16 +34,39 @@ roadmapRouter.get(
   roadmapService.getRoadmapStep(),
 );
 
-roadmapRouter.patch(
+// admin apis
+adminRoadmapRouter.post(
+  RoutePaths.createRoadmapStep,
+  Auths.combined({
+    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
+  }),
+  validationMiddleware({ schema: RoadmapValidators.createRoadmapStep }),
+  roadmapService.createRoadmapStep,
+);
+adminRoadmapRouter.get(
+  RoutePaths.getArchivedRoadmap,
+  Auths.combined({
+    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
+  }),
+  validationMiddleware({ schema: RoadmapValidators.getRoadmap }),
+  roadmapService.getRoadmap({ archived: true }),
+);
+
+adminRoadmapRouter.get(
+  RoutePaths.getArchivedRoadmapStep,
+  Auths.combined({
+    accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
+  }),
+  validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }),
+  roadmapService.getRoadmapStep({ archived: true }),
+);
+
+adminRoadmapRouter.patch(
   RoutePaths.updateRoadmapStep,
   rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,
-    message: {
-      code: ErrorCodesEnum.TOO_MANY_RQUESTS,
-      message:
-        "Too many update roadmap step requests, please try after a while.",
-    },
+    message: expressRateLimitError,
   }),
   Auths.combined({
     accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
@@ -75,12 +75,12 @@ roadmapRouter.patch(
   roadmapService.updateRoadmapStep,
 );
 
-roadmapRouter.patch(
+adminRoadmapRouter.patch(
   RoutePaths.updateRoadmapStepResource,
   rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,
-    message: "Too many update career requests, please try after a while.",
+    message: expressRateLimitError,
   }),
   Auths.combined({
     accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
@@ -93,5 +93,3 @@ roadmapRouter.patch(
   validationMiddleware({ schema: RoadmapValidators.updateRoadmapStepResource }),
   roadmapService.updateRoadmapStepResource,
 );
-
-export default roadmapRouter;

@@ -213,7 +213,7 @@ roadmapStepSchema.pre(
 );
 
 roadmapStepSchema.post("findOne", function (doc, next) {
-  if (doc.allowGlobalResources && !Types.ObjectId.isValid(doc.career)) {
+  if (doc && doc.allowGlobalResources && !Types.ObjectId.isValid(doc.career)) {
     mergeResources({
       current: doc.courses,
       global: (doc as unknown as IRoadmapStep & { career: ICareer }).career
