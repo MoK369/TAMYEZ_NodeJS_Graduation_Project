@@ -7,6 +7,13 @@ import { atByObjectSchema, codeExpireCountObjectSchema, idSelectedAtObjectSchema
 import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.js";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
+const careerDeletedSchema = new mongoose.Schema({
+    message: { type: String, required: true },
+    newSuggestedCareer: {
+        type: mongoose.Schema.ObjectId,
+        ref: ModelsNames.careerModel,
+    },
+});
 const quizAttemptsSchema = new mongoose.Schema({
     count: { type: Number, required: true, min: 0, max: 5 },
     lastAttempt: { type: Date, required: true },
@@ -66,6 +73,7 @@ const userSchema = new mongoose.Schema({
     careerPath: {
         type: idSelectedAtObjectSchema({ ref: ModelsNames.careerModel }),
     },
+    careerDeleted: { type: careerDeletedSchema },
     quizAttempts: quizAttemptsSchema,
     freezed: atByObjectSchema,
     restored: atByObjectSchema,

@@ -340,10 +340,19 @@ class RoadmapService {
         options: {
           populate: [
             {
-              path: "career",
+              path:
+                req.tokenPayload?.applicationType ===
+                ApplicationTypeEnum.adminDashboard
+                  ? "careerId"
+                  : "career",
               match: {
                 paranoid: false,
               },
+              select:
+                req.tokenPayload?.applicationType ===
+                ApplicationTypeEnum.adminDashboard
+                  ? { _id: 1, freezed: 1 }
+                  : undefined,
             },
             {
               path: "quizzesIds",
@@ -368,8 +377,13 @@ class RoadmapService {
         if (
           !result.freezed &&
           !(
-            result as unknown as FullIRoadmapStep & { career: Partial<ICareer> }
-          ).career.freezed
+            (result.careerId as unknown as IRoadmapStep).freezed ||
+            (
+              result as unknown as FullIRoadmapStep & {
+                career?: Partial<ICareer>;
+              }
+            ).career?.freezed
+          )
         ) {
           throw new NotFoundException(
             "No archived roadmapStep found or career is NOT freezed 🔍❌",
@@ -378,13 +392,24 @@ class RoadmapService {
       } else {
         if (
           result.freezed ||
-          (result as unknown as FullIRoadmapStep & { career: Partial<ICareer> })
-            .career.freezed
+          (result.careerId as unknown as IRoadmapStep).freezed ||
+          (
+            result as unknown as FullIRoadmapStep & {
+              career?: Partial<ICareer>;
+            }
+          ).career?.freezed
         ) {
           throw new NotFoundException(
             "No roadmapStep found or career is freezed 🔍❌",
           );
         }
+      }
+
+      if (
+        result &&
+        req.tokenPayload?.applicationType === ApplicationTypeEnum.adminDashboard
+      ) {
+        result.careerId = (result.careerId as unknown as FullICareer)._id;
       }
 
       return successHandler({ res, body: result });

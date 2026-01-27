@@ -16,6 +16,11 @@ export interface IQuizAttempts {
   lastAttempt: Date;
 }
 
+export interface ICareerDeleted {
+  message: string;
+  newSuggestedCareer?: Types.ObjectId;
+}
+
 export interface IUser {
   id?: Types.ObjectId | undefined; // virtual
 
@@ -47,6 +52,7 @@ export interface IUser {
 
   // Acadamic Info
   careerPath?: IIdSelectedAtObject;
+  careerDeleted?: ICareerDeleted;
 
   // Quiz Info
   quizAttempts: IQuizAttempts;

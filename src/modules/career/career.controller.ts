@@ -111,3 +111,9 @@ adminCareerRouter.patch(
   validationMiddleware({ schema: CareerValidators.updateCareerResource }),
   careerService.updateCareerResource,
 );
+
+adminCareerRouter.delete(
+  RoutePaths.deleteCareer,
+  validationMiddleware({ schema: CareerValidators.deleteCareer }),
+  careerService.deleteCareer,
+);

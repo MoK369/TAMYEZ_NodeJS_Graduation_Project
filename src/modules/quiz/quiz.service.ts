@@ -398,12 +398,24 @@ class QuizService {
     const { quizId } = req.params as GetQuizParamsDtoType;
 
     const filter: { _id?: string; uniqueKey?: Record<any, any> } = {};
-    quizId === QuizTypesEnum.careerAssessment
-      ? (filter.uniqueKey = {
-          $regex: StringConstants.CAREER_ASSESSMENT,
-          $options: "i",
-        })
-      : (filter._id = quizId);
+    if (quizId === QuizTypesEnum.careerAssessment) {
+      if (req.user?.careerPath) {
+        throw new BadRequestException(
+          "This account already has a career path, you can't retake the career assessment ❌",
+        );
+      }
+      filter.uniqueKey = {
+        $regex: StringConstants.CAREER_ASSESSMENT,
+        $options: "i",
+      };
+    } else {
+      if (!req.user?.careerPath) {
+        throw new BadRequestException(
+          "You have to select a career path before taking an roadmap step quizzes ❌",
+        );
+      }
+      filter._id = quizId;
+    }
 
     const quiz = await this._quizRepository.findOne({
       filter: {

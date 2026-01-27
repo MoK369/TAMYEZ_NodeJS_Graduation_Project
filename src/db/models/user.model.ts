@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import type { IQuizAttempts, IUser } from "../interfaces/user.interface.ts";
+import type {
+  ICareerDeleted,
+  IQuizAttempts,
+  IUser,
+} from "../interfaces/user.interface.ts";
 import {
   GenderEnum,
   ProvidersEnum,
@@ -18,6 +22,14 @@ import HashingSecurityUtil from "../../utils/security/hash.security.ts";
 import EncryptionSecurityUtil from "../../utils/security/encryption.security.ts";
 import type { UpdateQuery } from "mongoose";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.ts";
+
+const careerDeletedSchema = new mongoose.Schema<ICareerDeleted>({
+  message: { type: String, required: true },
+  newSuggestedCareer: {
+    type: mongoose.Schema.ObjectId,
+    ref: ModelsNames.careerModel,
+  },
+});
 
 const quizAttemptsSchema = new mongoose.Schema<IQuizAttempts>(
   {
@@ -94,6 +106,7 @@ const userSchema = new mongoose.Schema<IUser>(
     careerPath: {
       type: idSelectedAtObjectSchema({ ref: ModelsNames.careerModel }),
     },
+    careerDeleted: { type: careerDeletedSchema },
 
     // Quiz Info
     quizAttempts: quizAttemptsSchema,

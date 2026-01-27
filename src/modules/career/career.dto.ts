@@ -52,3 +52,11 @@ export type RestoreCareerParamsDto = z.infer<
 export type RestoreCareerBodyDto = z.infer<
   typeof CareerValidators.restoreCareer.body
 >;
+
+export type DeleteCareerParamsDto = z.infer<
+  typeof CareerValidators.deleteCareer.params
+>;
+
+export type DeleteCareerBodyDto = z.infer<
+  typeof CareerValidators.deleteCareer.body
+>;

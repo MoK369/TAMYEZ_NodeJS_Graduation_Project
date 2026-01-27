@@ -403,5 +403,70 @@ class CareerService {
         }
         return successHandler({ res });
     };
+    deleteCareer = async (req, res) => {
+        const { careerId } = req.params;
+        const { v } = req.body;
+        const career = await this._careerRepository.findOne({
+            filter: {
+                _id: careerId,
+                __v: v,
+                paranoid: false,
+                freezed: { $exists: true },
+            },
+        });
+        if (!career) {
+            throw new NotFoundException("Invalid careerId or Not freezed ❌");
+        }
+        if (Date.now() - career.freezed.at.getTime() < 172_800_000) {
+            throw new BadRequestException("Can't delete the career until at least 48 hours have passed after freezing ❌⌛️");
+        }
+        if ((await this._careerRepository.deleteOne({
+            filter: {
+                _id: careerId,
+                __v: v,
+                paranoid: false,
+                freezed: { $exists: true },
+            },
+        })).deletedCount) {
+            await Promise.all([
+                S3Service.deleteFolderByPrefix({
+                    FolderPath: S3FoldersPaths.careerFolderPath(career.assetFolderId),
+                }),
+                this._roadmapStepRepository.deleteMany({
+                    filter: { careerId },
+                }),
+                this._userRepository.aggregate({
+                    pipeline: [
+                        {
+                            $match: {
+                                "careerPath.id": Types.ObjectId.createFromHexString(careerId),
+                            },
+                        },
+                        {
+                            $project: { firstName: 1, lastName: 1, __v: 1 },
+                        },
+                        {
+                            $unset: "careerPath",
+                        },
+                        {
+                            $set: {
+                                "careerDeleted.message": {
+                                    $concat: [
+                                        "Hi ",
+                                        "$firstName",
+                                        " ",
+                                        "$lastName",
+                                        " 👋, we’re really sorry to let you know that your career path has been deleted from our system 😔. You can retake the career assessment 🚀 or check any suggested careers 💼.",
+                                    ],
+                                },
+                                __v: { $add: ["$__v", 1] },
+                            },
+                        },
+                    ],
+                }),
+            ]);
+        }
+        return successHandler({ res });
+    };
 }
 export default CareerService;

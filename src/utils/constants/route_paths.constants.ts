@@ -41,12 +41,13 @@ class RoutePaths {
   static readonly updateCareer = "/:careerId";
   static readonly uploadCareerPicture = "/:careerId/picture";
   static readonly updateCareerResource = "/:careerId/:resourceName/:resourceId";
-  static readonly archiveCareer = "/:careerId/archive"
-  static readonly restoreCareer = "/:careerId/restore"
+  static readonly archiveCareer = "/:careerId/archive";
+  static readonly restoreCareer = "/:careerId/restore";
+  static readonly deleteCareer = "/:careerId/delete";
 
   // roadmap routes
   static readonly roadmap = "/roadmap";
-  static readonly adminRoadmap = "/admin/roadmap"
+  static readonly adminRoadmap = "/admin/roadmap";
   static readonly createRoadmapStep = "/";
   static readonly getRoadmap = "/";
   static readonly getArchivedRoadmap = "/archives";
@@ -75,7 +76,7 @@ class RoutePaths {
 
   // firebase route
   static readonly firebase = "/firebase";
-  static readonly adminFirebase = "/admin/firebase"
+  static readonly adminFirebase = "/admin/firebase";
   static readonly sendNotification = "/test-send-notification";
   static readonly sendMultipleNotifications =
     "/test-send-multiple-notifications";

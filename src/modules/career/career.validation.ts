@@ -249,6 +249,13 @@ class CareerValidators {
       v: generalValidationConstants.v,
     }),
   };
+
+  static deleteCareer = {
+    params: this.uploadCareerPicture.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+    }),
+  };
 }
 
 export default CareerValidators;

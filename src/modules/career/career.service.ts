@@ -14,6 +14,8 @@ import type {
   ArchiveCareerBodyDto,
   ArchiveCareerParamsDto,
   CreateCareerBodyDto,
+  DeleteCareerBodyDto,
+  DeleteCareerParamsDto,
   GetCareerParamsDto,
   GetCareersQueryDto,
   RestoreCareerBodyDto,
@@ -570,6 +572,89 @@ class CareerService {
 
     if (!result.matchedCount) {
       throw new NotFoundException("Invalid careerId or Not freezed ❌");
+    }
+
+    return successHandler({ res });
+  };
+
+  deleteCareer = async (req: Request, res: Response): Promise<Response> => {
+    const { careerId } = req.params as DeleteCareerParamsDto;
+    const { v } = req.body as DeleteCareerBodyDto;
+
+    const career = await this._careerRepository.findOne({
+      filter: {
+        _id: careerId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+    });
+
+    if (!career) {
+      throw new NotFoundException("Invalid careerId or Not freezed ❌");
+    }
+
+    if (Date.now() - career.freezed!.at.getTime() < 172_800_000) {
+      // less than 48 hours
+      throw new BadRequestException(
+        "Can't delete the career until at least 48 hours have passed after freezing ❌⌛️",
+      );
+    }
+
+    if (
+      (
+        await this._careerRepository.deleteOne({
+          filter: {
+            _id: careerId,
+            __v: v,
+            paranoid: false,
+            freezed: { $exists: true },
+          },
+        })
+      ).deletedCount
+    ) {
+      await Promise.all([
+        // delete assets in AWS Bucket
+        S3Service.deleteFolderByPrefix({
+          FolderPath: S3FoldersPaths.careerFolderPath(career.assetFolderId),
+        }),
+        // delete roadmap steps of this career
+        this._roadmapStepRepository.deleteMany({
+          filter: { careerId },
+        }),
+        // remove the careerPath field in user profile
+        this._userRepository.aggregate({
+          pipeline: [
+            {
+              $match: {
+                "careerPath.id": Types.ObjectId.createFromHexString(careerId),
+              },
+            },
+            {
+              $project: { firstName: 1, lastName: 1, __v: 1 },
+            },
+            {
+              $unset: "careerPath",
+            },
+            {
+              $set: {
+                "careerDeleted.message": {
+                  $concat: [
+                    "Hi ",
+                    "$firstName",
+                    " ",
+                    "$lastName",
+                    " 👋, we’re really sorry to let you know that your career path has been deleted from our system 😔. You can retake the career assessment 🚀 or check any suggested careers 💼.",
+                  ],
+                },
+                __v: { $add: ["$__v", 1] },
+              },
+            },
+          ],
+        }),
+        // delete saved quizzes of this career
+        // delete user progress related to this career
+      ]);
     }
 
     return successHandler({ res });

@@ -46,3 +46,4 @@ adminCareerRouter.patch(RoutePaths.updateCareerResource, rateLimit({
     validation: fileValidation.image,
     storageApproach: StorageTypesEnum.memory,
 }), validationMiddleware({ schema: CareerValidators.updateCareerResource }), careerService.updateCareerResource);
+adminCareerRouter.delete(RoutePaths.deleteCareer, validationMiddleware({ schema: CareerValidators.deleteCareer }), careerService.deleteCareer);
