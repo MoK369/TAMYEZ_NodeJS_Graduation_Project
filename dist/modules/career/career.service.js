@@ -1,4 +1,4 @@
-import { CareerModel, RoadmapStepModel, UserModel, } from "../../db/models/index.js";
+import { CareerModel, RoadmapStepModel, SavedQuizModel, UserModel, } from "../../db/models/index.js";
 import { CareerRepository, RoadmapStepRepository, UserRepository, } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { BadRequestException, ConflictException, NotFoundException, ServerException, } from "../../utils/exceptions/custom.exceptions.js";
@@ -11,10 +11,12 @@ import { ApplicationTypeEnum, CareerResourceAppliesToEnum, } from "../../utils/c
 import { Types } from "mongoose";
 import { RoadmapService } from "../roadmap/index.js";
 import listUpdateFieldsHandler from "../../utils/handlers/list_update_fields.handler.js";
+import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.js";
 class CareerService {
     _careerRepository = new CareerRepository(CareerModel);
     _roadmapStepRepository = new RoadmapStepRepository(RoadmapStepModel);
     _userRepository = new UserRepository(UserModel);
+    _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
     createCareer = async (req, res) => {
         const { title, description, courses, youtubePlaylists, books } = req
             .validationResult.body;
@@ -464,6 +466,7 @@ class CareerService {
                         },
                     ],
                 }),
+                this._savedQuizRepository.deleteMany({ filter: { careerId } }),
             ]);
         }
         return successHandler({ res });

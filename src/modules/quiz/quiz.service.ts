@@ -21,6 +21,7 @@ import type {
   DeleteQuizBodyDtoType,
   DeleteQuizParamsDtoType,
   GetQuizParamsDtoType,
+  GetQuizQuestionsParamsDtoType,
   GetQuizzesQueryDtoType,
   GetSavedQuizParamsDtoType,
   GetSavedQuizzesQueryDtoType,
@@ -71,9 +72,7 @@ import pause from "../../utils/pause/code.pause.ts";
 
 class QuizService {
   private _quizRepository = new QuizRepository(QuizModel);
-  private _quizQuestionsRepository = new QuizAttemptRepository(
-    QuizAttemptModel,
-  );
+  private _quizAttemptRepository = new QuizAttemptRepository(QuizAttemptModel);
   private _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
   private _quizCooldownRepository = new QuizCooldownRepository(
     QuizCooldownModel,
@@ -395,7 +394,8 @@ class QuizService {
   };
 
   getQuizQuestions = async (req: Request, res: Response): Promise<Response> => {
-    const { quizId } = req.params as GetQuizParamsDtoType;
+    const { quizId, roadmapStepId } =
+      req.params as GetQuizQuestionsParamsDtoType;
 
     const filter: { _id?: string; uniqueKey?: Record<any, any> } = {};
     if (quizId === QuizTypesEnum.careerAssessment) {
@@ -430,6 +430,25 @@ class QuizService {
       );
     }
 
+    if (quizId !== QuizTypesEnum.careerAssessment) {
+      const roadmapStep = await this._roadmapStepRepository.findOne({
+        filter: {
+          _id: roadmapStepId,
+          careerId: req.user?.careerPath?.id!,
+          quizzesIds: { $in: [quizId] },
+        },
+        options: {
+          populate: [{ path: "careerId" }],
+        },
+      });
+
+      if (!roadmapStep || !roadmapStep.careerId) {
+        throw new NotFoundException(
+          "Invalid roadmapStepId, career freezed or quiz is not in your roadmap step ❌",
+        );
+      }
+    }
+
     if (req.user!.quizAttempts?.lastAttempt) {
       if (
         req.user!.quizAttempts.count >= 5 &&
@@ -450,9 +469,10 @@ class QuizService {
     }
 
     if (
-      await this._quizCooldownRepository.findOne({
+      quizId !== QuizTypesEnum.careerAssessment &&
+      (await this._quizCooldownRepository.findOne({
         filter: { quizId: quiz._id, userId: req.user!._id! },
-      })
+      }))
     ) {
       throw new BadRequestException(
         `You are in cooldown period for this quiz. Please try again later ❌`,
@@ -460,7 +480,7 @@ class QuizService {
     }
 
     const [_, generatedQuestions] = await Promise.all([
-      this._quizQuestionsRepository.deleteOne({
+      this._quizAttemptRepository.deleteOne({
         filter: { quizId: quiz._id, userId: req.user!._id!, __v: undefined },
       }),
       this._generateQuestions({
@@ -474,11 +494,17 @@ class QuizService {
     //   aiPrompt: quiz.aiPrompt,
     // });
 
-    let [quizQuestions] = await this._quizQuestionsRepository.create({
+    let [quizQuestions] = await this._quizAttemptRepository.create({
       data: [
         {
           quizId: quiz._id,
           userId: req.user!._id!,
+          attemptType:
+            quizId === QuizTypesEnum.careerAssessment ||
+            quiz.title == StringConstants.CAREER_ASSESSMENT
+              ? QuizTypesEnum.careerAssessment
+              : QuizTypesEnum.stepQuiz,
+          careerId: req.user?.careerPath!.id!,
           questions: generatedQuestions.questions,
           expiresAt: new Date(
             Date.now() +
@@ -557,13 +583,12 @@ class QuizService {
     const { answers } = req.validationResult
       .body as CheckQuizAnswersBodyDtoType;
 
-    const quizQuestions = await this._quizQuestionsRepository.findOne({
+    const quizQuestions = await this._quizAttemptRepository.findOne({
       filter: { _id: quizId, userId: req.user!._id! },
       options: {
         populate: [
           {
             path: "quizId",
-            match: { freezed: { $exists: false } },
             select: "title aiPrompt",
           },
         ],
@@ -716,6 +741,7 @@ class QuizService {
             {
               quizId: quizQuestions.quizId!._id!,
               userId: req.user!._id!,
+              careerId: req.user!.careerPath!.id!,
               questions: checkedAnswers,
               score: `${scoreNumber}%`,
               takenAt: new Date(),
@@ -821,12 +847,15 @@ class QuizService {
     }
 
     if (
-      await this._roadmapStepRepository.countDocuments({
+      (await this._quizAttemptRepository.countDocuments({
+        filter: { quizId },
+      })) ||
+      (await this._roadmapStepRepository.countDocuments({
         filter: { quizzesIds: { $in: [quizId] } },
-      })
+      }))
     ) {
       throw new BadRequestException(
-        "Can't freeze this quiz because it's used on some roadmap steps ❌",
+        "Can't freeze this quiz because it's used on some roadmap steps or is used in some active quiz attempts ❌",
       );
     }
 

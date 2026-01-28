@@ -17,6 +17,7 @@ import NotificationPushDeviceModel from "./db/models/notifiction_push_device.mod
 import startAllCronJobs from "./utils/cron_jobs/cron_jobs.controller.js";
 import RoadmapStepModel from "./db/models/roadmap_step.model.js";
 import CareerModel from "./db/models/career.model.js";
+import SavedQuizModel from "./db/models/saved_quiz.model.js";
 async function bootstrap() {
     const app = express();
     app.use(cors());
@@ -36,6 +37,7 @@ async function bootstrap() {
     else {
         await UserModel.syncIndexes();
         await QuizModel.syncIndexes();
+        await SavedQuizModel.syncIndexes();
         await NotificationPushDeviceModel.syncIndexes();
         await RoadmapStepModel.syncIndexes();
         await CareerModel.syncIndexes();

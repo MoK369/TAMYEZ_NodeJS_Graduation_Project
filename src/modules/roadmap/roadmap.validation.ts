@@ -273,6 +273,27 @@ class RoadmapValidators {
         generalValidationConstants.checkValuesForUpdate(data, ctx);
       }),
   };
+
+  static archiveRoadmapStep = {
+    params: this.getRoadmapStep.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+    }),
+  };
+
+  static restoreRoadmapStep = {
+    params: this.getRoadmapStep.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+    }),
+  };
+
+  static deleteRoadmapStep = {
+    params: this.getRoadmapStep.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+    }),
+  };
 }
 
 export default RoadmapValidators;

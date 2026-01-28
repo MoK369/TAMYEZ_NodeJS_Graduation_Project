@@ -78,7 +78,7 @@ const savedQuestionSchema = new mongoose.Schema<ISavedQuestion>(
       },
     },
   },
-  { strictQuery: true, timestamps: true, id: false }
+  { strictQuery: true, timestamps: true, id: false },
 );
 
 savedQuestionSchema.virtual("id").get(function () {
@@ -122,6 +122,12 @@ const savedQuizSchema = new mongoose.Schema<ISavedQuiz>(
       ref: ModelsNames.userModel,
     },
 
+    careerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: ModelsNames.careerModel,
+    },
+
     questions: {
       type: [savedQuestionSchema],
       required: true,
@@ -139,10 +145,11 @@ const savedQuizSchema = new mongoose.Schema<ISavedQuiz>(
     toObject: { virtuals: true },
     id: false,
     strictQuery: true,
-  }
+  },
 );
 
-savedQuizSchema.index({ quizId: 1, userId: 1 }, { unique: true });
+savedQuizSchema.index({ quizId: 1, userId: 1, careerId: 1 }, { unique: true });
+
 
 savedQuizSchema.virtual("id").get(function () {
   return this._id;

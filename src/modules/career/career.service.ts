@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
   CareerModel,
   RoadmapStepModel,
+  SavedQuizModel,
   UserModel,
 } from "../../db/models/index.ts";
 import {
@@ -54,6 +55,7 @@ import type {
   UpdateCareerResourceResponse,
   UploadCareerPictureResponse,
 } from "./career.entity.ts";
+import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts";
 
 class CareerService {
   private readonly _careerRepository = new CareerRepository(CareerModel);
@@ -61,6 +63,9 @@ class CareerService {
     RoadmapStepModel,
   );
   private readonly _userRepository = new UserRepository(UserModel);
+  private readonly _savedQuizRepository = new SavedQuizRepository(
+    SavedQuizModel,
+  );
 
   createCareer = async (req: Request, res: Response): Promise<Response> => {
     const { title, description, courses, youtubePlaylists, books } = req
@@ -653,6 +658,7 @@ class CareerService {
           ],
         }),
         // delete saved quizzes of this career
+        this._savedQuizRepository.deleteMany({ filter: { careerId } }),
         // delete user progress related to this career
       ]);
     }

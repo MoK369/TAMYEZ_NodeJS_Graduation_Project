@@ -76,7 +76,7 @@ quizSchema.methods.toJSON = function () {
         v: quizObject?.v,
     };
 };
-quizSchema.pre(["find", "findOne", "findOneAndUpdate", "countDocuments"], function (next) {
+quizSchema.pre(["find", "findOne", "updateOne", "findOneAndUpdate", "countDocuments"], function (next) {
     softDeleteFunction(this);
     next();
 });

@@ -31,7 +31,7 @@ quizRouter.get(
 quizRouter.get(
   RoutePaths.getQuizQuestions,
   Auths.authenticationMiddleware(),
-  validationMiddleware({ schema: QuizValidators.getQuiz }),
+  validationMiddleware({ schema: QuizValidators.getQuizQuestions }),
   quizService.getQuizQuestions,
 );
 

@@ -51,7 +51,7 @@ class RoutePaths {
     static getArchivedQuizzes = "/archives";
     static getQuiz = "/:quizId";
     static getArchivedQuiz = "/:quizId/archives";
-    static getQuizQuestions = "/questions/:quizId";
+    static getQuizQuestions = "/questions/:quizId{/:roadmapStepId}";
     static getSavedQuizzes = "/saved";
     static getSavedQuiz = "/saved/:savedQuizId";
     static checkQuizAnswers = "/:quizId";

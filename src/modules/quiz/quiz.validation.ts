@@ -215,6 +215,35 @@ class QuizValidators {
     }),
   };
 
+  static getQuizQuestions = {
+    params: this.getQuiz.params
+      .extend({
+        roadmapStepId: generalValidationConstants.objectId.optional(),
+      })
+      .superRefine((data, ctx) => {
+        if (
+          data.quizId !== QuizTypesEnum.careerAssessment &&
+          !data.roadmapStepId
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["roadmapStepId"],
+            message:
+              "roadmapStepId is required when getting questions of roadmap step quiz ❌",
+          });
+        } else if (
+          data.quizId === QuizTypesEnum.careerAssessment &&
+          data.roadmapStepId
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["roadmapStepId"],
+            message: `no need for roadmapStepId, when getting ${QuizTypesEnum.careerAssessment} questions ❌`,
+          });
+        }
+      }),
+  };
+
   static getQuizzes = {
     query: z.strictObject({
       size: z.coerce.number().int().min(2).max(30).optional().default(15),

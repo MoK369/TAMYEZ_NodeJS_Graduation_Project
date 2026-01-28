@@ -18,6 +18,7 @@ import NotificationPushDeviceModel from "./db/models/notifiction_push_device.mod
 import startAllCronJobs from "./utils/cron_jobs/cron_jobs.controller.ts";
 import RoadmapStepModel from "./db/models/roadmap_step.model.ts";
 import CareerModel from "./db/models/career.model.ts";
+import SavedQuizModel from "./db/models/saved_quiz.model.ts";
 
 async function bootstrap() {
   const app: Express = express();
@@ -26,13 +27,13 @@ async function bootstrap() {
   app.use(cors());
   app.use(helmet());
   app.use(
-    morgan(process.env.MOOD === ProjectMoodsEnum.dev ? "dev" : "combined")
+    morgan(process.env.MOOD === ProjectMoodsEnum.dev ? "dev" : "combined"),
   );
   app.use(
     rateLimit({
       limit: 300,
       windowMs: 15 * 60 * 1000,
-    })
+    }),
   );
 
   if (!(await connnectToDB())) {
@@ -45,6 +46,7 @@ async function bootstrap() {
     // Routes
     await UserModel.syncIndexes();
     await QuizModel.syncIndexes();
+    await SavedQuizModel.syncIndexes();
     await NotificationPushDeviceModel.syncIndexes();
     await RoadmapStepModel.syncIndexes();
     await CareerModel.syncIndexes();
