@@ -420,7 +420,6 @@ class QuizService {
     const quiz = await this._quizRepository.findOne({
       filter: {
         ...filter,
-        paranoid: req.user!.role !== RolesEnum.user ? false : true,
       },
     });
 
@@ -589,13 +588,14 @@ class QuizService {
         populate: [
           {
             path: "quizId",
+            match: { paranoid: false },
             select: "title aiPrompt",
           },
         ],
       },
     });
 
-    if (!quizQuestions || !quizQuestions.quizId) {
+    if (!quizQuestions) {
       throw new NotFoundException(
         "Quiz questions not found for the given quizId and user 🚫",
       );
@@ -795,7 +795,13 @@ class QuizService {
     const savedQuizzes = await this._savedQuizRepository.paginate({
       filter: { userId: req.user!._id! },
       options: {
-        populate: [{ path: "quizId", select: "title type duration" }],
+        populate: [
+          {
+            path: "quizId",
+            match: { paranoid: false },
+            select: "title type duration",
+          },
+        ],
       },
       projection: { quizId: 1, score: 1, takenAt: 1 },
       page,
@@ -819,7 +825,13 @@ class QuizService {
     const savedQuiz = await this._savedQuizRepository.findOne({
       filter: { _id: savedQuizId, userId: req.user!._id! },
       options: {
-        populate: [{ path: "quizId", select: "title type duration" }],
+        populate: [
+          {
+            path: "quizId",
+            match: { paranoid: false },
+            select: "title type duration",
+          },
+        ],
       },
     });
 
@@ -847,15 +859,12 @@ class QuizService {
     }
 
     if (
-      (await this._quizAttemptRepository.countDocuments({
-        filter: { quizId },
-      })) ||
-      (await this._roadmapStepRepository.countDocuments({
+      await this._roadmapStepRepository.exists({
         filter: { quizzesIds: { $in: [quizId] } },
-      }))
+      })
     ) {
       throw new BadRequestException(
-        "Can't freeze this quiz because it's used on some roadmap steps or is used in some active quiz attempts ❌",
+        "Can't freeze this quiz because it's used on some roadmap steps ❌",
       );
     }
 
@@ -897,6 +906,26 @@ class QuizService {
   deleteQuiz = async (req: Request, res: Response): Promise<Response> => {
     const { quizId } = req.params as DeleteQuizParamsDtoType;
     const { v } = req.body as DeleteQuizBodyDtoType;
+
+    const quiz = await this._quizRepository.findOne({
+      filter: {
+        _id: quizId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException("Invalid quizId or Not freezed ❌");
+    }
+
+    if (Date.now() - quiz.freezed!.at.getTime() < 86_400_000) {
+      // less than 48 hours
+      throw new BadRequestException(
+        "Can't delete the career until at least 24 hours have passed after freezing ❌⌛️",
+      );
+    }
 
     const result = await this._quizRepository.deleteOne({
       filter: {
