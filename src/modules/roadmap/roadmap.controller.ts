@@ -61,6 +61,18 @@ adminRoadmapRouter.get(
 );
 
 adminRoadmapRouter.patch(
+  RoutePaths.archiveRoadmapStep,
+  validationMiddleware({ schema: RoadmapValidators.archiveRoadmapStep }),
+  roadmapService.archiveRoadmapStep,
+);
+
+adminRoadmapRouter.patch(
+  RoutePaths.restoreRoadmapStep,
+  validationMiddleware({ schema: RoadmapValidators.restoreRoadmapStep }),
+  roadmapService.restoreRoadmapStep,
+);
+
+adminRoadmapRouter.patch(
   RoutePaths.updateRoadmapStep,
   rateLimit({
     limit: 10,
@@ -85,4 +97,10 @@ adminRoadmapRouter.patch(
   }),
   validationMiddleware({ schema: RoadmapValidators.updateRoadmapStepResource }),
   roadmapService.updateRoadmapStepResource,
+);
+
+adminRoadmapRouter.delete(
+  RoutePaths.deleteRoadmapStep,
+  validationMiddleware({ schema: RoadmapValidators.deleteRoadmapStep }),
+  roadmapService.deleteRoadmapStep,
 );

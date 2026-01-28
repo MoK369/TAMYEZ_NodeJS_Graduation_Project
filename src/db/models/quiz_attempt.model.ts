@@ -111,6 +111,14 @@ const quizAttemptSchema = new mongoose.Schema<IQuizAttempt>(
       ref: ModelsNames.careerModel,
     },
 
+    roadmapStepId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: function () {
+        return this.attemptType === QuizTypesEnum.stepQuiz;
+      },
+      ref: ModelsNames.roadmapStepModel,
+    },
+
     questions: {
       type: [questionSchema],
       required: true,
@@ -129,6 +137,10 @@ const quizAttemptSchema = new mongoose.Schema<IQuizAttempt>(
 );
 
 quizAttemptSchema.index({ quizId: 1, userId: 1 }, { unique: true });
+
+quizAttemptSchema.index({ careerId: 1 });
+
+quizAttemptSchema.index({ roadmapStepId: 1 });
 
 quizAttemptSchema.virtual("id").get(function () {
   return this._id;

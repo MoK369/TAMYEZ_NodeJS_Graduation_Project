@@ -1,6 +1,6 @@
 import type { Default__v, Require_id, Types } from "mongoose";
 
-class DocumentFromat {
+class DocumentFormat {
   static getIdFrom_Id = <TDocument>(
     documentInstance: Require_id<Default__v<TDocument>>,
   ): Omit<Require_id<TDocument>, "_id" | "__v"> & {
@@ -13,4 +13,4 @@ class DocumentFromat {
   };
 }
 
-export default DocumentFromat;
+export default DocumentFormat;

@@ -1,10 +1,13 @@
 import {
   CareerModel,
+  QuizAttemptModel,
   QuizModel,
   RoadmapStepModel,
+  SavedQuizModel,
 } from "../../db/models/index.ts";
 import {
   CareerRepository,
+  QuizAttemptRepository,
   QuizRepository,
   RoadmapStepRepository,
 } from "../../db/repositories/index.ts";
@@ -18,6 +21,12 @@ import type {
   UpdateRoadmapResourceStepBodyDto,
   GetRoadmapQueryDto,
   GetRoadmapStepParamsDto,
+  ArchiveRoadmapStepParamsDto,
+  ArchiveRoadmapStepBodyDto,
+  RestoreRoadmapStepParamsDto,
+  RestoreRoadmapStepBodyDto,
+  DeleteRoadmapStepParamsDto,
+  DeleteRoadmapStepBodyDto,
 } from "./roadmap.dto.ts";
 import {
   BadRequestException,
@@ -46,13 +55,21 @@ import { isNumberBetweenOrEqual } from "../../utils/validators/numeric.validator
 import StringConstants from "../../utils/constants/strings.constants.ts";
 import type { PipelineStage } from "mongoose";
 import { ApplicationTypeEnum } from "../../utils/constants/enum.constants.ts";
+import DocumentFormat from "../../utils/formats/document.format.ts";
+import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts";
 
 class RoadmapService {
   private readonly _careerRepository = new CareerRepository(CareerModel);
   private readonly _roadmapStepRepository = new RoadmapStepRepository(
     RoadmapStepModel,
   );
-  private readonly _quizRespoistory = new QuizRepository(QuizModel);
+  private readonly _quizRespository = new QuizRepository(QuizModel);
+  private readonly _quizAttemptRepository = new QuizAttemptRepository(
+    QuizAttemptModel,
+  );
+  private readonly _savedQuizRepository = new SavedQuizRepository(
+    SavedQuizModel,
+  );
 
   async checkAndUpdateOrder({
     career,
@@ -102,7 +119,7 @@ class RoadmapService {
       return;
     }
     if (
-      (await this._quizRespoistory.countDocuments({
+      (await this._quizRespository.countDocuments({
         filter: {
           _id: {
             $in: [
@@ -267,6 +284,8 @@ class RoadmapService {
         });
       }
 
+      console.log({ pipeline, item3: pipeline[2] });
+
       const result = (
         await this._roadmapStepRepository.aggregate<{
           data: Record<string, any>[];
@@ -322,7 +341,9 @@ class RoadmapService {
           totalPages: Math.ceil(result.total / size),
           currentPage: page,
           size,
-          data: result.data,
+          data: result.data.map((step) =>
+            DocumentFormat.getIdFrom_Id<IRoadmapStep>(step as FullIRoadmapStep),
+          ),
         },
       });
     };
@@ -332,9 +353,21 @@ class RoadmapService {
     return async (req: Request, res: Response): Promise<Response> => {
       const { roadmapStepId } = req.params as GetRoadmapStepParamsDto;
 
+      if (
+        req.tokenPayload?.applicationType === ApplicationTypeEnum.user &&
+        !req.user?.careerPath
+      ) {
+        throw new BadRequestException(
+          "Didn't select a careerPath yet, can't get this roadmapStep for you ❌",
+        );
+      }
+
       const result = await this._roadmapStepRepository.findOne({
         filter: {
           _id: roadmapStepId,
+          ...(req.tokenPayload?.applicationType === ApplicationTypeEnum.user
+            ? { careerId: req.user?.careerPath!.id! }
+            : undefined),
           paranoid: false,
         },
         options: {
@@ -344,7 +377,7 @@ class RoadmapService {
                 req.tokenPayload?.applicationType ===
                 ApplicationTypeEnum.adminDashboard
                   ? "careerId"
-                  : "career",
+                  : "career", // for merge global resources
               match: {
                 paranoid: false,
               },
@@ -370,7 +403,9 @@ class RoadmapService {
       });
 
       if (!result) {
-        throw new NotFoundException("Invalid roadmapStepId ");
+        throw new NotFoundException(
+          "Invalid roadmapStepId or not in your career path ❌ ",
+        );
       }
 
       if (archived) {
@@ -827,6 +862,147 @@ class RoadmapService {
         v: result.__v,
       },
     });
+  };
+
+  archiveRoadmapStep = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
+    const { roadmapStepId } = req.params as ArchiveRoadmapStepParamsDto;
+    const { v } = req.body as ArchiveRoadmapStepBodyDto;
+
+    const roadmapStep = await this._roadmapStepRepository.findOne({
+      filter: { _id: roadmapStepId, __v: v },
+      options: {
+        populate: [{ path: "careerId" }],
+      },
+    });
+
+    if (!roadmapStep) {
+      throw new NotFoundException(
+        "Invalid roadmapStepId or already freezed ❌",
+      );
+    } else if (!roadmapStep.careerId) {
+      throw new BadRequestException(
+        "roadmap step's career is freezed can't do any action ❌",
+      );
+    }
+
+    await this._roadmapStepRepository.updateOne({
+      filter: { _id: roadmapStepId, __v: v },
+      update: {
+        freezed: { at: new Date(), by: req.user!._id },
+        $unset: { restored: 1 },
+      },
+    });
+
+    return successHandler({ res });
+  };
+
+  restoreRoadmapStep = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
+    const { roadmapStepId } = req.params as RestoreRoadmapStepParamsDto;
+    const { v } = req.body as RestoreRoadmapStepBodyDto;
+
+    const roadmapStep = await this._roadmapStepRepository.findOne({
+      filter: {
+        _id: roadmapStepId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+      options: {
+        populate: [{ path: "careerId" }],
+      },
+    });
+
+    if (!roadmapStep) {
+      throw new NotFoundException("Invalid roadmapStepId or Not freezed ❌");
+    } else if (!roadmapStep.careerId) {
+      throw new BadRequestException(
+        "roadmap step's career is freezed can't do any action ❌",
+      );
+    }
+
+    await this._roadmapStepRepository.updateOne({
+      filter: {
+        _id: roadmapStepId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+      update: {
+        restored: { at: new Date(), by: req.user!._id },
+        $unset: { freezed: 1 },
+      },
+    });
+
+    return successHandler({ res });
+  };
+
+  deleteRoadmapStep = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
+    const { roadmapStepId } = req.params as DeleteRoadmapStepParamsDto;
+    const { v } = req.body as DeleteRoadmapStepBodyDto;
+
+    const roadmapStep = await this._roadmapStepRepository.findOne({
+      filter: {
+        _id: roadmapStepId,
+        __v: v,
+        paranoid: false,
+        freezed: { $exists: true },
+      },
+      options: {
+        populate: [{ path: "careerId" }],
+      },
+    });
+
+    if (!roadmapStep) {
+      throw new NotFoundException("Invalid roadmapStepId or Not freezed ❌");
+    } else if (!roadmapStep.careerId) {
+      throw new BadRequestException(
+        "roadmap step's career is freezed can't do any action ❌",
+      );
+    }
+
+    if (
+      await this._quizAttemptRepository.exists({ filter: { roadmapStepId } })
+    ) {
+      throw new BadRequestException(
+        "There active quiz attempts on this roadmap step please wait until it's done ❌⌛️",
+      );
+    }
+
+    if (
+      (
+        await this._roadmapStepRepository.deleteOne({
+          filter: {
+            _id: roadmapStepId,
+            __v: v,
+            paranoid: false,
+            freezed: { $exists: true },
+          },
+        })
+      ).deletedCount
+    ) {
+      await Promise.all([
+        S3Service.deleteFolderByPrefix({
+          FolderPath: S3FoldersPaths.roadmapStepFolderPath(
+            (roadmapStep.careerId as unknown as FullICareer).assetFolderId,
+            roadmapStepId,
+          ),
+        }),
+        this._savedQuizRepository.deleteMany({ filter: { roadmapStepId } }),
+      ]);
+    } else {
+      throw new NotFoundException("Invalid roadmapStepId or Not freezed ❌");
+    }
+
+    return successHandler({ res });
   };
 }
 

@@ -116,6 +116,7 @@ careerSchema.methods.toJSON = function () {
                 createdAt: step?.createdAt,
                 updatedAT: step?.updatedAt,
                 v: step?.__v,
+                freezed: step?.freezed,
             };
         }),
         freezed: careerObject?.freezed,

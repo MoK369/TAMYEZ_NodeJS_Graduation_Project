@@ -23,6 +23,8 @@ adminRoadmapRouter.use(Auths.combined({
 adminRoadmapRouter.post(RoutePaths.createRoadmapStep, validationMiddleware({ schema: RoadmapValidators.createRoadmapStep }), roadmapService.createRoadmapStep);
 adminRoadmapRouter.get(RoutePaths.getArchivedRoadmap, validationMiddleware({ schema: RoadmapValidators.getRoadmap }), roadmapService.getRoadmap({ archived: true }));
 adminRoadmapRouter.get(RoutePaths.getArchivedRoadmapStep, validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }), roadmapService.getRoadmapStep({ archived: true }));
+adminRoadmapRouter.patch(RoutePaths.archiveRoadmapStep, validationMiddleware({ schema: RoadmapValidators.archiveRoadmapStep }), roadmapService.archiveRoadmapStep);
+adminRoadmapRouter.patch(RoutePaths.restoreRoadmapStep, validationMiddleware({ schema: RoadmapValidators.restoreRoadmapStep }), roadmapService.restoreRoadmapStep);
 adminRoadmapRouter.patch(RoutePaths.updateRoadmapStep, rateLimit({
     limit: 10,
     windowMs: 10 * 60 * 1000,
@@ -37,3 +39,4 @@ adminRoadmapRouter.patch(RoutePaths.updateRoadmapStepResource, rateLimit({
     validation: fileValidation.image,
     storageApproach: StorageTypesEnum.memory,
 }), validationMiddleware({ schema: RoadmapValidators.updateRoadmapStepResource }), roadmapService.updateRoadmapStepResource);
+adminRoadmapRouter.delete(RoutePaths.deleteRoadmapStep, validationMiddleware({ schema: RoadmapValidators.deleteRoadmapStep }), roadmapService.deleteRoadmapStep);

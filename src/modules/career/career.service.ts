@@ -1,12 +1,14 @@
 import type { Request, Response } from "express";
 import {
   CareerModel,
+  QuizAttemptModel,
   RoadmapStepModel,
   SavedQuizModel,
   UserModel,
 } from "../../db/models/index.ts";
 import {
   CareerRepository,
+  QuizAttemptRepository,
   RoadmapStepRepository,
   UserRepository,
 } from "../../db/repositories/index.ts";
@@ -65,6 +67,9 @@ class CareerService {
   private readonly _userRepository = new UserRepository(UserModel);
   private readonly _savedQuizRepository = new SavedQuizRepository(
     SavedQuizModel,
+  );
+  private readonly _quizAttemptRepository = new QuizAttemptRepository(
+    QuizAttemptModel,
   );
 
   createCareer = async (req: Request, res: Response): Promise<Response> => {
@@ -179,7 +184,19 @@ class CareerService {
               path: "roadmap",
               match: {
                 order: { $lte: 10 },
-                ...(!archived ? { freezed: { $exists: false } } : undefined),
+                ...(req.user &&
+                req.tokenPayload?.applicationType ===
+                  ApplicationTypeEnum.user &&
+                req.user.careerPath?.id?.equals(careerId)
+                  ? { paranoid: false }
+                  : undefined),
+              },
+              select: {
+                title: 1,
+                description: 1,
+                order: 1,
+                freezed: 1,
+                __v: 1,
               },
             },
           ],
@@ -606,6 +623,12 @@ class CareerService {
       );
     }
 
+    if (await this._quizAttemptRepository.exists({ filter: { careerId } })) {
+      throw new BadRequestException(
+        "There active quiz attempts on this career please wait until it's done ❌⌛️",
+      );
+    }
+
     if (
       (
         await this._careerRepository.deleteOne({
@@ -661,6 +684,8 @@ class CareerService {
         this._savedQuizRepository.deleteMany({ filter: { careerId } }),
         // delete user progress related to this career
       ]);
+    } else {
+      throw new NotFoundException("Invalid careerId or Not freezed ❌");
     }
 
     return successHandler({ res });

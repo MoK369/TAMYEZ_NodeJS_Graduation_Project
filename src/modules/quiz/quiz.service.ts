@@ -69,6 +69,7 @@ import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts"
 import type { ISavedQuestion } from "../../db/interfaces/saved_quiz.interface.ts";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.ts";
 import pause from "../../utils/pause/code.pause.ts";
+import type { Types } from "mongoose";
 
 class QuizService {
   private _quizRepository = new QuizRepository(QuizModel);
@@ -504,6 +505,7 @@ class QuizService {
               ? QuizTypesEnum.careerAssessment
               : QuizTypesEnum.stepQuiz,
           careerId: req.user?.careerPath!.id!,
+          roadmapStepId: roadmapStepId as unknown as Types.ObjectId | undefined,
           questions: generatedQuestions.questions,
           expiresAt: new Date(
             Date.now() +
@@ -741,7 +743,8 @@ class QuizService {
             {
               quizId: quizQuestions.quizId!._id!,
               userId: req.user!._id!,
-              careerId: req.user!.careerPath!.id!,
+              careerId: quizQuestions.careerId,
+              roadmapStepId: quizQuestions.roadmapStepId,
               questions: checkedAnswers,
               score: `${scoreNumber}%`,
               takenAt: new Date(),

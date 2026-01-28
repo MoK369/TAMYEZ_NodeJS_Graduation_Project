@@ -161,6 +161,7 @@ careerSchema.methods.toJSON = function () {
         createdAt: step?.createdAt,
         updatedAT: step?.updatedAt,
         v: (step as FullIRoadmapStep)?.__v,
+        freezed: step?.freezed,
       };
     }),
     freezed: careerObject?.freezed,

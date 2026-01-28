@@ -20,6 +20,13 @@ abstract class S3FoldersPaths {
     return `careers/${assetFolderId}/${resourceName}`;
   };
 
+  static roadmapStepFolderPath = (
+    assetFolderId: string,
+    stepId: Types.ObjectId | string,
+  ) => {
+    return `careers/${assetFolderId}/roadmap/${stepId.toString()}`;
+  };
+
   static roadmapStepResourceFolderPath = (
     assetFolderId: string,
     resourceName: string,

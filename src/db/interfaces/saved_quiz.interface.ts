@@ -24,6 +24,7 @@ export interface ISavedQuiz {
   quizId: Types.ObjectId;
   userId: Types.ObjectId;
   careerId: Types.ObjectId;
+  roadmapStepId: Types.ObjectId;
 
   questions: ISavedQuestion[];
 

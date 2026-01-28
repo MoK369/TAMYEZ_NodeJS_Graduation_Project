@@ -11,6 +11,9 @@ class S3FoldersPaths {
     static careerResourceFolderPath = (assetFolderId, resourceName) => {
         return `careers/${assetFolderId}/${resourceName}`;
     };
+    static roadmapStepFolderPath = (assetFolderId, stepId) => {
+        return `careers/${assetFolderId}/roadmap/${stepId.toString()}`;
+    };
     static roadmapStepResourceFolderPath = (assetFolderId, resourceName, stepId) => {
         return `careers/${assetFolderId}/roadmap/${stepId.toString()}/${resourceName}`;
     };

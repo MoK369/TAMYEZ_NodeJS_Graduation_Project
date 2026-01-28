@@ -26,7 +26,9 @@ export interface IQuizAttempt {
 
   userId: Types.ObjectId;
 
-  careerId: Types.ObjectId;
+  careerId?: Types.ObjectId;
+
+  roadmapStepId?: Types.ObjectId;
 
   attemptType: QuizTypesEnum;
 

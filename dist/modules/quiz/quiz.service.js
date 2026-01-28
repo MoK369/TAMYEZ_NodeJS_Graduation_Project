@@ -347,6 +347,7 @@ class QuizService {
                         ? QuizTypesEnum.careerAssessment
                         : QuizTypesEnum.stepQuiz,
                     careerId: req.user?.careerPath.id,
+                    roadmapStepId: roadmapStepId,
                     questions: generatedQuestions.questions,
                     expiresAt: new Date(Date.now() +
                         (quizId === QuizTypesEnum.careerAssessment ||
@@ -523,7 +524,8 @@ class QuizService {
                         {
                             quizId: quizQuestions.quizId._id,
                             userId: req.user._id,
-                            careerId: req.user.careerPath.id,
+                            careerId: quizQuestions.careerId,
+                            roadmapStepId: quizQuestions.roadmapStepId,
                             questions: checkedAnswers,
                             score: `${scoreNumber}%`,
                             takenAt: new Date(),

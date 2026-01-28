@@ -1,5 +1,5 @@
-import { CareerModel, RoadmapStepModel, SavedQuizModel, UserModel, } from "../../db/models/index.js";
-import { CareerRepository, RoadmapStepRepository, UserRepository, } from "../../db/repositories/index.js";
+import { CareerModel, QuizAttemptModel, RoadmapStepModel, SavedQuizModel, UserModel, } from "../../db/models/index.js";
+import { CareerRepository, QuizAttemptRepository, RoadmapStepRepository, UserRepository, } from "../../db/repositories/index.js";
 import successHandler from "../../utils/handlers/success.handler.js";
 import { BadRequestException, ConflictException, NotFoundException, ServerException, } from "../../utils/exceptions/custom.exceptions.js";
 import EnvFields from "../../utils/constants/env_fields.constants.js";
@@ -17,6 +17,7 @@ class CareerService {
     _roadmapStepRepository = new RoadmapStepRepository(RoadmapStepModel);
     _userRepository = new UserRepository(UserModel);
     _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
+    _quizAttemptRepository = new QuizAttemptRepository(QuizAttemptModel);
     createCareer = async (req, res) => {
         const { title, description, courses, youtubePlaylists, books } = req
             .validationResult.body;
@@ -108,7 +109,19 @@ class CareerService {
                             path: "roadmap",
                             match: {
                                 order: { $lte: 10 },
-                                ...(!archived ? { freezed: { $exists: false } } : undefined),
+                                ...(req.user &&
+                                    req.tokenPayload?.applicationType ===
+                                        ApplicationTypeEnum.user &&
+                                    req.user.careerPath?.id?.equals(careerId)
+                                    ? { paranoid: false }
+                                    : undefined),
+                            },
+                            select: {
+                                title: 1,
+                                description: 1,
+                                order: 1,
+                                freezed: 1,
+                                __v: 1,
                             },
                         },
                     ],
@@ -422,6 +435,9 @@ class CareerService {
         if (Date.now() - career.freezed.at.getTime() < 172_800_000) {
             throw new BadRequestException("Can't delete the career until at least 48 hours have passed after freezing ❌⌛️");
         }
+        if (await this._quizAttemptRepository.exists({ filter: { careerId } })) {
+            throw new BadRequestException("There active quiz attempts on this career please wait until it's done ❌⌛️");
+        }
         if ((await this._careerRepository.deleteOne({
             filter: {
                 _id: careerId,
@@ -468,6 +484,9 @@ class CareerService {
                 }),
                 this._savedQuizRepository.deleteMany({ filter: { careerId } }),
             ]);
+        }
+        else {
+            throw new NotFoundException("Invalid careerId or Not freezed ❌");
         }
         return successHandler({ res });
     };

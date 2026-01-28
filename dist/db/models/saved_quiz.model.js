@@ -90,6 +90,11 @@ const savedQuizSchema = new mongoose.Schema({
         required: true,
         ref: ModelsNames.careerModel,
     },
+    roadmapStepId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: ModelsNames.careerModel,
+    },
     questions: {
         type: [savedQuestionSchema],
         required: true,
@@ -105,7 +110,9 @@ const savedQuizSchema = new mongoose.Schema({
     id: false,
     strictQuery: true,
 });
-savedQuizSchema.index({ quizId: 1, userId: 1, careerId: 1 }, { unique: true });
+savedQuizSchema.index({ quizId: 1, userId: 1 }, { unique: true });
+savedQuizSchema.index({ careerId: 1 });
+savedQuizSchema.index({ roadmapStepId: 1 });
 savedQuizSchema.virtual("id").get(function () {
     return this._id;
 });

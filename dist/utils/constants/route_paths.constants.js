@@ -45,6 +45,9 @@ class RoutePaths {
     static getArchivedRoadmapStep = "/:roadmapStepId/archives";
     static updateRoadmapStep = "/:roadmapStepId";
     static updateRoadmapStepResource = "/:roadmapStepId/:resourceName/:resourceId";
+    static archiveRoadmapStep = "/:roadmapStepId/archive";
+    static restoreRoadmapStep = "/:roadmapStepId/restore";
+    static deleteRoadmapStep = "/:roadmapStepId/delete";
     static quiz = "/quiz";
     static adminQuiz = "/admin/quiz";
     static getQuizzes = "/";
