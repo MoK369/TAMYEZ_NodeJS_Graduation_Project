@@ -16,7 +16,7 @@ export const adminRoadmapRouter = Router();
 const roadmapService = new RoadmapService();
 roadmapRouter.get(RoutePaths.getRoadmap, Auths.authenticationMiddleware({ isOptional: true }), validationMiddleware({ schema: RoadmapValidators.getRoadmap }), roadmapService.getRoadmap());
 roadmapRouter.get(RoutePaths.getRoadmapStep, Auths.authenticationMiddleware(), validationMiddleware({ schema: RoadmapValidators.getRoadmapStep }), roadmapService.getRoadmapStep());
-adminRoadmapRouter.use(Auths.combined({
+adminRoadmapRouter.use(Auths.combinedWithGateway({
     accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
     applicationType: ApplicationTypeEnum.adminDashboard,
 }));

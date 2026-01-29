@@ -22,7 +22,7 @@ userRouter.patch(RoutePaths.profilePicture, Auths.authenticationMiddleware(), Cl
 }), validationMiddleware({ schema: UserValidators.uploadProfilePicture }), userService.uploadProfilePicture);
 userRouter.patch(RoutePaths.updateProfile, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.updateProfile }), userService.updateProfile);
 userRouter.patch(RoutePaths.changePassword, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.changePassword }), userService.changePassword);
-adminUserRouter.use(Auths.combined({
+adminUserRouter.use(Auths.combinedWithGateway({
     accessRoles: userAuthorizationEndpoints.getUsers,
     applicationType: ApplicationTypeEnum.adminDashboard,
 }));

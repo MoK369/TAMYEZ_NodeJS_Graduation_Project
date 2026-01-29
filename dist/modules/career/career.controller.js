@@ -17,7 +17,7 @@ export const adminCareerRouter = Router();
 const careerService = new CareerService();
 careerRouter.get(RoutePaths.getCareers, validationMiddleware({ schema: CareerValidators.getCareers }), careerService.getCareers());
 careerRouter.get(RoutePaths.getCareer, Auths.authenticationMiddleware({ isOptional: true }), validationMiddleware({ schema: CareerValidators.getCareer }), careerService.getCareer());
-adminCareerRouter.use(Auths.combined({
+adminCareerRouter.use(Auths.combinedWithGateway({
     accessRoles: careerAuthorizationEndpoints.createCareer,
     applicationType: ApplicationTypeEnum.adminDashboard,
 }));

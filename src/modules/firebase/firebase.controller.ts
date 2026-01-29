@@ -36,7 +36,7 @@ firebaseRouter.post(
 
 // admin apis
 adminFirebaseRouter.use(
-  Auths.combined({
+  Auths.combinedWithGateway({
     accessRoles: firebaseAuthorizationEndpoints.sendNotification,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),

@@ -60,7 +60,7 @@ userRouter.patch(
 
 // admin apis
 adminUserRouter.use(
-  Auths.combined({
+  Auths.combinedWithGateway({
     accessRoles: userAuthorizationEndpoints.getUsers,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),

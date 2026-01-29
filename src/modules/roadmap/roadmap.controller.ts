@@ -38,7 +38,7 @@ roadmapRouter.get(
 
 // admin apis
 adminRoadmapRouter.use(
-  Auths.combined({
+  Auths.combinedWithGateway({
     accessRoles: roadmapAuthorizationEndpoints.createRoadmapStep,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),

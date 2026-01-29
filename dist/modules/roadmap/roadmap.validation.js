@@ -254,6 +254,7 @@ class RoadmapValidators {
         params: this.getRoadmapStep.params,
         body: z.strictObject({
             v: generalValidationConstants.v,
+            quizId: generalValidationConstants.objectId.optional(),
         }),
     };
     static deleteRoadmapStep = {

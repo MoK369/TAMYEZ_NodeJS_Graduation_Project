@@ -30,7 +30,9 @@ quizRouter.get(
 
 quizRouter.get(
   RoutePaths.getQuizQuestions,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: QuizValidators.getQuizQuestions }),
   quizService.getQuizQuestions,
 );
@@ -51,7 +53,7 @@ quizRouter.post(
 
 // admin apis
 adminQuizRouter.use(
-  Auths.combined({
+  Auths.combinedWithGateway({
     accessRoles: quizAuthorizationEndpoints.createQuiz,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),

@@ -61,10 +61,8 @@ class Auths {
 
   static authorizationMiddleware = ({
     accessRoles,
-    applicationType,
   }: {
     accessRoles: RolesEnum[];
-    applicationType?: ApplicationTypeEnum | undefined;
   }) => {
     return async (
       req: Request,
@@ -76,12 +74,20 @@ class Auths {
           StringConstants.NOT_AUTHORIZED_ACCOUNT_MESSAGE,
         );
       }
-      if (
-        applicationType &&
-        req.tokenPayload?.applicationType !== applicationType
-      ) {
+      return next();
+    };
+  };
+
+  static gatewayMiddleware = ({
+    applicationType,
+  }: {
+    applicationType: ApplicationTypeEnum;
+  }) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+      if (req.tokenPayload?.applicationType !== applicationType) {
         throw new ForbiddenException("Invalid login gateway ❌🚪");
       }
+
       return next();
     };
   };
@@ -89,15 +95,42 @@ class Auths {
   static combined = ({
     tokenType = TokenTypesEnum.accessToken,
     accessRoles,
+  }: {
+    tokenType?: TokenTypesEnum;
+    accessRoles: RolesEnum[];
+  }) => {
+    return [
+      this.authenticationMiddleware({ tokenType }),
+      this.authorizationMiddleware({ accessRoles }),
+    ];
+  };
+
+  static combinedWithGateway = ({
+    tokenType = TokenTypesEnum.accessToken,
+    accessRoles,
     applicationType,
   }: {
     tokenType?: TokenTypesEnum;
     accessRoles: RolesEnum[];
-    applicationType?: ApplicationTypeEnum | undefined;
+    applicationType: ApplicationTypeEnum;
   }) => {
     return [
       this.authenticationMiddleware({ tokenType }),
-      this.authorizationMiddleware({ accessRoles, applicationType }),
+      this.authorizationMiddleware({ accessRoles }),
+      this.gatewayMiddleware({ applicationType }),
+    ];
+  };
+
+  static authenticationWithGateway = ({
+    tokenType = TokenTypesEnum.accessToken,
+    applicationType,
+  }: {
+    tokenType?: TokenTypesEnum;
+    applicationType: ApplicationTypeEnum;
+  }) => {
+    return [
+      this.authenticationMiddleware({ tokenType }),
+      this.gatewayMiddleware({ applicationType }),
     ];
   };
 }

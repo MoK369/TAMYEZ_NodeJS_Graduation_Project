@@ -280,14 +280,14 @@ class RoadmapService {
                 if (!result.freezed &&
                     !(result.careerId.freezed ||
                         result.career?.freezed)) {
-                    throw new NotFoundException("No archived roadmapStep found or career is NOT freezed 🔍❌");
+                    throw new NotFoundException("Invalid roadmapStepId, roadmapStep NOT freezed  or career is NOT freezed 🔍❌");
                 }
             }
             else {
                 if (result.freezed ||
                     result.careerId.freezed ||
                     result.career?.freezed) {
-                    throw new NotFoundException("No roadmapStep found or career is freezed 🔍❌");
+                    throw new NotFoundException("Invalid roadmapStepId, roadmapStep freezed or career is freezed 🔍❌");
                 }
             }
             if (result &&
@@ -297,23 +297,36 @@ class RoadmapService {
             return successHandler({ res, body: result });
         };
     };
+    _checkRoadmapStepAndCareer = async ({ checkForRoadmapStepFreezed = false, roadmapStepId, v, }) => {
+        const roadmapStep = await this._roadmapStepRepository.findOne({
+            filter: {
+                _id: roadmapStepId,
+                __v: v,
+                ...(checkForRoadmapStepFreezed
+                    ? { paranoid: false, freezed: { $exists: true } }
+                    : undefined),
+            },
+            options: {
+                populate: [{ path: "careerId" }],
+            },
+        });
+        if (!roadmapStep) {
+            throw new NotFoundException(checkForRoadmapStepFreezed
+                ? "Invalid roadmapStepId or Not freezed ❌"
+                : "Invalid roadmapStepId or already freezed ❌");
+        }
+        else if (!roadmapStep.careerId) {
+            throw new BadRequestException("roadmap step's career is freezed can't do any action ❌");
+        }
+        return roadmapStep;
+    };
     updateRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
         const body = req.validationResult.body;
-        const roadmapStep = await this._roadmapStepRepository.findOne({
-            filter: { _id: roadmapStepId },
-            options: {
-                populate: [
-                    {
-                        path: "careerId",
-                        select: "stepsCount",
-                    },
-                ],
-            },
+        const roadmapStep = await this._checkRoadmapStepAndCareer({
+            roadmapStepId,
+            v: body.v,
         });
-        if (!roadmapStep || !roadmapStep.careerId) {
-            throw new NotFoundException("Invalid roadmapStepId, roadmapStep is freezed or its career is freezed ❌");
-        }
         if (!isNumberBetweenOrEqual({
             value: RoadmapService.getTotalResourceCount({
                 currentResources: roadmapStep.courses,
@@ -551,7 +564,7 @@ class RoadmapService {
             },
         });
         if (!roadmapStep || !roadmapStep.careerId) {
-            throw new NotFoundException("Invalid roadmapStepId, its career freezed or invalid resourceId ❌");
+            throw new NotFoundException("Invalid roadmapStepId, roadmapStep freezed, its career freezed or invalid resourceId ❌");
         }
         if (body.url || body.title) {
             const exist = await this._roadmapStepRepository.findOne({
@@ -627,18 +640,7 @@ class RoadmapService {
     archiveRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
         const { v } = req.body;
-        const roadmapStep = await this._roadmapStepRepository.findOne({
-            filter: { _id: roadmapStepId, __v: v },
-            options: {
-                populate: [{ path: "careerId" }],
-            },
-        });
-        if (!roadmapStep) {
-            throw new NotFoundException("Invalid roadmapStepId or already freezed ❌");
-        }
-        else if (!roadmapStep.careerId) {
-            throw new BadRequestException("roadmap step's career is freezed can't do any action ❌");
-        }
+        await this._checkRoadmapStepAndCareer({ roadmapStepId, v });
         await this._roadmapStepRepository.updateOne({
             filter: { _id: roadmapStepId, __v: v },
             update: {
@@ -650,23 +652,34 @@ class RoadmapService {
     };
     restoreRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
-        const { v } = req.body;
-        const roadmapStep = await this._roadmapStepRepository.findOne({
+        const { v, quizId } = req.body;
+        const { quizzesIds } = await this._checkRoadmapStepAndCareer({
+            roadmapStepId,
+            v,
+            checkForRoadmapStepFreezed: true,
+        });
+        const result = (await this._quizRespository.find({
             filter: {
-                _id: roadmapStepId,
-                __v: v,
-                paranoid: false,
-                freezed: { $exists: true },
+                _id: { $in: quizzesIds },
             },
             options: {
-                populate: [{ path: "careerId" }],
+                projection: {
+                    _id: 1,
+                },
             },
-        });
-        if (!roadmapStep) {
-            throw new NotFoundException("Invalid roadmapStepId or Not freezed ❌");
+        })) ?? [];
+        const newQuizzesIds = [];
+        if (result.length >= 1) {
+            result.forEach((r) => newQuizzesIds.push(r._id));
         }
-        else if (!roadmapStep.careerId) {
-            throw new BadRequestException("roadmap step's career is freezed can't do any action ❌");
+        else if (result.length == 0 && !quizId) {
+            throw new BadRequestException(`All quizzes are either freezed or deleted, please provide us with a new quizz id ⚠️`);
+        }
+        else {
+            if (!(await this._quizRespository.findOne({ filter: { _id: quizId } }))) {
+                throw new NotFoundException("Invalid provided quizId ❌");
+            }
+            newQuizzesIds.push(Types.ObjectId.createFromHexString(quizId));
         }
         await this._roadmapStepRepository.updateOne({
             filter: {
@@ -677,33 +690,25 @@ class RoadmapService {
             },
             update: {
                 restored: { at: new Date(), by: req.user._id },
+                quizzesIds: newQuizzesIds,
                 $unset: { freezed: 1 },
             },
         });
-        return successHandler({ res });
+        return successHandler({
+            res,
+            message: `Roadmap step was restored successfully after ${result.length >= 1 ? `deleting unfound quizzesIds ✅` : `updating quizzesIds the quizId ${quizId}`} `,
+        });
     };
     deleteRoadmapStep = async (req, res) => {
         const { roadmapStepId } = req.params;
         const { v } = req.body;
-        const roadmapStep = await this._roadmapStepRepository.findOne({
-            filter: {
-                _id: roadmapStepId,
-                __v: v,
-                paranoid: false,
-                freezed: { $exists: true },
-            },
-            options: {
-                populate: [{ path: "careerId" }],
-            },
+        const roadmapStep = await this._checkRoadmapStepAndCareer({
+            roadmapStepId,
+            v,
+            checkForRoadmapStepFreezed: true,
         });
-        if (!roadmapStep) {
-            throw new NotFoundException("Invalid roadmapStepId or Not freezed ❌");
-        }
-        else if (!roadmapStep.careerId) {
-            throw new BadRequestException("roadmap step's career is freezed can't do any action ❌");
-        }
         if (await this._quizAttemptRepository.exists({ filter: { roadmapStepId } })) {
-            throw new BadRequestException("There active quiz attempts on this roadmap step please wait until it's done ❌⌛️");
+            throw new BadRequestException("There are active quiz attempts on this roadmap step please wait until it's done ❌⌛️");
         }
         if ((await this._roadmapStepRepository.deleteOne({
             filter: {

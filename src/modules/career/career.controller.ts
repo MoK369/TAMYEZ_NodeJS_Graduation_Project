@@ -38,7 +38,7 @@ careerRouter.get(
 
 // admin apis
 adminCareerRouter.use(
-  Auths.combined({
+  Auths.combinedWithGateway({
     accessRoles: careerAuthorizationEndpoints.createCareer,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),

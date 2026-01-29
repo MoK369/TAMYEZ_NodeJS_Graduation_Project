@@ -923,23 +923,26 @@ class QuizService {
       throw new NotFoundException("Invalid quizId or Not freezed ❌");
     }
 
-    if (Date.now() - quiz.freezed!.at.getTime() < 86_400_000) {
-      // less than 48 hours
+    if (await this._quizAttemptRepository.exists({ filter: { quizId } })) {
       throw new BadRequestException(
-        "Can't delete the career until at least 24 hours have passed after freezing ❌⌛️",
+        "There are active quiz attempts on this roadmap step please wait until it's done ❌⌛️",
       );
     }
 
-    const result = await this._quizRepository.deleteOne({
-      filter: {
-        _id: quizId,
-        __v: v,
-        paranoid: false,
-        freezed: { $exists: true },
-      },
-    });
-
-    if (!result.deletedCount) {
+    if (
+      (
+        await this._quizRepository.deleteOne({
+          filter: {
+            _id: quizId,
+            __v: v,
+            paranoid: false,
+            freezed: { $exists: true },
+          },
+        })
+      ).deletedCount
+    ) {
+      await this._savedQuizRepository.deleteMany({ filter: { quizId } });
+    } else {
       throw new NotFoundException("Invalid quizId or Not freezed ❌");
     }
 

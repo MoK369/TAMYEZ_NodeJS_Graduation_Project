@@ -38,22 +38,39 @@ class Auths {
             return next();
         };
     };
-    static authorizationMiddleware = ({ accessRoles, applicationType, }) => {
+    static authorizationMiddleware = ({ accessRoles, }) => {
         return async (req, res, next) => {
             if (!accessRoles.includes(req.user?.role ?? "")) {
                 throw new ForbiddenException(StringConstants.NOT_AUTHORIZED_ACCOUNT_MESSAGE);
             }
-            if (applicationType &&
-                req.tokenPayload?.applicationType !== applicationType) {
+            return next();
+        };
+    };
+    static gatewayMiddleware = ({ applicationType, }) => {
+        return (req, res, next) => {
+            if (req.tokenPayload?.applicationType !== applicationType) {
                 throw new ForbiddenException("Invalid login gateway ❌🚪");
             }
             return next();
         };
     };
-    static combined = ({ tokenType = TokenTypesEnum.accessToken, accessRoles, applicationType, }) => {
+    static combined = ({ tokenType = TokenTypesEnum.accessToken, accessRoles, }) => {
         return [
             this.authenticationMiddleware({ tokenType }),
-            this.authorizationMiddleware({ accessRoles, applicationType }),
+            this.authorizationMiddleware({ accessRoles }),
+        ];
+    };
+    static combinedWithGateway = ({ tokenType = TokenTypesEnum.accessToken, accessRoles, applicationType, }) => {
+        return [
+            this.authenticationMiddleware({ tokenType }),
+            this.authorizationMiddleware({ accessRoles }),
+            this.gatewayMiddleware({ applicationType }),
+        ];
+    };
+    static authenticationWithGateway = ({ tokenType = TokenTypesEnum.accessToken, applicationType, }) => {
+        return [
+            this.authenticationMiddleware({ tokenType }),
+            this.gatewayMiddleware({ applicationType }),
         ];
     };
 }
