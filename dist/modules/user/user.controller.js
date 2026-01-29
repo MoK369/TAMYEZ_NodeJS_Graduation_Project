@@ -13,7 +13,7 @@ import { userAuthorizationEndpoints } from "./user.authorization.js";
 export const userRouter = Router();
 export const adminUserRouter = Router();
 const userService = new UserService();
-userRouter.get(RoutePaths.userProfile, Auths.authenticationMiddleware(), userService.getProfile);
+userRouter.get(RoutePaths.userProfile, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.getProfile }), userService.getProfile());
 userRouter.post(RoutePaths.logout, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.logout }), userService.logout);
 userRouter.patch(RoutePaths.profilePicture, Auths.authenticationMiddleware(), CloudMulter.handleSingleFileUpload({
     fieldName: StringConstants.ATTACHMENT_FIELD_NAME,
@@ -22,7 +22,14 @@ userRouter.patch(RoutePaths.profilePicture, Auths.authenticationMiddleware(), Cl
 }), validationMiddleware({ schema: UserValidators.uploadProfilePicture }), userService.uploadProfilePicture);
 userRouter.patch(RoutePaths.updateProfile, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.updateProfile }), userService.updateProfile);
 userRouter.patch(RoutePaths.changePassword, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.changePassword }), userService.changePassword);
+userRouter.patch(RoutePaths.archiveAccount, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.archiveAccount }), userService.archiveAccount);
+userRouter.delete(RoutePaths.deleteAccount, Auths.authenticationMiddleware(), validationMiddleware({ schema: UserValidators.deleteAccount }), userService.deleteAccount);
 adminUserRouter.use(Auths.combinedWithGateway({
     accessRoles: userAuthorizationEndpoints.getUsers,
     applicationType: ApplicationTypeEnum.adminDashboard,
 }));
+adminUserRouter.get(RoutePaths.getUsers, validationMiddleware({ schema: UserValidators.getUsers }), userService.getUsers());
+adminUserRouter.get(RoutePaths.getArchivedUsers, validationMiddleware({ schema: UserValidators.getUsers }), userService.getUsers({ archived: true }));
+adminUserRouter.get(RoutePaths.archivedUserProfile, validationMiddleware({ schema: UserValidators.getProfile }), userService.getProfile({ archived: true }));
+adminUserRouter.patch(RoutePaths.changeRole, validationMiddleware({ schema: UserValidators.changeRole }), userService.changeRole);
+adminUserRouter.patch(RoutePaths.restoreAccount, validationMiddleware({ schema: UserValidators.restoreAccount }), userService.restoreAccount);

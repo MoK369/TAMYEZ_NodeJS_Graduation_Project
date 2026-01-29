@@ -6,9 +6,24 @@ import EnvFields from "../../utils/constants/env_fields.constants.ts";
 import {
   GenderEnum,
   LogoutFlagsEnum,
+  RolesEnum,
 } from "../../utils/constants/enum.constants.ts";
 
 class UserValidators {
+  static getProfile = {
+    params: z.strictObject({
+      userId: generalValidationConstants.objectId.optional(),
+    }),
+  };
+
+  static getUsers = {
+    query: z.strictObject({
+      size: z.coerce.number().int().min(2).max(30).optional().default(15),
+      page: z.coerce.number().int().min(1).max(300).optional().default(1),
+      searchKey: z.string().nonempty().min(1).optional(),
+    }),
+  };
+
   static uploadProfilePicture = {
     body: z.strictObject({
       attachment: generalValidationConstants.fileKeys({
@@ -75,6 +90,38 @@ class UserValidators {
         .refine((value) => {
           return value != LogoutFlagsEnum.stay;
         }),
+    }),
+  };
+
+  static changeRole = {
+    params: z.strictObject({
+      userId: generalValidationConstants.objectId,
+    }),
+    body: z.strictObject({
+      role: z.enum(Object.values(RolesEnum)),
+      v: generalValidationConstants.v,
+    }),
+  };
+
+  static archiveAccount = {
+    params: this.getProfile.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+      refreeze: z.coerce.boolean().optional(),
+    }),
+  };
+
+  static restoreAccount = {
+    params: this.changeRole.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
+    }),
+  };
+
+  static deleteAccount = {
+    params: this.getProfile.params,
+    body: z.strictObject({
+      v: generalValidationConstants.v,
     }),
   };
 }

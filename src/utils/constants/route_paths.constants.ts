@@ -24,11 +24,18 @@ class RoutePaths {
   // user routes
   static readonly user = "/user";
   static readonly adminUser = "/admin/user";
-  static readonly userProfile = "/";
+  static readonly getUsers = "/";
+  static readonly getArchivedUsers = "/archives";
+  static readonly userProfile = "{/:userId}";
+  static readonly archivedUserProfile = "/:userId/archives";
+  static readonly changeRole = "/:userId/change-role";
   static readonly profilePicture = "/profile-picture";
   static readonly updateProfile = "/";
   static readonly changePassword = "/change-password";
   static readonly logout = "/logout";
+  static readonly archiveAccount = "{/:userId}/archive";
+  static readonly restoreAccount = "/:userId/restore";
+  static readonly deleteAccount = "{/:userId}/delete";
 
   // career routes
   static readonly career = "/career";

@@ -157,7 +157,6 @@ class TokenSecurityUtil {
     const signatures = this.getSignatures({
       signatureLevel: bearer as SignatureLevelsEnum,
     });
-
     const payload = this.verifyToken({
       token,
       secretKey:
@@ -185,7 +184,7 @@ class TokenSecurityUtil {
     }
 
     const user = await this._userRepository.findOne({
-      filter: { _id: payload.id, freezed: { $exists: false } },
+      filter: { _id: payload.id },
     });
     if (!user?.confirmedAt) {
       throw new BadRequestException(

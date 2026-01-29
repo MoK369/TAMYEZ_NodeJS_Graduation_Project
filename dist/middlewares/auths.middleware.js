@@ -49,7 +49,7 @@ class Auths {
     static gatewayMiddleware = ({ applicationType, }) => {
         return (req, res, next) => {
             if (req.tokenPayload?.applicationType !== applicationType) {
-                throw new ForbiddenException("Invalid login gateway ❌🚪");
+                throw new ForbiddenException(StringConstants.INVALID_LOGIN_GATEWAY_MESSAGE);
             }
             return next();
         };

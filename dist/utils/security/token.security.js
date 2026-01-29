@@ -97,7 +97,7 @@ class TokenSecurityUtil {
             throw new BadRequestException(StringConstants.TOKEN_REVOKED_MESSAGE);
         }
         const user = await this._userRepository.findOne({
-            filter: { _id: payload.id, freezed: { $exists: false } },
+            filter: { _id: payload.id },
         });
         if (!user?.confirmedAt) {
             throw new BadRequestException(StringConstants.INVALID_USER_ACCOUNT_MESSAGE);

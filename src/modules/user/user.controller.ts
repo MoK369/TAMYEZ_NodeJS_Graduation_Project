@@ -20,7 +20,8 @@ const userService = new UserService();
 userRouter.get(
   RoutePaths.userProfile,
   Auths.authenticationMiddleware(),
-  userService.getProfile,
+  validationMiddleware({ schema: UserValidators.getProfile }),
+  userService.getProfile(),
 );
 
 userRouter.post(
@@ -56,10 +57,54 @@ userRouter.patch(
   userService.changePassword,
 );
 
+userRouter.patch(
+  RoutePaths.archiveAccount,
+  Auths.authenticationMiddleware(),
+  validationMiddleware({ schema: UserValidators.archiveAccount }),
+  userService.archiveAccount,
+);
+
+userRouter.delete(
+  RoutePaths.deleteAccount,
+  Auths.authenticationMiddleware(),
+  validationMiddleware({ schema: UserValidators.deleteAccount }),
+  userService.deleteAccount,
+);
+
 // admin apis
 adminUserRouter.use(
   Auths.combinedWithGateway({
     accessRoles: userAuthorizationEndpoints.getUsers,
     applicationType: ApplicationTypeEnum.adminDashboard,
   }),
+);
+
+adminUserRouter.get(
+  RoutePaths.getUsers,
+  validationMiddleware({ schema: UserValidators.getUsers }),
+  userService.getUsers(),
+);
+
+adminUserRouter.get(
+  RoutePaths.getArchivedUsers,
+  validationMiddleware({ schema: UserValidators.getUsers }),
+  userService.getUsers({ archived: true }),
+);
+
+adminUserRouter.get(
+  RoutePaths.archivedUserProfile,
+  validationMiddleware({ schema: UserValidators.getProfile }),
+  userService.getProfile({ archived: true }),
+);
+
+adminUserRouter.patch(
+  RoutePaths.changeRole,
+  validationMiddleware({ schema: UserValidators.changeRole }),
+  userService.changeRole,
+);
+
+adminUserRouter.patch(
+  RoutePaths.restoreAccount,
+  validationMiddleware({ schema: UserValidators.restoreAccount }),
+  userService.restoreAccount,
 );

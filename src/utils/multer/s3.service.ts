@@ -90,8 +90,8 @@ abstract class S3Service {
             Bucket,
             ACL,
             Path,
-          })
-      )
+          }),
+      ),
     );
     if (subKeys.length == 0) {
       throw new S3Exception(undefined, "Failed to Retrieve Upload Keys");
@@ -166,8 +166,8 @@ abstract class S3Service {
           Bucket,
           ACL,
           Path,
-        })
-      )
+        }),
+      ),
     );
 
     if ((subKeys.length = 0)) {
@@ -330,15 +330,8 @@ abstract class S3Service {
       Prefix: S3KeyUtil.generateS3KeyFromSubKey(FolderPath),
     });
 
-    const result = await this._s3ClientObject.send(command).catch((error) => {
-      throw new S3Exception(
-        error,
-        `Failed to list files in this directory ☹️.`
-      );
-    });
-    if (!result.Contents || result.Contents.length === 0) {
-      throw new S3Exception(undefined, "No files found in this directory ☹️");
-    }
+    const result = await this._s3ClientObject.send(command);
+
     return result;
   };
 
@@ -350,14 +343,15 @@ abstract class S3Service {
     Bucket?: string;
     FolderPath: string;
     Quiet?: boolean;
-  }): Promise<DeleteObjectsCommandOutput> => {
+  }): Promise<DeleteObjectsCommandOutput | undefined> => {
     // List all objects with the given prefix
     const listedObjects = await this.listDirectoryFiles({
       Bucket,
       FolderPath,
     });
 
-    const Keys = listedObjects.Contents!.map((item) => item.Key!);
+    const Keys = listedObjects.Contents?.map((item) => item.Key!);
+    if (!Keys) return;
 
     return this.deleteFiles({ Bucket, Keys, Quiet });
   };

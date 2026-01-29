@@ -177,12 +177,7 @@ class S3Service {
             Bucket,
             Prefix: S3KeyUtil.generateS3KeyFromSubKey(FolderPath),
         });
-        const result = await this._s3ClientObject.send(command).catch((error) => {
-            throw new S3Exception(error, `Failed to list files in this directory ☹️.`);
-        });
-        if (!result.Contents || result.Contents.length === 0) {
-            throw new S3Exception(undefined, "No files found in this directory ☹️");
-        }
+        const result = await this._s3ClientObject.send(command);
         return result;
     };
     static deleteFolderByPrefix = async ({ Bucket = process.env.AWS_BUCKET_NAME, FolderPath, Quiet, }) => {
@@ -190,7 +185,9 @@ class S3Service {
             Bucket,
             FolderPath,
         });
-        const Keys = listedObjects.Contents.map((item) => item.Key);
+        const Keys = listedObjects.Contents?.map((item) => item.Key);
+        if (!Keys)
+            return;
         return this.deleteFiles({ Bucket, Keys, Quiet });
     };
 }
