@@ -15,21 +15,27 @@ const firebaseService = new FirebaseService();
 // normal user apis
 firebaseRouter.post(
   RoutePaths.enableNotifications,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: FirebaseValidators.enableNotifications }),
   firebaseService.enableNotifications,
 );
 
 firebaseRouter.post(
   RoutePaths.refreshFcmToken,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: FirebaseValidators.refreshFcmToken }),
   firebaseService.refreshFcmToken,
 );
 
 firebaseRouter.post(
   RoutePaths.disableNotifications,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: FirebaseValidators.disableNotifications }),
   firebaseService.disableNotifications,
 );

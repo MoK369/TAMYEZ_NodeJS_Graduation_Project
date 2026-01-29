@@ -16,7 +16,6 @@ export const adminUserRouter = Router();
 
 const userService = new UserService();
 
-
 // normal users apis
 userRouter.get(
   RoutePaths.userProfile,
@@ -26,8 +25,8 @@ userRouter.get(
 
 userRouter.post(
   RoutePaths.logout,
-  validationMiddleware({ schema: UserValidators.logout }),
   Auths.authenticationMiddleware(),
+  validationMiddleware({ schema: UserValidators.logout }),
   userService.logout,
 );
 
@@ -56,7 +55,6 @@ userRouter.patch(
   validationMiddleware({ schema: UserValidators.changePassword }),
   userService.changePassword,
 );
-
 
 // admin apis
 adminUserRouter.use(

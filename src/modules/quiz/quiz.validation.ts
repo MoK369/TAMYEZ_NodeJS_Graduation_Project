@@ -212,6 +212,7 @@ class QuizValidators {
         z.literal(QuizTypesEnum.careerAssessment),
         generalValidationConstants.objectId,
       ]),
+      roadmapStepId: generalValidationConstants.objectId.optional(),
     }),
   };
 
@@ -253,7 +254,7 @@ class QuizValidators {
   };
 
   static checkQuizAnswers = {
-    params: z.strictObject({ quizId: generalValidationConstants.objectId }),
+    params: z.strictObject({ quizAttemptId: generalValidationConstants.objectId }),
     body: z.strictObject({
       answers: z
         .array(

@@ -52,12 +52,12 @@ class RoutePaths {
     static adminQuiz = "/admin/quiz";
     static getQuizzes = "/";
     static getArchivedQuizzes = "/archives";
-    static getQuiz = "/:quizId";
+    static getQuiz = "/:quizId{/:roadmapStepId}";
     static getArchivedQuiz = "/:quizId/archives";
     static getQuizQuestions = "/questions/:quizId{/:roadmapStepId}";
     static getSavedQuizzes = "/saved";
     static getSavedQuiz = "/saved/:savedQuizId";
-    static checkQuizAnswers = "/:quizId";
+    static checkQuizAnswers = "/:quizAttemptId";
     static createQuiz = "/";
     static updateQuiz = "/:quizId";
     static archiveQuiz = "/:quizId/archive";

@@ -16,14 +16,18 @@ const quizService = new QuizService();
 
 quizRouter.get(
   RoutePaths.getSavedQuizzes,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: QuizValidators.getSavedQuizzes }),
   quizService.getSavedQuizzes,
 );
 
 quizRouter.get(
   RoutePaths.getSavedQuiz,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: QuizValidators.getSavedQuiz }),
   quizService.getSavedQuiz,
 );
@@ -46,7 +50,9 @@ quizRouter.get(
 
 quizRouter.post(
   RoutePaths.checkQuizAnswers,
-  Auths.authenticationMiddleware(),
+  Auths.authenticationWithGateway({
+    applicationType: ApplicationTypeEnum.user,
+  }),
   validationMiddleware({ schema: QuizValidators.checkQuizAnswers }),
   quizService.checkQuizAnswers,
 );
