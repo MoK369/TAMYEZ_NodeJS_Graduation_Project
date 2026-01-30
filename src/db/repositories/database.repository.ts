@@ -185,11 +185,11 @@ abstract class DatabaseRepository<TDocument> {
   };
 
   updateOne = async <TUpdate extends UpdateType = Record<string, any>>({
-    filter = { __v: 0 },
+    filter = {},
     update,
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: UpdateOptions & MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
@@ -209,13 +209,15 @@ abstract class DatabaseRepository<TDocument> {
     }
     const res = await this.model.updateOne(filter, update, options);
 
-    if (!res.matchedCount) {
-      const { __v, ...baseFilter } = filter;
-      const existsIgnoringVersion = await this.model.exists(baseFilter);
-      if (existsIgnoringVersion) {
-        throw new VersionConflictException(
-          StringConstants.INVALID_VERSION_MESSAGE,
-        );
+    if (filter?.__v) {
+      if (!res.matchedCount) {
+        const { __v, ...baseFilter } = filter;
+        const existsIgnoringVersion = await this.model.exists(baseFilter);
+        if (existsIgnoringVersion) {
+          throw new VersionConflictException(
+            StringConstants.INVALID_VERSION_MESSAGE,
+          );
+        }
       }
     }
 

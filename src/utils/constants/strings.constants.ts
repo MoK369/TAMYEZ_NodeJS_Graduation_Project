@@ -31,6 +31,9 @@ class StringConstants {
   static readonly USE_EMAIL_VERIFICATION_LINK_MESSAGE =
     "Please use the Link below to verify your Email.";
 
+  static readonly USE_EMAIL_RESTORATION_LINK_MESSAGE =
+    "Please use the Link below to restore your Email.";
+
   static readonly USE_FORGET_PASSWORD_OTP_MESSAGE =
     "Please use the OTP below to verify your Forget Password Attempt.";
 

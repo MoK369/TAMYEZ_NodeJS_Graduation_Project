@@ -21,6 +21,7 @@ export enum ErrorCodesEnum {
 export enum EmailEventsEnum {
   emailVerification = "EmailVerification",
   forgetPassword = "ForgetPassword",
+  emailRestoration = "EmailRestoration",
 }
 
 export enum NotificationEventsEnum {
@@ -146,5 +147,5 @@ export enum CareerResourceNamesEnum {
 
 export enum ApplicationTypeEnum {
   user = "User",
-  adminDashboard = "AdminDashboard"
+  adminDashboard = "AdminDashboard",
 }

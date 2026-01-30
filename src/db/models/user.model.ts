@@ -54,6 +54,9 @@ const userSchema = new mongoose.Schema<IUser>(
     confirmEmailLink: {
       type: codeExpireCountObjectSchema,
     },
+    restoreEmailLink: {
+      type: codeExpireCountObjectSchema,
+    },
 
     password: {
       type: String,

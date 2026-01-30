@@ -13,7 +13,7 @@ export interface IAtByObject {
   by: Types.ObjectId;
 }
 
-export interface ICodExpireCoundObject {
+export interface ICodeExpireCountObject {
   code: string;
   expiresAt: Date;
   count?: number;

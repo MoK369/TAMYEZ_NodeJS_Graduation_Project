@@ -11,6 +11,7 @@ class StringConstants {
     static FORGET_PASSWORD_SUBJECT = "Forget Password 🔑";
     static THANK_YOU_MESSAGE = "Thank you for using our Application ❤️.";
     static USE_EMAIL_VERIFICATION_LINK_MESSAGE = "Please use the Link below to verify your Email.";
+    static USE_EMAIL_RESTORATION_LINK_MESSAGE = "Please use the Link below to restore your Email.";
     static USE_FORGET_PASSWORD_OTP_MESSAGE = "Please use the OTP below to verify your Forget Password Attempt.";
     static INVALID_EMAIL_MESSAGE = "Invalid email address ✉️❌";
     static INVALID_USER_ACCOUNT_MESSAGE = "Invalid user account ⚠️";

@@ -6,7 +6,7 @@ import type {
 } from "../../utils/constants/enum.constants.ts";
 import type {
   IAtByObject,
-  ICodExpireCoundObject,
+  ICodeExpireCountObject,
   IIdSelectedAtObject,
   IProfilePictureObject,
 } from "./common.interface.ts";
@@ -29,11 +29,12 @@ export interface IUser {
   lastName: string; // vitual
 
   email: string;
-  confirmEmailLink?: ICodExpireCoundObject;
+  confirmEmailLink?: ICodeExpireCountObject;
   confirmedAt?: Date;
+  restoreEmailLink: ICodeExpireCountObject;
 
   password: string;
-  forgetPasswordOtp?: ICodExpireCoundObject;
+  forgetPasswordOtp?: ICodeExpireCountObject;
   forgetPasswordVerificationExpiresAt?: Date;
   lastResetPasswordAt?: Date;
 

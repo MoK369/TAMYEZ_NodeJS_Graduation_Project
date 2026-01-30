@@ -247,6 +247,9 @@ class UserService {
         const result = await this._userRepository.updateOne({
             filter: {
                 _id: userId || req.user._id,
+                ...(userId
+                    ? { role: { $nin: [req.user?.role, RolesEnum.superAdmin] } }
+                    : undefined),
                 __v: v,
             },
             update: {
@@ -265,7 +268,8 @@ class UserService {
                 filter: { _id: userId, paranoid: false },
             });
             if (user &&
-                user.role === RolesEnum.user &&
+                user.role != req.user?.role &&
+                user.role != RolesEnum.superAdmin &&
                 user.freezed.by.equals(userId)) {
                 if (refreeze) {
                     await this._userRepository.updateOne({
@@ -282,6 +286,9 @@ class UserService {
                 else {
                     throw new BadRequestException("User has freezed their own account! Do you want to re-freezed it?");
                 }
+            }
+            else if (user) {
+                throw new BadRequestException("Can't freeze high or equal account privilages ❌");
             }
             else {
                 throw new NotFoundException("user not found or already freezed ❌");

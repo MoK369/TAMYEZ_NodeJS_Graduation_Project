@@ -16,6 +16,7 @@ class RoutePaths {
   static readonly signUpGmail = "/sign-up-gmail";
   static readonly logInGmail = "/log-in-gmail";
   static readonly verifyEmail = "/verify-email";
+  static readonly restoreEmail = "/restore-email";
   static readonly forgetPassword = "/forget-password";
   static readonly verifyForgetPassowrd = "/verify-forget-password";
   static readonly resetForgetPassword = "/reset-forget-password";

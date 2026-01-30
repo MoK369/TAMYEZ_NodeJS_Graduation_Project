@@ -25,6 +25,25 @@ emailEvent.subscribe({
     },
 });
 emailEvent.subscribe({
+    eventName: EmailEventsEnum.emailRestoration,
+    bgFunction: (payload) => {
+        const subject = "Account Restoration ✉️♻️";
+        return EmailService.sendEmail({
+            otpOrLink: payload.otpOrLink,
+            to: payload.to,
+            subject: subject,
+            html: HTML_EMAIL_TEMPLATE({
+                title: subject,
+                message: StringConstants.THANK_YOU_MESSAGE +
+                    " " +
+                    StringConstants.USE_EMAIL_RESTORATION_LINK_MESSAGE,
+                logoUrl: process.env.LOGO_URL,
+                otpOrLink: payload.otpOrLink,
+            }),
+        });
+    },
+});
+emailEvent.subscribe({
     eventName: EmailEventsEnum.forgetPassword,
     bgFunction: (payload) => {
         const subject = StringConstants.FORGET_PASSWORD_SUBJECT;

@@ -64,6 +64,12 @@ authRouter.get(
   authService.verifyEmail,
 );
 
+authRouter.get(
+  RoutePaths.restoreEmail,
+  validationMiddleware({ schema: AuthValidator.restoreEmail }),
+  authService.restoreEmail,
+);
+
 // admin apis
 
 adminAuthRouter.post(

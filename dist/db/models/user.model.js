@@ -31,6 +31,9 @@ const userSchema = new mongoose.Schema({
     confirmEmailLink: {
         type: codeExpireCountObjectSchema,
     },
+    restoreEmailLink: {
+        type: codeExpireCountObjectSchema,
+    },
     password: {
         type: String,
         required: function () {

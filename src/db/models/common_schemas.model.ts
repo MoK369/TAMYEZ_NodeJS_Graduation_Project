@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import type {
   IAtByObject,
-  ICodExpireCoundObject,
+  ICodeExpireCountObject,
   IIdSelectedAtObject,
   IProfilePictureObject,
   IQuizQuestionOption,
@@ -25,7 +25,7 @@ export const atByObjectSchema = new mongoose.Schema<IAtByObject>(
 );
 
 export const codeExpireCountObjectSchema =
-  new mongoose.Schema<ICodExpireCoundObject>(
+  new mongoose.Schema<ICodeExpireCountObject>(
     {
       code: { type: String, required: true },
       expiresAt: { type: Date, require: true },

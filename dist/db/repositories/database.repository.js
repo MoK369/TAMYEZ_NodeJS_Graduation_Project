@@ -74,7 +74,7 @@ class DatabaseRepository {
     bulkWrite = async ({ operations = [], options = { ordered: false }, }) => {
         return this.model.bulkWrite(operations, options);
     };
-    updateOne = async ({ filter = { __v: 0 }, update, options = {}, }) => {
+    updateOne = async ({ filter = {}, update, options = {}, }) => {
         if (Array.isArray(update)) {
             update.push({
                 $set: {
@@ -91,11 +91,13 @@ class DatabaseRepository {
             };
         }
         const res = await this.model.updateOne(filter, update, options);
-        if (!res.matchedCount) {
-            const { __v, ...baseFilter } = filter;
-            const existsIgnoringVersion = await this.model.exists(baseFilter);
-            if (existsIgnoringVersion) {
-                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+        if (filter?.__v) {
+            if (!res.matchedCount) {
+                const { __v, ...baseFilter } = filter;
+                const existsIgnoringVersion = await this.model.exists(baseFilter);
+                if (existsIgnoringVersion) {
+                    throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+                }
             }
         }
         return res;

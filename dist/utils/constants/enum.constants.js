@@ -22,6 +22,7 @@ export var EmailEventsEnum;
 (function (EmailEventsEnum) {
     EmailEventsEnum["emailVerification"] = "EmailVerification";
     EmailEventsEnum["forgetPassword"] = "ForgetPassword";
+    EmailEventsEnum["emailRestoration"] = "EmailRestoration";
 })(EmailEventsEnum || (EmailEventsEnum = {}));
 export var NotificationEventsEnum;
 (function (NotificationEventsEnum) {

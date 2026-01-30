@@ -6,13 +6,15 @@ import EmailService from "../email/send.email.ts";
 import HTML_EMAIL_TEMPLATE from "../email/templates/html_email.template.ts";
 import StringConstants from "../constants/strings.constants.ts";
 
-const emailEvent = new CustomEvents<IExtendedMailOptions, EmailEventsEnum>(new EventEmitter());
+const emailEvent = new CustomEvents<IExtendedMailOptions, EmailEventsEnum>(
+  new EventEmitter(),
+);
 
 emailEvent.subscribe({
   eventName: EmailEventsEnum.emailVerification,
   bgFunction: (payload) => {
     const subject = StringConstants.EMAIL_VERIFICATION_SUBJECT;
-    
+
     return EmailService.sendEmail({
       otpOrLink: payload.otpOrLink,
       to: payload.to,
@@ -23,6 +25,28 @@ emailEvent.subscribe({
           StringConstants.THANK_YOU_MESSAGE +
           " " +
           StringConstants.USE_EMAIL_VERIFICATION_LINK_MESSAGE,
+        logoUrl: process.env.LOGO_URL!,
+        otpOrLink: payload.otpOrLink,
+      }),
+    });
+  },
+});
+
+emailEvent.subscribe({
+  eventName: EmailEventsEnum.emailRestoration,
+  bgFunction: (payload) => {
+    const subject = "Account Restoration ✉️♻️";
+
+    return EmailService.sendEmail({
+      otpOrLink: payload.otpOrLink,
+      to: payload.to,
+      subject: subject,
+      html: HTML_EMAIL_TEMPLATE({
+        title: subject,
+        message:
+          StringConstants.THANK_YOU_MESSAGE +
+          " " +
+          StringConstants.USE_EMAIL_RESTORATION_LINK_MESSAGE,
         logoUrl: process.env.LOGO_URL!,
         otpOrLink: payload.otpOrLink,
       }),

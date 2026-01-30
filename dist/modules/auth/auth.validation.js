@@ -65,6 +65,9 @@ class AuthValidators {
                 .nonempty({ error: StringConstants.PATH_NOEMPTY_MESSAGE("token") }),
         }),
     };
+    static restoreEmail = {
+        query: this.verifyEmail.query,
+    };
     static resendEmailVerificationLink = {
         body: z.strictObject({
             email: generalValidationConstants.email,

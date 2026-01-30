@@ -76,6 +76,10 @@ class AuthValidators {
     }),
   };
 
+  static restoreEmail = {
+    query: this.verifyEmail.query,
+  };
+
   static resendEmailVerificationLink = {
     body: z.strictObject({
       email: generalValidationConstants.email,

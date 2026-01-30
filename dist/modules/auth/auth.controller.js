@@ -15,6 +15,7 @@ authRouter.post(RoutePaths.forgetPassword, validationMiddleware({ schema: AuthVa
 authRouter.post(RoutePaths.verifyForgetPassowrd, validationMiddleware({ schema: AuthValidator.verifyForgetPassword }), authService.verifyForgetPassword);
 authRouter.post(RoutePaths.resetForgetPassword, validationMiddleware({ schema: AuthValidator.resetForgetPassword }), authService.resetForgetPassword);
 authRouter.get(RoutePaths.verifyEmail, validationMiddleware({ schema: AuthValidator.verifyEmail }), authService.verifyEmail);
+authRouter.get(RoutePaths.restoreEmail, validationMiddleware({ schema: AuthValidator.restoreEmail }), authService.restoreEmail);
 adminAuthRouter.post(RoutePaths.logIn, validationMiddleware({ schema: AuthValidator.adminLogIn }), authService.logIn({ applicationType: ApplicationTypeEnum.adminDashboard }));
 adminAuthRouter.post(RoutePaths.logInGmail, validationMiddleware({ schema: AuthValidator.adminLogInGmail }), authService.logInWithGmail({
     applicationType: ApplicationTypeEnum.adminDashboard,
