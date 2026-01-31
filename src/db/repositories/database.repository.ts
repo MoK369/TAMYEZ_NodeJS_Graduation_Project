@@ -124,7 +124,8 @@ abstract class DatabaseRepository<TDocument> {
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
     const res = await this.model.findOne(filter, projection, options);
-    if (filter?.__v && !res) {
+
+    if (filter?.__v != undefined && res == undefined) {
       const { __v, ...baseFilter } = filter;
       const existsIgnoringVersion = await this.model.exists(baseFilter);
       if (existsIgnoringVersion) {
@@ -209,7 +210,7 @@ abstract class DatabaseRepository<TDocument> {
     }
     const res = await this.model.updateOne(filter, update, options);
 
-    if (filter?.__v) {
+    if (filter?.__v == undefined) {
       if (!res.matchedCount) {
         const { __v, ...baseFilter } = filter;
         const existsIgnoringVersion = await this.model.exists(baseFilter);
@@ -231,7 +232,7 @@ abstract class DatabaseRepository<TDocument> {
     options = {},
   }: {
     id: Types.ObjectId | string;
-    v: number;
+    v: number | undefined;
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: MongooseUpdateQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
@@ -250,7 +251,7 @@ abstract class DatabaseRepository<TDocument> {
       };
     }
     const res = await this.model.updateOne(
-      { _id: id, __v: v },
+      { _id: id, ...(v != undefined ? { __v: v } : undefined) },
       update,
       options,
     );
@@ -270,11 +271,11 @@ abstract class DatabaseRepository<TDocument> {
     TUpdate extends UpdateType = Record<string, any>,
     TLean extends boolean = false,
   >({
-    filter = { __v: 0 },
+    filter = {},
     update,
     options = { new: true },
   }: {
-    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     update: UpdateFunctionsUpdateObjectType<TDocument, TUpdate>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
@@ -314,7 +315,7 @@ abstract class DatabaseRepository<TDocument> {
     options = { new: true },
   }: {
     id: Types.ObjectId | string;
-    v: number;
+    v: number | undefined;
     update: UpdateQuery<TDocument>;
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
@@ -334,7 +335,7 @@ abstract class DatabaseRepository<TDocument> {
     }
 
     const res = await this.model.findOneAndUpdate(
-      { _id: id, __v: v },
+      { _id: id, ...(v != undefined ? { __v: v } : undefined) },
       {
         ...update,
         $inc: Object.assign((update as Record<string, any>)["$inc"] ?? {}, {
@@ -357,10 +358,10 @@ abstract class DatabaseRepository<TDocument> {
   };
 
   deleteOne = async ({
-    filter = { __v: undefined },
+    filter = {},
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument> & { __v: number | undefined };
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     options?: MongooseBaseQueryOptions<TDocument>;
   }): Promise<DeleteResult> => {
     const res = await this.model.deleteOne(filter, options);
@@ -391,10 +392,21 @@ abstract class DatabaseRepository<TDocument> {
     filter = {},
     options = { new: true },
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     options?: FindFunctionOptionsType<TDocument, TLean>;
   }): Promise<FindOneFunctionsReturnType<TDocument, TLean>> => {
-    return this.model.findOneAndDelete(filter, options);
+    const res = await this.model.findOneAndDelete(filter, options);
+
+    if (filter?.__v != undefined && res == undefined) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+    return res as FindOneFunctionsReturnType<TDocument, TLean>;
   };
 
   replaceOne = async ({
@@ -402,11 +414,23 @@ abstract class DatabaseRepository<TDocument> {
     replacement,
     options = {},
   }: {
-    filter?: RootFilterQuery<TDocument>;
+    filter?: RootFilterQuery<TDocument> & { __v?: number | undefined };
     replacement: TDocument;
     options?: MongooseBaseQueryOptions<TDocument>;
   }): Promise<UpdateWriteOpResult> => {
-    return this.model.replaceOne(filter, replacement, options);
+    const res = await this.model.replaceOne(filter, replacement, options);
+
+    if (!res.matchedCount) {
+      const { __v, ...baseFilter } = filter;
+      const existsIgnoringVersion = await this.model.exists(baseFilter);
+      if (existsIgnoringVersion) {
+        throw new VersionConflictException(
+          StringConstants.INVALID_VERSION_MESSAGE,
+        );
+      }
+    }
+
+    return res;
   };
 
   countDocuments = async ({

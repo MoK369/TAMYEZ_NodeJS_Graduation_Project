@@ -51,6 +51,16 @@ class RoadmapService {
         if (!quizzesIds?.length) {
             return;
         }
+        const careerAssessment = await this._quizRespository.exists({
+            filter: {
+                uniqueKey: { $regex: StringConstants.CAREER_ASSESSMENT, $options: "i" },
+            },
+        });
+        if (careerAssessment) {
+            if (quizzesIds.includes(careerAssessment._id.toString())) {
+                throw new BadRequestException(`${StringConstants.CAREER_ASSESSMENT} can't be specified to a roadmap step ❌`);
+            }
+        }
         if ((await this._quizRespository.countDocuments({
             filter: {
                 _id: {
@@ -77,7 +87,7 @@ class RoadmapService {
         if (stepExists) {
             throw new ConflictException("Step with this title already exists ❌");
         }
-        this._checkQuizzesExists({ quizzesIds });
+        await this._checkQuizzesExists({ quizzesIds });
         await this.checkAndUpdateOrder({ career, order });
         const [newStep] = await this._roadmapStepRepository.create({
             data: [
@@ -361,7 +371,7 @@ class RoadmapService {
             })) {
             throw new BadRequestException("Each roadmap step list (courses | youtubePlaylists | books | quizzes) must be at most 5 items length, and only (courses | youtubePlaylists | quizzes) must be at least 1 item length ❌");
         }
-        this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
+        await this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
         const session = await startSession();
         await session.withTransaction(async () => {
             if (body.order && body.order != roadmapStep.order) {
@@ -696,7 +706,7 @@ class RoadmapService {
         });
         return successHandler({
             res,
-            message: `Roadmap step was restored successfully after ${result.length >= 1 ? `deleting unfound quizzesIds ✅` : `updating quizzesIds the quizId ${quizId}`} `,
+            message: `Roadmap step was restored successfully after ${result.length >= 1 ? `deleting unfound quizzesIds ✅` : `updating quizzesIds with the quizId ${quizId}`} `,
         });
     };
     deleteRoadmapStep = async (req, res) => {

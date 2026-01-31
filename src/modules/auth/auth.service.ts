@@ -198,9 +198,9 @@ class AuthService {
         throw new BadRequestException(StringConstants.INVALID_TOKEN_MESSAGE);
       }
 
-      await user.updateOne({
-        $unset: { confirmEmailLink: true },
-        confirmedAt: new Date(),
+      await this._userRepository.updateOne({
+        filter: { _id: user._id },
+        update: { $unset: { confirmEmailLink: true }, confirmedAt: new Date() },
       });
 
       return responseHtmlHandler({
@@ -426,7 +426,7 @@ class AuthService {
       if (!user) {
         throw new NotFoundException(
           StringConstants.INVALID_USER_ACCOUNT_MESSAGE +
-            " or " +
+            ", not verified or " +
             StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE,
         );
       }
@@ -641,7 +641,7 @@ class AuthService {
       if (!user) {
         throw new NotFoundException(
           StringConstants.INVALID_USER_ACCOUNT_MESSAGE +
-            " or " +
+            ", not verified " +
             StringConstants.EMAIL_EXISTS_PROVIDER_MESSAGE,
         );
       }
@@ -790,9 +790,6 @@ class AuthService {
         __v: user.__v,
       },
       update: {
-        $unset: {
-          forgetPasswordOtp: 1,
-        },
         forgetPasswordVerificationExpiresAt:
           Date.now() +
           Number(process.env[EnvFields.OTP_EXPIRES_IN_MILLISECONDS]),
@@ -830,7 +827,7 @@ class AuthService {
     }
 
     await user.updateOne({
-      $unset: { forgetPasswordVerificationExpiresAt: 1 },
+      $unset: { forgetPasswordVerificationExpiresAt: 1, forgetPasswordOtp: 1 },
       password: await HashingSecurityUtil.hashText({ plainText: password }),
       lastResetPasswordAt: new Date(),
       changeCredentialsTime: new Date(),

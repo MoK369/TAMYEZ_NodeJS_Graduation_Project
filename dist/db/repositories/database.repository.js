@@ -41,7 +41,7 @@ class DatabaseRepository {
     };
     findOne = async ({ filter, projection, options = {}, }) => {
         const res = await this.model.findOne(filter, projection, options);
-        if (filter?.__v && !res) {
+        if (filter?.__v != undefined && res == undefined) {
             const { __v, ...baseFilter } = filter;
             const existsIgnoringVersion = await this.model.exists(baseFilter);
             if (existsIgnoringVersion) {
@@ -91,7 +91,7 @@ class DatabaseRepository {
             };
         }
         const res = await this.model.updateOne(filter, update, options);
-        if (filter?.__v) {
+        if (filter?.__v == undefined) {
             if (!res.matchedCount) {
                 const { __v, ...baseFilter } = filter;
                 const existsIgnoringVersion = await this.model.exists(baseFilter);
@@ -118,7 +118,7 @@ class DatabaseRepository {
                 }),
             };
         }
-        const res = await this.model.updateOne({ _id: id, __v: v }, update, options);
+        const res = await this.model.updateOne({ _id: id, ...(v != undefined ? { __v: v } : undefined) }, update, options);
         if (!res.matchedCount) {
             const existsIgnoringVersion = await this.model.exists({ _id: id });
             if (existsIgnoringVersion) {
@@ -127,7 +127,7 @@ class DatabaseRepository {
         }
         return res;
     };
-    findOneAndUpdate = async ({ filter = { __v: 0 }, update, options = { new: true }, }) => {
+    findOneAndUpdate = async ({ filter = {}, update, options = { new: true }, }) => {
         if (Array.isArray(update)) {
             update.push({
                 $set: {
@@ -169,7 +169,7 @@ class DatabaseRepository {
                 }),
             };
         }
-        const res = await this.model.findOneAndUpdate({ _id: id, __v: v }, {
+        const res = await this.model.findOneAndUpdate({ _id: id, ...(v != undefined ? { __v: v } : undefined) }, {
             ...update,
             $inc: Object.assign(update["$inc"] ?? {}, {
                 __v: 1,
@@ -183,7 +183,7 @@ class DatabaseRepository {
         }
         return res;
     };
-    deleteOne = async ({ filter = { __v: undefined }, options = {}, }) => {
+    deleteOne = async ({ filter = {}, options = {}, }) => {
         const res = await this.model.deleteOne(filter, options);
         if (!res.deletedCount) {
             const { __v, ...baseFilter } = filter;
@@ -198,10 +198,26 @@ class DatabaseRepository {
         return this.model.deleteMany(filter, options);
     };
     findOneAndDelete = async ({ filter = {}, options = { new: true }, }) => {
-        return this.model.findOneAndDelete(filter, options);
+        const res = await this.model.findOneAndDelete(filter, options);
+        if (filter?.__v != undefined && res == undefined) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
     replaceOne = async ({ filter = {}, replacement, options = {}, }) => {
-        return this.model.replaceOne(filter, replacement, options);
+        const res = await this.model.replaceOne(filter, replacement, options);
+        if (!res.matchedCount) {
+            const { __v, ...baseFilter } = filter;
+            const existsIgnoringVersion = await this.model.exists(baseFilter);
+            if (existsIgnoringVersion) {
+                throw new VersionConflictException(StringConstants.INVALID_VERSION_MESSAGE);
+            }
+        }
+        return res;
     };
     countDocuments = async ({ filter = {}, }) => {
         return this.model.countDocuments(filter);

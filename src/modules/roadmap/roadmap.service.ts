@@ -119,6 +119,18 @@ class RoadmapService {
     if (!quizzesIds?.length) {
       return;
     }
+    const careerAssessment = await this._quizRespository.exists({
+      filter: {
+        uniqueKey: { $regex: StringConstants.CAREER_ASSESSMENT, $options: "i" },
+      },
+    });
+    if (careerAssessment) {
+      if (quizzesIds.includes(careerAssessment._id.toString())) {
+        throw new BadRequestException(
+          `${StringConstants.CAREER_ASSESSMENT} can't be specified to a roadmap step ❌`,
+        );
+      }
+    }
     if (
       (await this._quizRespository.countDocuments({
         filter: {
@@ -165,7 +177,7 @@ class RoadmapService {
       throw new ConflictException("Step with this title already exists ❌");
     }
 
-    this._checkQuizzesExists({ quizzesIds });
+    await this._checkQuizzesExists({ quizzesIds });
 
     /// check order
     await this.checkAndUpdateOrder({ career, order });
@@ -461,6 +473,7 @@ class RoadmapService {
     roadmapStepId: string | Types.ObjectId;
     v: number;
   }): Promise<HIRoadmapStepType> => {
+
     const roadmapStep = await this._roadmapStepRepository.findOne({
       filter: {
         _id: roadmapStepId,
@@ -541,7 +554,7 @@ class RoadmapService {
       );
     }
 
-    this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
+    await this._checkQuizzesExists({ quizzesIds: body.quizzesIds });
 
     const session = await startSession();
     await session.withTransaction(async () => {
@@ -964,7 +977,7 @@ class RoadmapService {
 
     return successHandler({
       res,
-      message: `Roadmap step was restored successfully after ${result.length >= 1 ? `deleting unfound quizzesIds ✅` : `updating quizzesIds the quizId ${quizId}`} `,
+      message: `Roadmap step was restored successfully after ${result.length >= 1 ? `deleting unfound quizzesIds ✅` : `updating quizzesIds with the quizId ${quizId}`} `,
     });
   };
 
