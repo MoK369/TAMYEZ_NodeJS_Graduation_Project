@@ -8,3 +8,4 @@ export { default as NotificationPushDeviceModel } from "./notifiction_push_devic
 export { default as AdminNotificationsLimitModel } from "./admin_notifications_limit.model.js";
 export { default as CareerModel } from "./career.model.js";
 export { default as RoadmapStepModel } from "./roadmap_step.model.js";
+export { default as DashboardReviewModel } from "./dashboard_review.model.js";

@@ -150,3 +150,9 @@ export var ApplicationTypeEnum;
     ApplicationTypeEnum["user"] = "User";
     ApplicationTypeEnum["adminDashboard"] = "AdminDashboard";
 })(ApplicationTypeEnum || (ApplicationTypeEnum = {}));
+export var DashboardReviewTypes;
+(function (DashboardReviewTypes) {
+    DashboardReviewTypes["users"] = "users";
+    DashboardReviewTypes["careers"] = "careers";
+    DashboardReviewTypes["quizzes"] = "quizzes";
+})(DashboardReviewTypes || (DashboardReviewTypes = {}));

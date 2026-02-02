@@ -9,5 +9,6 @@ class ModelsNames {
     static adminNotificationsLimit = "AdminNotificationsLimit";
     static careerModel = "Career";
     static roadmapStepModel = "RoadmapStep";
+    static dashboardReviewModel = "DashboardReview";
 }
 export default ModelsNames;

@@ -149,3 +149,9 @@ export enum ApplicationTypeEnum {
   user = "User",
   adminDashboard = "AdminDashboard",
 }
+
+export enum DashboardReviewTypes {
+  users = "users",
+  careers = "careers",
+  quizzes = "quizzes",
+}

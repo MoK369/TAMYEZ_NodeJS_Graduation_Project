@@ -6,3 +6,4 @@ export { default as NotificationPushDeviceRepository } from "./notification_push
 export { default as AdminNotificationsLimitRepository } from "./admin_notifications_limit.repository.js";
 export { default as CareerRepository } from "./career.repository.js";
 export { default as RoadmapStepRepository } from "./roadmap_step.repository.js";
+export { default as DashboardReviewRepository } from "./dashboard_review.repository.js";

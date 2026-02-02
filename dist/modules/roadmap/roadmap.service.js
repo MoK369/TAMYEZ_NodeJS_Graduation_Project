@@ -188,7 +188,6 @@ class RoadmapService {
                     },
                 });
             }
-            console.log({ pipeline, item3: pipeline[2] });
             const result = (await this._roadmapStepRepository.aggregate({
                 pipeline: [
                     ...pipeline,
