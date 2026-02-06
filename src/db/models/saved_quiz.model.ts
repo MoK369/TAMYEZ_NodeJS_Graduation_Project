@@ -1,4 +1,4 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { Model, Types } from "mongoose";
 import type {
   FullISavedQuestion,
   FullISavedQuiz,
@@ -169,7 +169,7 @@ savedQuizSchema.methods.toJSON = function () {
     this.toObject() as FullISavedQuiz;
 
   let quiz;
-  if (typeof quizId === "object" && (quizId as unknown as FullIQuiz)._id) {
+  if (!Types.ObjectId.isValid(quizId.toString())) {
     const { _id, ...restObj } = quizId as unknown as FullIQuiz;
     quiz = { id: _id, ...restObj };
   }

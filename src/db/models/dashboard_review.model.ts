@@ -24,6 +24,7 @@ const dashboardReviewSchema = new mongoose.Schema<IDashboardReview>(
     strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+    versionKey: false,
   },
 );
 

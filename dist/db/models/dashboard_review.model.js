@@ -19,6 +19,7 @@ const dashboardReviewSchema = new mongoose.Schema({
     strictQuery: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+    versionKey: false,
 });
 dashboardReviewSchema.methods.toJSON = function () {
     const reviewObject = DocumentFormat.getIdFrom_Id(this.toObject());

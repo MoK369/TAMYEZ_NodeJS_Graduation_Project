@@ -28,6 +28,7 @@ adminUserRouter.use(Auths.combinedWithGateway({
     accessRoles: userAuthorizationEndpoints.getUsers,
     applicationType: ApplicationTypeEnum.adminDashboard,
 }));
+adminUserRouter.get(RoutePaths.getAdminDashboardData, userService.getAdminDashboardData);
 adminUserRouter.get(RoutePaths.getUsers, validationMiddleware({ schema: UserValidators.getUsers }), userService.getUsers());
 adminUserRouter.get(RoutePaths.getArchivedUsers, validationMiddleware({ schema: UserValidators.getUsers }), userService.getUsers({ archived: true }));
 adminUserRouter.get(RoutePaths.archivedUserProfile, validationMiddleware({ schema: UserValidators.getProfile }), userService.getProfile({ archived: true }));

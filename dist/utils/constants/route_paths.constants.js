@@ -19,6 +19,7 @@ class RoutePaths {
     static resendEmailVerificationLink = "/resend-email-verification";
     static user = "/user";
     static adminUser = "/admin/user";
+    static getAdminDashboardData = "/dashboard-data";
     static getUsers = "/";
     static getArchivedUsers = "/archives";
     static userProfile = "{/:userId}";

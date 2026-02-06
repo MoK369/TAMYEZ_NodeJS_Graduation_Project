@@ -7,11 +7,11 @@ import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import { BadRequestException, ForbiddenException, NotFoundException, ValidationException, VersionConflictException, } from "../../utils/exceptions/custom.exceptions.js";
 import StringConstants from "../../utils/constants/strings.constants.js";
 import TokenSecurityUtil from "../../utils/security/token.security.js";
-import { NotificationPushDeviceRepository, QuizAttemptRepository, UserRepository, } from "../../db/repositories/index.js";
+import { AdminNotificationsLimitRepository, CareerRepository, DashboardReviewRepository, NotificationPushDeviceRepository, QuizAttemptRepository, UserRepository, } from "../../db/repositories/index.js";
 import NotificationPushDeviceModel from "../../db/models/notifiction_push_device.model.js";
 import S3KeyUtil from "../../utils/multer/s3_key.multer.js";
 import UserModel from "../../db/models/user.model.js";
-import { QuizAttemptModel, QuizCooldownModel, SavedQuizModel, } from "../../db/models/index.js";
+import { AdminNotificationsLimitModel, CareerModel, DashboardReviewModel, QuizAttemptModel, QuizCooldownModel, SavedQuizModel, } from "../../db/models/index.js";
 import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.js";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.js";
 class UserService {
@@ -20,6 +20,96 @@ class UserService {
     _quizAttemptRepository = new QuizAttemptRepository(QuizAttemptModel);
     _savedQuizRepository = new SavedQuizRepository(SavedQuizModel);
     _quizCooldownRepository = new QuizCooldownRepository(QuizCooldownModel);
+    _dashboardReviewRepository = new DashboardReviewRepository(DashboardReviewModel);
+    _adminNotificationsLimitRepository = new AdminNotificationsLimitRepository(AdminNotificationsLimitModel);
+    _careerRepository = new CareerRepository(CareerModel);
+    getAdminDashboardData = async (req, res) => {
+        const reviews = await this._dashboardReviewRepository.aggregate({
+            pipeline: [
+                {
+                    $group: {
+                        _id: null,
+                        data: {
+                            $push: {
+                                k: "$reviewType",
+                                v: "$activeCount",
+                            },
+                        },
+                    },
+                },
+                {
+                    $replaceRoot: { newRoot: { $arrayToObject: "$data" } },
+                },
+            ],
+        });
+        const notifications = await this._adminNotificationsLimitRepository.aggregate({
+            pipeline: [
+                {
+                    $group: {
+                        _id: null,
+                        notifications: { $sum: "$count" },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        notifications: 1,
+                    },
+                },
+            ],
+        });
+        return successHandler({
+            res,
+            body: {
+                ...reviews[0],
+                ...notifications[0],
+                newUserRegistered: (await this._userRepository.findOne({
+                    options: {
+                        sort: { createdAt: -1 },
+                        projection: {
+                            firstName: 1,
+                            lastName: 1,
+                            email: 1,
+                            profilePicture: 1,
+                            createdAt: 1,
+                        },
+                    },
+                })) ?? undefined,
+                careerPathUpdate: (await this._careerRepository.findOne({
+                    options: {
+                        sort: { updatedAt: -1 },
+                        projection: { title: 1, slug: 1, pictureUrl: 1, updatedAt: 1 },
+                    },
+                })) ?? undefined,
+                quizCompleted: (await this._savedQuizRepository.findOne({
+                    options: {
+                        sort: { createdAt: -1 },
+                        projection: { quizId: 1, userId: 1, createdAt: 1 },
+                        populate: [
+                            {
+                                path: "quizId",
+                                match: { paranoid: false },
+                                select: { title: 1 },
+                            },
+                        ],
+                    },
+                })) ?? undefined,
+                notificationSent: await this._adminNotificationsLimitRepository.findOne({
+                    options: {
+                        sort: { createdAt: -1 },
+                        projection: { type: 1, careerId: 1, createdAt: 1 },
+                        populate: [
+                            {
+                                path: "careerId",
+                                match: { paranoid: false },
+                                select: { title: 1, slug: 1, pictureUrl: 1 },
+                            },
+                        ],
+                    },
+                }),
+            },
+        });
+    };
     getProfile = ({ archived = false } = {}) => {
         return async (req, res) => {
             const { userId } = req.params;

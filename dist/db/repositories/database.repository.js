@@ -91,7 +91,7 @@ class DatabaseRepository {
             };
         }
         const res = await this.model.updateOne(filter, update, options);
-        if (filter?.__v == undefined) {
+        if (filter?.__v != undefined) {
             if (!res.matchedCount) {
                 const { __v, ...baseFilter } = filter;
                 const existsIgnoringVersion = await this.model.exists(baseFilter);

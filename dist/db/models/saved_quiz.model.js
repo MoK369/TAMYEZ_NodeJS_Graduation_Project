@@ -1,4 +1,4 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { Model, Types } from "mongoose";
 import { QuestionTypesEnum } from "../../utils/constants/enum.constants.js";
 import { validateIfValidQuestionAnswer } from "../../utils/question/validate_options.question.js";
 import ModelsNames from "../../utils/constants/models.names.constants.js";
@@ -119,7 +119,7 @@ savedQuizSchema.virtual("id").get(function () {
 savedQuizSchema.methods.toJSON = function () {
     const { _id, quizId, score, userId, takenAt, createdAt, updatedAt } = this.toObject();
     let quiz;
-    if (typeof quizId === "object" && quizId._id) {
+    if (!Types.ObjectId.isValid(quizId.toString())) {
         const { _id, ...restObj } = quizId;
         quiz = { id: _id, ...restObj };
     }

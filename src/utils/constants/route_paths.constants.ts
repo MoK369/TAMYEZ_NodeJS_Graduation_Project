@@ -25,6 +25,7 @@ class RoutePaths {
   // user routes
   static readonly user = "/user";
   static readonly adminUser = "/admin/user";
+  static readonly getAdminDashboardData = "/dashboard-data";
   static readonly getUsers = "/";
   static readonly getArchivedUsers = "/archives";
   static readonly userProfile = "{/:userId}";

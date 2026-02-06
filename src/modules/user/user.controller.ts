@@ -80,6 +80,11 @@ adminUserRouter.use(
 );
 
 adminUserRouter.get(
+  RoutePaths.getAdminDashboardData,
+  userService.getAdminDashboardData,
+);
+
+adminUserRouter.get(
   RoutePaths.getUsers,
   validationMiddleware({ schema: UserValidators.getUsers }),
   userService.getUsers(),
