@@ -7,7 +7,7 @@ import type { PartialUndefined } from "../../utils/types/partial_undefined.type.
 
 const replySchema = new mongoose.Schema<IReply>(
   {
-    text: { type: String, required: true, min: 5, max: 1000 },
+    text: { type: String, required: true, min: 5, max: 500 },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: ModelsNames.userModel,
@@ -19,7 +19,7 @@ const replySchema = new mongoose.Schema<IReply>(
 
 const feedbackSchema = new mongoose.Schema<IFeedback>(
   {
-    text: { type: String, required: true, min: 5, max: 1000 },
+    text: { type: String, required: true, min: 5, max: 500 },
     stars: { type: Number, required: true },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

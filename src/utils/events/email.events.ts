@@ -76,4 +76,23 @@ emailEvent.subscribe({
   },
 });
 
+emailEvent.subscribe({
+  eventName: EmailEventsEnum.feedbackReply,
+  bgFunction: (payload) => {
+    const subject = "Feedback Reply ✉️💬";
+
+    return EmailService.sendEmail({
+      otpOrLink: payload.otpOrLink,
+      to: payload.to,
+      subject: subject,
+      html: HTML_EMAIL_TEMPLATE({
+        title: subject,
+        message: payload.otpOrLink,
+
+        logoUrl: process.env.LOGO_URL!,
+      }),
+    });
+  },
+});
+
 export default emailEvent;

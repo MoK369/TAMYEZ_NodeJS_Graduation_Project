@@ -59,3 +59,18 @@ export type SubmitFeedbackBodyDtoType = z.infer<
   typeof UserValidators.submitFeedback.body
 >;
 
+export type GetFeedbacksQueryDtoType = z.infer<
+  typeof UserValidators.getFeedbacks.query
+>;
+
+export type ReplyToFeedbackParamsDtoType = z.infer<
+  typeof UserValidators.replyToFeedback.params
+>;
+
+export type ReplyToFeedbackBodyDtoType = z.infer<
+  typeof UserValidators.replyToFeedback.body
+>;
+
+export type DeleteFeedbackParamsDtoType = z.infer<
+  typeof UserValidators.deleteFeedback.params
+>;

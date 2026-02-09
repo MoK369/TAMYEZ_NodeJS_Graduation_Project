@@ -106,10 +106,24 @@ adminUserRouter.get(
 );
 
 adminUserRouter.get(
+  RoutePaths.getFeedbacks,
+  validationMiddleware({ schema: UserValidators.getFeedbacks }),
+  userService.getFeedbacks,
+);
+
+
+adminUserRouter.get(
   RoutePaths.archivedUserProfile,
   validationMiddleware({ schema: UserValidators.getProfile }),
   userService.getProfile({ archived: true }),
 );
+
+adminUserRouter.post(
+  RoutePaths.replyToFeedback,
+  validationMiddleware({ schema: UserValidators.replyToFeedback }),
+  userService.replyToFeedback,
+);
+
 
 adminUserRouter.patch(
   RoutePaths.changeRole,
@@ -122,3 +136,10 @@ adminUserRouter.patch(
   validationMiddleware({ schema: UserValidators.restoreAccount }),
   userService.restoreAccount,
 );
+
+adminUserRouter.delete(
+  RoutePaths.deleteFeedback,
+  validationMiddleware({ schema: UserValidators.deleteFeedback }),
+  userService.deleteFeedback,
+);
+

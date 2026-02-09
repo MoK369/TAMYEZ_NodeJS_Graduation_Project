@@ -22,6 +22,7 @@ export enum EmailEventsEnum {
   emailVerification = "EmailVerification",
   forgetPassword = "ForgetPassword",
   emailRestoration = "EmailRestoration",
+  feedbackReply = "FeedReply"
 }
 
 export enum NotificationEventsEnum {

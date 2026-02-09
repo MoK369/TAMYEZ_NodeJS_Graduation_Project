@@ -2,7 +2,7 @@ import mongoose, { Model, Types } from "mongoose";
 import ModelsNames from "../../utils/constants/models.names.constants.js";
 import DocumentFormat from "../../utils/formats/document.format.js";
 const replySchema = new mongoose.Schema({
-    text: { type: String, required: true, min: 5, max: 1000 },
+    text: { type: String, required: true, min: 5, max: 500 },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: ModelsNames.userModel,
@@ -10,7 +10,7 @@ const replySchema = new mongoose.Schema({
     },
 }, { _id: false, versionKey: false });
 const feedbackSchema = new mongoose.Schema({
-    text: { type: String, required: true, min: 5, max: 1000 },
+    text: { type: String, required: true, min: 5, max: 500 },
     stars: { type: Number, required: true },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

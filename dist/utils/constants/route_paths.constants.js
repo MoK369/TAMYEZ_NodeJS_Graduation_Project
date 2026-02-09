@@ -30,6 +30,9 @@ class RoutePaths {
     static changePassword = "/change-password";
     static logout = "/logout";
     static submitFeedback = "/feedback";
+    static getFeedbacks = "/feedback";
+    static replyToFeedback = "/:feedbackId/feedback-reply";
+    static deleteFeedback = "/:feedbackId/feedback-delete";
     static archiveAccount = "{/:userId}/archive";
     static restoreAccount = "/:userId/restore";
     static deleteAccount = "{/:userId}/delete";

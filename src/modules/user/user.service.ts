@@ -9,9 +9,13 @@ import type {
   ChangeRoleParamsDtoType,
   DeleteAccountBodyDtoType,
   DeleteAccountParamsDtoType,
+  DeleteFeedbackParamsDtoType,
+  GetFeedbacksQueryDtoType,
   GetProfileParamsDtoType,
   GetUsersQueryDtoType,
   LogoutBodyDtoType,
+  ReplyToFeedbackBodyDtoType,
+  ReplyToFeedbackParamsDtoType,
   RestoreAccountBodyDtoType,
   RestoreAccountParamsDtoType,
   SubmitFeedbackBodyDtoType,
@@ -22,6 +26,7 @@ import S3Service from "../../utils/multer/s3.service.ts";
 import S3FoldersPaths from "../../utils/multer/s3_folders_paths.ts";
 import {
   ApplicationTypeEnum,
+  EmailEventsEnum,
   LogoutFlagsEnum,
   ProvidersEnum,
   RolesEnum,
@@ -60,6 +65,8 @@ import {
 } from "../../db/models/index.ts";
 import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.ts";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.ts";
+import emailEvent from "../../utils/events/email.events.ts";
+import type { IUser } from "../../db/interfaces/user.interface.ts";
 
 class UserService {
   private readonly _notificationPushDeviceRepository =
@@ -704,6 +711,74 @@ class UserService {
       res,
       message: "Feedback submitted successfully ✅",
     });
+  };
+
+  getFeedbacks = async (req: Request, res: Response): Promise<Response> => {
+    const { page, size } = req.validationResult
+      .query as GetFeedbacksQueryDtoType;
+
+    const feedbacks = await this._feedbackRepository.paginate({
+      filter: {},
+      page,
+      size,
+      options: { sort: { createdAt: -1 } },
+    });
+
+    if (!feedbacks?.data?.length) {
+      throw new NotFoundException("No feedbacks found ❌");
+    }
+    return successHandler({ res, body: feedbacks });
+  };
+
+  replyToFeedback = async (req: Request, res: Response): Promise<Response> => {
+    const { feedbackId } = req.params as ReplyToFeedbackParamsDtoType;
+    const { text } = req.body as ReplyToFeedbackBodyDtoType;
+
+    const feedback = await this._feedbackRepository.findOne({
+      filter: { _id: feedbackId },
+      options: { populate: [{ path: "createdBy", select: "email" }] },
+    });
+
+    if (!feedback) {
+      throw new NotFoundException("Feedback not found ❌");
+    }
+
+    if (feedback.reply) {
+      throw new BadRequestException("This feedback has been replied to ❌");
+    }
+
+    if (feedback.createdBy.equals(req.user!._id)) {
+      throw new BadRequestException("Can't reply on a feedback you created ❌");
+    }
+
+    await this._feedbackRepository.updateOne({
+      filter: { _id: feedback },
+      update: { reply: { text, createdBy: req.user!._id! } },
+    });
+
+    emailEvent.publish({
+      eventName: EmailEventsEnum.feedbackReply,
+      payload: {
+        to: (feedback.createdBy as unknown as IUser).email,
+        otpOrLink: text,
+      },
+    });
+
+    return successHandler({ res });
+  };
+
+  deleteFeedback = async (req: Request, res: Response): Promise<Response> => {
+    const { feedbackId } = req.params as DeleteFeedbackParamsDtoType;
+
+    const result = await this._feedbackRepository.deleteOne({
+      filter: { _id: feedbackId },
+    });
+
+    if (!result.deletedCount) {
+      throw new NotFoundException("Invalid feedbackId or already deleted ❌");
+    }
+
+    return successHandler({ res });
   };
 }
 

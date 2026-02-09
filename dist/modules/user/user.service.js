@@ -1,7 +1,7 @@
 import successHandler from "../../utils/handlers/success.handler.js";
 import S3Service from "../../utils/multer/s3.service.js";
 import S3FoldersPaths from "../../utils/multer/s3_folders_paths.js";
-import { ApplicationTypeEnum, LogoutFlagsEnum, ProvidersEnum, RolesEnum, } from "../../utils/constants/enum.constants.js";
+import { ApplicationTypeEnum, EmailEventsEnum, LogoutFlagsEnum, ProvidersEnum, RolesEnum, } from "../../utils/constants/enum.constants.js";
 import UpdateUtil from "../../utils/update/util.update.js";
 import HashingSecurityUtil from "../../utils/security/hash.security.js";
 import { BadRequestException, ForbiddenException, NotFoundException, ValidationException, VersionConflictException, } from "../../utils/exceptions/custom.exceptions.js";
@@ -14,6 +14,7 @@ import UserModel from "../../db/models/user.model.js";
 import { AdminNotificationsLimitModel, CareerModel, DashboardReviewModel, FeedbackModel, QuizAttemptModel, QuizCooldownModel, SavedQuizModel, } from "../../db/models/index.js";
 import SavedQuizRepository from "../../db/repositories/saved_quiz.repository.js";
 import QuizCooldownRepository from "../../db/repositories/quiz_cooldown.repository.js";
+import emailEvent from "../../utils/events/email.events.js";
 class UserService {
     _notificationPushDeviceRepository = new NotificationPushDeviceRepository(NotificationPushDeviceModel);
     _userRepository = new UserRepository(UserModel);
@@ -516,6 +517,59 @@ class UserService {
             res,
             message: "Feedback submitted successfully ✅",
         });
+    };
+    getFeedbacks = async (req, res) => {
+        const { page, size } = req.validationResult
+            .query;
+        const feedbacks = await this._feedbackRepository.paginate({
+            filter: {},
+            page,
+            size,
+            options: { sort: { createdAt: -1 } },
+        });
+        if (!feedbacks?.data?.length) {
+            throw new NotFoundException("No feedbacks found ❌");
+        }
+        return successHandler({ res, body: feedbacks });
+    };
+    replyToFeedback = async (req, res) => {
+        const { feedbackId } = req.params;
+        const { text } = req.body;
+        const feedback = await this._feedbackRepository.findOne({
+            filter: { _id: feedbackId },
+            options: { populate: [{ path: "createdBy", select: "email" }] },
+        });
+        if (!feedback) {
+            throw new NotFoundException("Feedback not found ❌");
+        }
+        if (feedback.reply) {
+            throw new BadRequestException("This feedback has been replied to ❌");
+        }
+        if (feedback.createdBy.equals(req.user._id)) {
+            throw new BadRequestException("Can't reply on a feedback you created ❌");
+        }
+        await this._feedbackRepository.updateOne({
+            filter: { _id: feedback },
+            update: { reply: { text, createdBy: req.user._id } },
+        });
+        emailEvent.publish({
+            eventName: EmailEventsEnum.feedbackReply,
+            payload: {
+                to: feedback.createdBy.email,
+                otpOrLink: text,
+            },
+        });
+        return successHandler({ res });
+    };
+    deleteFeedback = async (req, res) => {
+        const { feedbackId } = req.params;
+        const result = await this._feedbackRepository.deleteOne({
+            filter: { _id: feedbackId },
+        });
+        if (!result.deletedCount) {
+            throw new NotFoundException("Invalid feedbackId or already deleted ❌");
+        }
+        return successHandler({ res });
     };
 }
 export default UserService;

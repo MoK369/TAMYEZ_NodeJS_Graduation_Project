@@ -127,9 +127,29 @@ class UserValidators {
 
   static submitFeedback = {
     body: z.strictObject({
-      text: z.string().nonempty().min(1).max(1000),
+      text: z.string().nonempty().min(1).max(500),
       stars: z.coerce.number().int().min(1).max(5),
-    })
+    }),
+  };
+
+  static getFeedbacks = {
+    query: z.strictObject({
+      size: z.coerce.number().int().min(2).max(30).optional().default(15),
+      page: z.coerce.number().int().min(1).max(300).optional().default(1),
+    }),
+  };
+
+  static replyToFeedback = {
+    params: z.strictObject({
+      feedbackId: generalValidationConstants.objectId,
+    }),
+    body: z.strictObject({
+      text: z.string().nonempty().min(1).max(500),
+    }),
+  };
+
+  static deleteFeedback = {
+    params: this.replyToFeedback.params,
   }
 }
 
