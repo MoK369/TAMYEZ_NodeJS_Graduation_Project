@@ -81,6 +81,7 @@ class RoutePaths {
     static sendNotification = "/test-send-notification";
     static sendMultipleNotifications = "/test-send-multiple-notifications";
     static sendNotificationsToAllUsers = "/send-notifications-all";
+    static sendNotificationToCareerUsers = "/send-notifications-career/:careerId";
     static enableNotifications = "/enable-notifications";
     static disableNotifications = "/disable-notifications";
     static refreshFcmToken = "/refresh-fcm-token";

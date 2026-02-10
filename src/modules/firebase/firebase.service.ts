@@ -8,13 +8,17 @@ import type {
   SendMultipleNotificationsBodyDtoType,
   SendNotificationBodyDtoType,
   SendNotificationsToAllUsersBodyDtoType,
+  SendNotificationToCareerUsersBodyDtoType,
+  SendNotificationToCareerUsersParamsDtoType,
 } from "./firebase.dto.ts";
 import {
   AdminNotificationsLimitRepository,
+  CareerRepository,
   NotificationPushDeviceRepository,
 } from "../../db/repositories/index.ts";
 import {
   AdminNotificationsLimitModel,
+  CareerModel,
   NotificationPushDeviceModel,
 } from "../../db/models/index.ts";
 import {
@@ -29,6 +33,7 @@ import {
   NotificationEventsEnum,
 } from "../../utils/constants/enum.constants.ts";
 import EnvFields from "../../utils/constants/env_fields.constants.ts";
+import { Types } from "mongoose";
 
 class FirebaseService {
   private readonly _notificationService = new NotificationService();
@@ -36,6 +41,7 @@ class FirebaseService {
     new NotificationPushDeviceRepository(NotificationPushDeviceModel);
   private readonly _adminNotificationsLimitRepository =
     new AdminNotificationsLimitRepository(AdminNotificationsLimitModel);
+  private readonly _careerRepository = new CareerRepository(CareerModel);
 
   sendFirebaseNotification = async (
     req: Request,
@@ -97,7 +103,7 @@ class FirebaseService {
     }
 
     notificationEvents.publish({
-      eventName: NotificationEventsEnum.mutlipleNotifications,
+      eventName: NotificationEventsEnum.allUsers,
       payload: body,
     });
 
@@ -111,6 +117,66 @@ class FirebaseService {
         data: [
           {
             type: AdminNotificationTypesEnum.allUsers,
+            expiresAt: new Date(
+              Date.now() +
+                Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000,
+            ),
+            sentBy: [req.user!._id!],
+            count: 1,
+          },
+        ],
+      });
+    }
+
+    return successHandler({
+      res,
+      message: "Your notification will be sent shortly ✅ 🔔",
+    });
+  };
+
+  sendNotificationsToCareerUsers = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
+    const { careerId } =
+      req.params as SendNotificationToCareerUsersParamsDtoType;
+    const body = req.body as SendNotificationToCareerUsersBodyDtoType;
+
+    const career = await this._careerRepository.findOne({
+      filter: { _id: careerId },
+    });
+
+    if (!career) {
+      throw new NotFoundException("Invalid careerId or freezed ❌");
+    }
+
+    const notificationLimit =
+      await this._adminNotificationsLimitRepository.findOne({
+        filter: { type: AdminNotificationTypesEnum.careerSpecific, careerId },
+      });
+
+    if (notificationLimit && notificationLimit.count >= 2) {
+      throw new BadRequestException(
+        `The maximum number of send notifications ${career.title} career Users have been reached ❌`,
+      );
+    }
+
+    notificationEvents.publish({
+      eventName: NotificationEventsEnum.careerUsers,
+      payload: { ...body, careerId },
+    });
+
+    if (notificationLimit) {
+      await notificationLimit.updateOne({
+        $inc: { count: 1 },
+        $addToSet: { sentBy: req.user!._id! },
+      });
+    } else {
+      await this._adminNotificationsLimitRepository.create({
+        data: [
+          {
+            type: AdminNotificationTypesEnum.careerSpecific,
+            careerId: Types.ObjectId.createFromHexString(careerId),
             expiresAt: new Date(
               Date.now() +
                 Number(process.env[EnvFields.QUIZ_COOLDOWN_IN_SECONDS]) * 1000,

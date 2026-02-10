@@ -26,7 +26,8 @@ export enum EmailEventsEnum {
 }
 
 export enum NotificationEventsEnum {
-  mutlipleNotifications = "MultipleNotifications",
+  allUsers = "AllUsers",
+  careerUsers = "CareerUsers",
 }
 
 export enum GenderEnum {

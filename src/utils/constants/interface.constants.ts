@@ -29,6 +29,7 @@ export interface INotificationParams {
   title: string;
   body: string;
   imageUrl?: string | undefined;
+  careerId?: string | Types.ObjectId | undefined;
 }
 
 export interface ITokenPayload extends JwtPayload {

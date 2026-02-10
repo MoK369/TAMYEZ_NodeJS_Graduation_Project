@@ -27,7 +27,8 @@ export var EmailEventsEnum;
 })(EmailEventsEnum || (EmailEventsEnum = {}));
 export var NotificationEventsEnum;
 (function (NotificationEventsEnum) {
-    NotificationEventsEnum["mutlipleNotifications"] = "MultipleNotifications";
+    NotificationEventsEnum["allUsers"] = "AllUsers";
+    NotificationEventsEnum["careerUsers"] = "CareerUsers";
 })(NotificationEventsEnum || (NotificationEventsEnum = {}));
 export var GenderEnum;
 (function (GenderEnum) {

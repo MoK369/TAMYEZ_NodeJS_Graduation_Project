@@ -23,7 +23,8 @@ const adminNotificationsLimitSchema = new mongoose.Schema({
         },
         validate: {
             validator: function (value) {
-                return !value && this.type === AdminNotificationTypesEnum.allUsers;
+                return ((!value && this.type === AdminNotificationTypesEnum.allUsers) ||
+                    (value && this.type === AdminNotificationTypesEnum.careerSpecific));
             },
             message: "careerId shouldn't have a value when type of the limit is AllUsers notifications",
         },

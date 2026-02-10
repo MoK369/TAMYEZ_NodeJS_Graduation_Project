@@ -66,3 +66,11 @@ adminFirebaseRouter.post(
   }),
   firebaseService.sendNotificationsToAllUsers,
 );
+
+adminFirebaseRouter.post(
+  RoutePaths.sendNotificationToCareerUsers,
+  validationMiddleware({
+    schema: FirebaseValidators.sendNotificationToCareerUsers,
+  }),
+  firebaseService.sendNotificationsToCareerUsers,
+);

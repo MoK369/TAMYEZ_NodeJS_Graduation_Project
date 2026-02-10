@@ -27,3 +27,6 @@ adminFirebaseRouter.post(RoutePaths.sendMultipleNotifications, validationMiddlew
 adminFirebaseRouter.post(RoutePaths.sendNotificationsToAllUsers, validationMiddleware({
     schema: FirebaseValidators.sendNotificationsToAllUsers,
 }), firebaseService.sendNotificationsToAllUsers);
+adminFirebaseRouter.post(RoutePaths.sendNotificationToCareerUsers, validationMiddleware({
+    schema: FirebaseValidators.sendNotificationToCareerUsers,
+}), firebaseService.sendNotificationsToCareerUsers);

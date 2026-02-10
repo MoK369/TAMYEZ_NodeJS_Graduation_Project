@@ -97,6 +97,8 @@ class RoutePaths {
   static readonly sendMultipleNotifications =
     "/test-send-multiple-notifications";
   static readonly sendNotificationsToAllUsers = "/send-notifications-all";
+  static readonly sendNotificationToCareerUsers =
+    "/send-notifications-career/:careerId";
   static readonly enableNotifications = "/enable-notifications";
   static readonly disableNotifications = "/disable-notifications";
   static readonly refreshFcmToken = "/refresh-fcm-token";
