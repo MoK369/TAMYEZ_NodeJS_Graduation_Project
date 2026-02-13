@@ -10,7 +10,9 @@ async function connnectToDB(): Promise<boolean> {
     await mongoose.connect(process.env.DB_URI!);
     console.log(mongoose.connection.models);
     console.log(StringConstants.CONNECTED_TO_DB_MESSAGE);
-    await startCollectionWatcher();
+    setTimeout(async () => {
+      await startCollectionWatcher();
+    }, 500);
     return true;
   } catch (e) {
     console.log(StringConstants.FAILED_CONNECTED_TO_DB_MESSAGE, e);
@@ -126,6 +128,11 @@ async function ensurePreImagesEnabled(collectionName: string) {
       await mongoose.connection.db.createCollection(collectionName, {
         changeStreamPreAndPostImages: { enabled: true },
       });
+    } else {
+      console.error(
+        `Error ensuring pre-images enabled for ${collectionName}:`,
+        err,
+      );
     }
   }
 }

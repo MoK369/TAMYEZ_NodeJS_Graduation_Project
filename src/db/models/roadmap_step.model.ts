@@ -189,8 +189,6 @@ roadmapStepSchema.methods.toJSON = function () {
       roadmapStepObject?.quizzesIds?.length &&
       !Types.ObjectId.isValid(roadmapStepObject.quizzesIds[0]?.toString() ?? "")
         ? roadmapStepObject.quizzesIds.map((quiz) => {
-            console.log("Inside map");
-
             return DocumentFormat.getIdFrom_Id<IQuiz>(
               quiz as unknown as FullIQuiz,
             );

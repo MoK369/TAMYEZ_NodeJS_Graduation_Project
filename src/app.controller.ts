@@ -45,13 +45,15 @@ async function bootstrap() {
     });
   } else {
     // Routes
-    await UserModel.syncIndexes();
-    await QuizModel.syncIndexes();
-    await SavedQuizModel.syncIndexes();
-    await QuizAttemptModel.syncIndexes();
-    await NotificationPushDeviceModel.syncIndexes();
-    await RoadmapStepModel.syncIndexes();
-    await CareerModel.syncIndexes();
+    if (process.env.MOOD === ProjectMoodsEnum.dev) {
+      await UserModel.syncIndexes();
+      await QuizModel.syncIndexes();
+      await SavedQuizModel.syncIndexes();
+      await QuizAttemptModel.syncIndexes();
+      await NotificationPushDeviceModel.syncIndexes();
+      await RoadmapStepModel.syncIndexes();
+      await CareerModel.syncIndexes();
+    }
 
     app.use(protocolAndHostHanlder);
     app.use(express.json());

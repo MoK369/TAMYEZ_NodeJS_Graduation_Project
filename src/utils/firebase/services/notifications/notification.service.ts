@@ -56,10 +56,6 @@ class NotificationService {
     const result = await firebaseAdmin
       .messaging()
       .sendEachForMulticast(message);
-    console.log({
-      result,
-      responses: result.responses,
-    });
     return result;
   };
 
